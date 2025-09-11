@@ -12,9 +12,25 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { useEffect, useState } from "react";
 
 export default function HomePage() {
   const { user, logout } = useAuth();
+  const [greeting, setGreeting] = useState("Olá");
+
+  useEffect(() => {
+    const getGreeting = () => {
+      const hour = new Date().getHours();
+      if (hour >= 5 && hour < 12) {
+        return "Bom dia";
+      } else if (hour >= 12 && hour < 18) {
+        return "Boa tarde";
+      } else {
+        return "Boa noite";
+      }
+    };
+    setGreeting(getGreeting());
+  }, []);
 
   if (!user) {
     return null;
@@ -47,7 +63,7 @@ export default function HomePage() {
           <div className="flex justify-between items-start mb-6">
             <div>
               <h2 className="text-3xl font-bold">
-                Boa tarde, {user.displayName || user.email}!
+                {greeting}, {user.displayName || user.email}!
               </h2>
               <p className="text-muted-foreground">
                 Visão geral do desempenho de suas campanhas.
