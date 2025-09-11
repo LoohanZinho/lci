@@ -35,6 +35,7 @@ export function InfluencerTable() {
         <TableHeader>
           <TableRow>
             <TableHead>Influenciador</TableHead>
+            <TableHead>Nicho</TableHead>
             <TableHead>Status</TableHead>
             <TableHead className="text-center">Fumo</TableHead>
             <TableHead className="text-right">Última Edição</TableHead>
@@ -43,7 +44,7 @@ export function InfluencerTable() {
         <TableBody>
           {influencers.length === 0 && !loading ? (
             <TableRow>
-              <TableCell colSpan={4} className="text-center">
+              <TableCell colSpan={5} className="text-center">
                 Nenhum influenciador encontrado.
               </TableCell>
             </TableRow>
@@ -56,6 +57,7 @@ export function InfluencerTable() {
                     {influencer.instagram}
                   </div>
                 </TableCell>
+                <TableCell>{influencer.niche}</TableCell>
                 <TableCell>{influencer.status || "Disponível"}</TableCell>
                 <TableCell className="text-center">
                   {influencer.isFumo && (

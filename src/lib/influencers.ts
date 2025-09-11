@@ -14,6 +14,9 @@ export interface NewInfluencer {
     instagram: string;
     followers: number;
     status: string;
+    niche: string;
+    contact: string;
+    notes: string;
     isFumo: boolean;
     lastUpdate: Date;
     addedBy: string;
