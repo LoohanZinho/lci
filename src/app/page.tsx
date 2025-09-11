@@ -3,7 +3,7 @@
 import { InfluencerForm } from "@/components/influencer-form";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
-import { Filter, PlusCircle, Sun, Moon, Search } from "lucide-react";
+import { PlusCircle, Sun, Moon, Search } from "lucide-react";
 import { InfluencerTable } from "@/components/influencer-table";
 import {
   Dialog,
@@ -12,15 +12,37 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useTheme } from "next-themes";
 import { Input } from "@/components/ui/input";
+import { getInfluencers, Influencer } from "@/lib/influencers";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+
 
 export default function HomePage() {
   const { user, logout } = useAuth();
   const [greeting, setGreeting] = useState("Olá");
   const [searchQuery, setSearchQuery] = useState("");
   const { theme, setTheme } = useTheme();
+  const [influencers, setInfluencers] = useState<Influencer[]>([]);
+  const [popoverOpen, setPopoverOpen] = useState(false);
+
+  useEffect(() => {
+    const unsubscribe = getInfluencers(setInfluencers);
+    return () => unsubscribe();
+  }, []);
 
   useEffect(() => {
     const getGreeting = () => {
@@ -35,6 +57,12 @@ export default function HomePage() {
     };
     setGreeting(getGreeting());
   }, []);
+  
+  const handleSelectSuggestion = (suggestion: string) => {
+    setSearchQuery(suggestion);
+    setPopoverOpen(false);
+  };
+
 
   if (!user) {
     return null;
@@ -78,16 +106,54 @@ export default function HomePage() {
               </p>
             </div>
             <div className="flex items-center gap-2">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  type="search"
-                  placeholder="Buscar por nome, @, ou nota..."
-                  className="pl-9"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
+              <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
+                <PopoverTrigger asChild>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      type="search"
+                      placeholder="Buscar por nome, @, ou nota..."
+                      className="pl-9"
+                      value={searchQuery}
+                      onChange={(e) => {
+                        setSearchQuery(e.target.value);
+                        if(e.target.value.length > 0){
+                          setPopoverOpen(true);
+                        } else {
+                          setPopoverOpen(false);
+                        }
+                      }}
+                    />
+                  </div>
+                </PopoverTrigger>
+                <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                  <Command>
+                    <CommandInput placeholder="Digite para buscar..." />
+                    <CommandList>
+                      <CommandEmpty>Nenhum resultado.</CommandEmpty>
+                      <CommandGroup>
+                        {influencers
+                          .filter(
+                            (i) =>
+                              i.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                              i.instagram.toLowerCase().includes(searchQuery.toLowerCase())
+                          )
+                          .slice(0, 5)
+                          .map((influencer) => (
+                            <CommandItem
+                              key={influencer.id}
+                              onSelect={() => handleSelectSuggestion(influencer.name)}
+                              value={influencer.name}
+                            >
+                              {influencer.name} ({influencer.instagram})
+                            </CommandItem>
+                          ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+
               <Dialog>
                 <DialogTrigger asChild>
                   <Button>
