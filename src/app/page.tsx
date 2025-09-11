@@ -245,11 +245,11 @@ export default function HomePage() {
                 </Popover>
               </div>
 
-            <div className="flex flex-col md:flex-row items-end gap-2 w-full">
-              <div className="w-full md:w-auto">
+            <div className="flex flex-wrap md:flex-nowrap items-end gap-2 w-full">
+              <div className="flex-1 basis-1/3 md:flex-initial">
                   <Label htmlFor="sort-by" className="text-xs text-muted-foreground">Ordenar por</Label>
                   <Select value={sortBy} onValueChange={(v) => setSortBy(v as "lastUpdate" | "followers")}>
-                    <SelectTrigger id="sort-by" className="w-full md:w-[150px]">
+                    <SelectTrigger id="sort-by" className="w-full">
                       <SelectValue placeholder="Ordenar por" />
                     </SelectTrigger>
                     <SelectContent>
@@ -258,10 +258,10 @@ export default function HomePage() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="w-full md:w-auto">
+                <div className="flex-1 basis-1/3 md:flex-initial">
                   <Label htmlFor="sort-direction" className="text-xs text-muted-foreground">Direção</Label>
                   <Select value={sortDirection} onValueChange={(v) => setSortDirection(v as "asc" | "desc")}>
-                    <SelectTrigger id="sort-direction" className="w-full md:w-[140px]">
+                    <SelectTrigger id="sort-direction" className="w-full">
                       <SelectValue placeholder="Direção" />
                     </SelectTrigger>
                     <SelectContent>
@@ -270,10 +270,10 @@ export default function HomePage() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="w-full md:w-auto">
+                <div className="flex-1 basis-full md:flex-initial">
                   <Label htmlFor="status-filter" className="text-xs text-muted-foreground">Filtrar por Status</Label>
                   <Select value={statusFilter} onValueChange={setStatusFilter}>
-                    <SelectTrigger id="status-filter" className="w-full md:w-[160px]">
+                    <SelectTrigger id="status-filter" className="w-full">
                       <SelectValue placeholder="Status" />
                     </SelectTrigger>
                     <SelectContent>
