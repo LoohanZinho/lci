@@ -75,6 +75,11 @@ const validateProfileNameFlow = ai.defineFlow(
   },
   async input => {
     const {output} = await validateProfileNamePrompt(input);
-    return output!;
+    if (!output) {
+      return {
+        isValid: false,
+      };
+    }
+    return output;
   }
 );
