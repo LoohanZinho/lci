@@ -235,13 +235,13 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
             <Input id="contact" placeholder="Email ou WhatsApp" value={formData.contact} onChange={handleChange} disabled={isLoading} />
           </div>
           <div className="flex flex-col space-y-1.5">
-            <Label htmlFor="notes">Observações</Label>
+            <Label htmlFor="notes">Observações/Situação</Label>
             <Textarea id="notes" placeholder="Responde rápido, cobra valor fixo..." value={formData.notes} onChange={handleChange} disabled={isLoading} />
           </div>
 
           {/* Image Upload */}
           <div className="flex flex-col space-y-1.5">
-            <Label htmlFor="proofImage">Prova (Print, etc. - opcional)</Label>
+            <Label htmlFor="proofImage">Prova (Print, etc.)</Label>
             {imagePreview ? (
               <div className="relative w-full max-w-sm aspect-video rounded-md overflow-hidden group">
                 <Image src={imagePreview} alt="Pré-visualização" layout="fill" objectFit="cover" />
