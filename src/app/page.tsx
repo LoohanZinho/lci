@@ -43,7 +43,7 @@ import { Label } from "@/components/ui/label";
 
 
 export default function HomePage() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [greeting, setGreeting] = useState("Olá");
   const [searchQuery, setSearchQuery] = useState("");
   const { theme, setTheme } = useTheme();
@@ -124,8 +124,10 @@ export default function HomePage() {
   return (
     <div className="flex flex-col min-h-screen">
       <header className="flex items-center justify-between p-4 border-b bg-background">
-        <div className="flex items-center space-x-2">
-          <BarChart3 className="h-6 w-6 text-primary" />
+        <div className="flex items-center space-x-3">
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground">
+            <BarChart3 className="h-5 w-5" />
+          </div>
           <h1 className="text-xl font-semibold">
             <span className="font-light">LCI:</span> Mural de Influência
           </h1>
