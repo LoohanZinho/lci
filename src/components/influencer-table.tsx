@@ -10,10 +10,11 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { useEffect, useMemo, useState } from "react";
-import { getInfluencers, Influencer } from "@/lib/influencers";
+import { getInfluencers, InfluencerWithUserData } from "@/lib/influencers";
 import { Flame } from "lucide-react";
 import { InfluencerActions } from "./influencer-actions";
 import { EditInfluencerDialog } from "./edit-influencer-dialog";
+import { ViewInfluencerDialog } from "./view-influencer-dialog";
 
 
 interface InfluencerTableProps {
@@ -21,11 +22,13 @@ interface InfluencerTableProps {
 }
 
 export function InfluencerTable({ searchQuery }: InfluencerTableProps) {
-  const [influencers, setInfluencers] = useState<Influencer[]>([]);
+  const [influencers, setInfluencers] = useState<InfluencerWithUserData[]>([]);
   const [loading, setLoading] = useState(true);
-  const [editingInfluencer, setEditingInfluencer] = useState<Influencer | null>(null);
+  const [editingInfluencer, setEditingInfluencer] = useState<InfluencerWithUserData | null>(null);
+  const [viewingInfluencer, setViewingInfluencer] = useState<InfluencerWithUserData | null>(null);
 
   useEffect(() => {
+    setLoading(true);
     const unsubscribe = getInfluencers((data) => {
       setInfluencers(data);
       setLoading(false);
@@ -34,8 +37,12 @@ export function InfluencerTable({ searchQuery }: InfluencerTableProps) {
     return () => unsubscribe();
   }, []);
 
-  const handleEdit = (influencer: Influencer) => {
+  const handleEdit = (influencer: InfluencerWithUserData) => {
     setEditingInfluencer(influencer);
+  };
+  
+  const handleView = (influencer: InfluencerWithUserData) => {
+    setViewingInfluencer(influencer);
   };
 
   const filteredInfluencers = useMemo(() => {
@@ -70,7 +77,7 @@ export function InfluencerTable({ searchQuery }: InfluencerTableProps) {
               <TableHead className="hidden md:table-cell">Status</TableHead>
               <TableHead className="text-center">Fumo</TableHead>
               <TableHead className="text-right hidden lg:table-cell">Última Edição</TableHead>
-              <TableHead className="w-[80px] text-right">Ações</TableHead>
+              <TableHead className="w-[120px] text-right">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -87,6 +94,9 @@ export function InfluencerTable({ searchQuery }: InfluencerTableProps) {
                     <div className="font-medium">{influencer.name}</div>
                     <div className="text-sm text-muted-foreground">
                       {influencer.instagram}
+                    </div>
+                     <div className="text-xs text-muted-foreground/80 mt-1">
+                      Anunciado por: {influencer.addedByData?.name || 'Desconhecido'}
                     </div>
                   </TableCell>
                   <TableCell className="hidden sm:table-cell">{influencer.niche}</TableCell>
@@ -106,6 +116,7 @@ export function InfluencerTable({ searchQuery }: InfluencerTableProps) {
                     <InfluencerActions 
                       influencer={influencer}
                       onEdit={() => handleEdit(influencer)}
+                      onView={() => handleView(influencer)}
                     />
                   </TableCell>
                 </TableRow>
@@ -120,6 +131,14 @@ export function InfluencerTable({ searchQuery }: InfluencerTableProps) {
           influencer={editingInfluencer}
           isOpen={!!editingInfluencer}
           onClose={() => setEditingInfluencer(null)}
+        />
+      )}
+
+      {viewingInfluencer && (
+        <ViewInfluencerDialog
+          influencer={viewingInfluencer}
+          isOpen={!!viewingInfluencer}
+          onClose={() => setViewingInfluencer(null)}
         />
       )}
     </>

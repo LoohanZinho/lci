@@ -8,10 +8,10 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { InfluencerForm } from "./influencer-form";
-import { Influencer } from "@/lib/influencers";
+import { InfluencerWithUserData } from "@/lib/influencers";
 
 interface EditInfluencerDialogProps {
-  influencer: Influencer;
+  influencer: InfluencerWithUserData;
   isOpen: boolean;
   onClose: () => void;
 }

@@ -9,6 +9,8 @@ import {
   deleteDoc,
   doc,
   updateDoc,
+  getDoc,
+  getDocs,
 } from "firebase/firestore";
 import { db } from "./firebase";
 
@@ -28,6 +30,15 @@ export interface NewInfluencer {
 export interface Influencer extends Omit<NewInfluencer, 'lastUpdate'> {
     id: string;
     lastUpdate: Timestamp;
+}
+
+export interface UserData {
+  name: string;
+  email: string;
+}
+
+export interface InfluencerWithUserData extends Influencer {
+  addedByData?: UserData;
 }
 
 
@@ -62,17 +73,48 @@ export const updateInfluencer = async (id: string, data: Partial<UpdatableInflue
 };
 
 
+const fetchUsersData = async (uids: string[]): Promise<Record<string, UserData>> => {
+  if (uids.length === 0) return {};
+  const uniqueUids = [...new Set(uids)];
+  const usersRef = collection(db, "users");
+  const q = query(usersRef, where('__name__', 'in', uniqueUids));
+  
+  try {
+      const querySnapshot = await getDocs(q);
+      const usersData: Record<string, UserData> = {};
+      querySnapshot.forEach((doc) => {
+          usersData[doc.id] = doc.data() as UserData;
+      });
+      return usersData;
+  } catch (error) {
+      console.error("Error fetching users data: ", error);
+      return {};
+  }
+};
+
+// This is a temporary workaround until 'in' queries are fully supported in onSnapshot listeners for this use case.
+const { where } = require("firebase/firestore");
+
 export const getInfluencers = (
-    callback: (influencers: Influencer[]) => void
+    callback: (influencers: InfluencerWithUserData[]) => void
   ) => {
     const q = query(collection(db, "influencers"), orderBy("lastUpdate", "desc"));
   
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+    const unsubscribe = onSnapshot(q, async (querySnapshot) => {
       const influencers: Influencer[] = [];
       querySnapshot.forEach((doc) => {
         influencers.push({ id: doc.id, ...doc.data() } as Influencer);
       });
-      callback(influencers);
+      
+      const uids = influencers.map(i => i.addedBy).filter(Boolean);
+      const usersData = await fetchUsersData(uids);
+
+      const influencersWithUserData: InfluencerWithUserData[] = influencers.map(influencer => ({
+        ...influencer,
+        addedByData: usersData[influencer.addedBy]
+      }));
+
+      callback(influencersWithUserData);
     });
   
     return unsubscribe;

@@ -15,9 +15,10 @@ import {
   signOut,
   updateProfile,
 } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { auth, db } from "@/lib/firebase";
 import { useRouter, usePathname } from "next/navigation";
 import { LoadingSpinner } from "@/components/loading-spinner";
+import { doc, setDoc } from "firebase/firestore";
 
 interface AuthContextType {
   user: User | null;
@@ -71,10 +72,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       email,
       password
     );
-    if (userCredential.user) {
-      await updateProfile(userCredential.user, { displayName });
+    const newUser = userCredential.user;
+    if (newUser) {
+      await updateProfile(newUser, { displayName });
+      
+      // Save user info to 'users' collection
+      await setDoc(doc(db, "users", newUser.uid), {
+        name: displayName,
+        email: email,
+      });
+
       // To get the displayName immediately, we reload the user state
-      await userCredential.user.reload();
+      await newUser.reload();
       setUser(auth.currentUser);
     }
   };
@@ -90,6 +99,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const updateUserProfile = async (displayName: string) => {
     if (auth.currentUser) {
       await updateProfile(auth.currentUser, { displayName });
+
+      // Update user info in 'users' collection
+      await setDoc(doc(db, "users", auth.currentUser.uid), {
+        name: displayName,
+        email: auth.currentUser.email,
+      }, { merge: true });
+
       await auth.currentUser.reload();
       setUser(auth.currentUser);
     } else {

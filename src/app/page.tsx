@@ -15,7 +15,7 @@ import {
 import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 import { Input } from "@/components/ui/input";
-import { getInfluencers, Influencer } from "@/lib/influencers";
+import { getInfluencers, InfluencerWithUserData } from "@/lib/influencers";
 import {
   Popover,
   PopoverContent,
@@ -45,7 +45,7 @@ export default function HomePage() {
   const [greeting, setGreeting] = useState("Olá");
   const [searchQuery, setSearchQuery] = useState("");
   const { theme, setTheme } = useTheme();
-  const [influencers, setInfluencers] = useState<Influencer[]>([]);
+  const [influencers, setInfluencers] = useState<InfluencerWithUserData[]>([]);
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
 

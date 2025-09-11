@@ -1,23 +1,17 @@
 "use client";
 
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal, Edit, Trash2 } from "lucide-react";
-import { deleteInfluencer, Influencer } from "@/lib/influencers";
+import { Edit, Trash2, Eye } from "lucide-react";
+import { deleteInfluencer, InfluencerWithUserData } from "@/lib/influencers";
 import { useState } from "react";
 
 interface InfluencerActionsProps {
-  influencer: Influencer;
+  influencer: InfluencerWithUserData;
   onEdit: () => void;
+  onView: () => void;
 }
 
-export function InfluencerActions({ influencer, onEdit }: InfluencerActionsProps) {
+export function InfluencerActions({ influencer, onEdit, onView }: InfluencerActionsProps) {
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleDelete = async () => {
@@ -38,28 +32,19 @@ export function InfluencerActions({ influencer, onEdit }: InfluencerActionsProps
   };
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="h-8 w-8 p-0">
-          <span className="sr-only">Abrir menu</span>
-          <MoreHorizontal className="h-4 w-4" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={onEdit}>
-          <Edit className="mr-2 h-4 w-4" />
-          <span>Editar</span>
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem
-          onClick={handleDelete}
-          disabled={isDeleting}
-          className="text-destructive focus:text-destructive focus:bg-destructive/10"
-        >
-          <Trash2 className="mr-2 h-4 w-4" />
-          <span>{isDeleting ? "Excluindo..." : "Excluir"}</span>
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <div className="flex items-center justify-end space-x-1">
+       <Button variant="ghost" size="icon" onClick={onView}>
+        <Eye className="h-4 w-4" />
+        <span className="sr-only">Ver detalhes</span>
+      </Button>
+      <Button variant="ghost" size="icon" onClick={onEdit}>
+        <Edit className="h-4 w-4" />
+        <span className="sr-only">Editar</span>
+      </Button>
+      <Button variant="ghost" size="icon" onClick={handleDelete} disabled={isDeleting} className="text-destructive hover:text-destructive">
+        <Trash2 className="h-4 w-4" />
+        <span className="sr-only">Excluir</span>
+      </Button>
+    </div>
   );
 }
