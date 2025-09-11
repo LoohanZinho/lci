@@ -110,7 +110,7 @@ export function InfluencerTable({ searchQuery }: InfluencerTableProps) {
                     )}
                   </TableCell>
                   <TableCell className="text-right hidden lg:table-cell">
-                    {influencer.lastUpdate?.toDate().toLocaleDateString("pt-BR")}
+                    {influencer.lastUpdate?.toDate().toLocaleString("pt-BR", { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                   </TableCell>
                   <TableCell className="text-right">
                     <InfluencerActions 

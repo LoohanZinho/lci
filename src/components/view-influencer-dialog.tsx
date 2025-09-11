@@ -60,7 +60,7 @@ export function ViewInfluencerDialog({
             <DetailRow label="Observações" value={
                 <p className="whitespace-pre-wrap">{influencer.notes || 'Nenhuma observação.'}</p>
             } />
-             <DetailRow label="Última Edição" value={influencer.lastUpdate?.toDate().toLocaleDateString("pt-BR") || 'N/A'} />
+             <DetailRow label="Última Edição" value={influencer.lastUpdate?.toDate().toLocaleString("pt-BR", { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) || 'N/A'} />
         </div>
       </DialogContent>
     </Dialog>
