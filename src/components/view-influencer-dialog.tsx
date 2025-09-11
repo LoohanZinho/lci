@@ -45,7 +45,7 @@ export function ViewInfluencerDialog({
       ? (influencer.addedByData?.name || 'Anônimo')
       : 'Anônimo';
 
-  const addedByEmail = (isAdmin || isOwner) && influencer.addedByData?.email;
+  const addedByEmail = (isAdmin || isOwner) ? influencer.addedByData?.email : null;
 
 
   return (
