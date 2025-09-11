@@ -44,9 +44,10 @@ export function ViewInfluencerDialog({
   if (isOwner) {
     addedByDisplay = 'Você';
   } else if (isAdmin) {
+    const displayName = influencer.addedByData?.name || 'Usuário sem nome';
     addedByDisplay = (
       <div>
-        <span>{influencer.addedByData?.name || 'Usuário sem nome'}</span>
+        <span>{displayName}</span>
         {influencer.addedByData?.email && <span className="text-muted-foreground text-xs ml-1">({influencer.addedByData.email})</span>}
         {posterIsAnonymous && <span className="text-blue-500 text-xs block italic">Modo Anônimo Ativado</span>}
       </div>
