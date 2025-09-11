@@ -11,12 +11,13 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
 import { InfluencerWithUserData } from "@/lib/influencers";
-import { Flame } from "lucide-react";
+import { Flame, Users } from "lucide-react";
 import { InfluencerActions } from "./influencer-actions";
 import { EditInfluencerDialog } from "./edit-influencer-dialog";
 import { ViewInfluencerDialog } from "./view-influencer-dialog";
 import { useAuth } from "@/hooks/use-auth";
 import { getInfluencerClassification, getClassificationBadgeClass } from "@/lib/classification";
+import { formatNumber } from "@/lib/utils";
 
 
 interface InfluencerTableProps {
@@ -58,7 +59,7 @@ export function InfluencerTable({ influencers, loading }: InfluencerTableProps) 
             <TableRow>
               <TableHead>Influenciador</TableHead>
               <TableHead className="hidden sm:table-cell text-center">Classificação</TableHead>
-              <TableHead className="hidden md:table-cell text-center">Seguidores</TableHead>
+              <TableHead className="hidden md:table-cell">Seguidores</TableHead>
               <TableHead className="hidden md:table-cell">Status</TableHead>
               <TableHead className="text-center">Fumo</TableHead>
               <TableHead className="text-right hidden lg:table-cell">Última Edição</TableHead>
@@ -111,7 +112,12 @@ export function InfluencerTable({ influencers, loading }: InfluencerTableProps) 
                       {classification}
                     </Badge>
                   </TableCell>
-                   <TableCell className="hidden md:table-cell text-center">{influencer.followers.toLocaleString('pt-BR')}</TableCell>
+                   <TableCell className="hidden md:table-cell">
+                    <div className="flex items-center gap-2">
+                        <Users className="h-4 w-4 text-muted-foreground" />
+                        <span>{formatNumber(influencer.followers)}</span>
+                    </div>
+                   </TableCell>
                   <TableCell className="hidden md:table-cell">{influencer.status || "Disponível"}</TableCell>
                   <TableCell className="text-center">
                     {influencer.isFumo && (
