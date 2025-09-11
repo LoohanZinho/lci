@@ -26,7 +26,7 @@ export default function ProfilePage() {
     if (user) {
       const currentName = user.displayName || "";
       setDisplayName(currentName);
-      // We assume anonymous if the display name is empty on load
+      // A user is considered anonymous if they have no display name.
       setIsAnonymous(!currentName); 
     }
   }, [user]);
@@ -41,40 +41,26 @@ export default function ProfilePage() {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (isAnonymous) {
-        // If the user wants to be anonymous, we save an empty display name.
-        if (user?.displayName) {
-            setIsLoading(true);
-            setError("");
-            setSuccessMessage("");
-            try {
-                await updateUserProfile("");
-                setSuccessMessage("Modo anônimo ativado. Seu nome não será exibido nas novas postagens.");
-            } catch (err) {
-                setError("Ocorreu um erro ao ativar o modo anônimo. Tente novamente.");
-                console.error(err);
-            } finally {
-                setIsLoading(false);
-            }
-        } else {
-            // Already anonymous, nothing to do.
-             setSuccessMessage("Modo anônimo já está ativado.");
-        }
-        return;
-    };
-
-    // If not anonymous, save the display name
     setError("");
     setSuccessMessage("");
     setIsLoading(true);
+
     try {
-        await updateUserProfile(displayName);
-        setSuccessMessage("Nome atualizado com sucesso!");
+      // If user wants to be anonymous, we save an empty display name.
+      // Otherwise, we save the name from the input field.
+      const nameToSave = isAnonymous ? "" : displayName;
+      
+      // We only call the update if the name has actually changed.
+      if (nameToSave !== (user.displayName || "")) {
+        await updateUserProfile(nameToSave);
+      }
+      
+      setSuccessMessage("Preferências salvas com sucesso!");
     } catch (err) {
-        setError("Ocorreu um erro ao atualizar o nome. Tente novamente.");
-        console.error(err);
+      setError("Ocorreu um erro ao salvar as preferências. Tente novamente.");
+      console.error(err);
     } finally {
-        setIsLoading(false);
+      setIsLoading(false);
     }
   }
 
