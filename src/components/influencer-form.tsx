@@ -37,7 +37,7 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
   useEffect(() => {
     if (influencer) {
       setName(influencer.name);
-      setInstagram(influencer.instagram);
+      setInstagram(influencer.instagram.startsWith('@') ? influencer.instagram.substring(1) : influencer.instagram);
       setFollowers(influencer.followers.toString());
       setStatus(influencer.status);
       setNiche(influencer.niche);
@@ -57,7 +57,7 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
 
     const influencerData = {
       name,
-      instagram,
+      instagram: instagram.startsWith('@') ? instagram : `@${instagram}`,
       followers: parseInt(followers, 10),
       status,
       niche,
@@ -104,13 +104,17 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
           </div>
           <div className="flex flex-col space-y-1.5">
             <Label htmlFor="instagram">Instagram</Label>
-            <Input
-              id="instagram"
-              placeholder="@username"
-              value={instagram}
-              onChange={(e) => setInstagram(e.target.value)}
-              required
-            />
+            <div className="flex h-10 w-full items-center rounded-md border border-input bg-transparent px-3 text-sm ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
+              <span className="text-muted-foreground">@</span>
+              <Input
+                id="instagram"
+                placeholder="username"
+                value={instagram}
+                onChange={(e) => setInstagram(e.target.value.replace(/@/g, ''))}
+                required
+                className="border-0 bg-transparent p-0 pl-1 focus-visible:ring-0 focus-visible:ring-offset-0"
+              />
+            </div>
           </div>
           <div className="flex flex-col space-y-1.5">
             <Label htmlFor="followers">Seguidores</Label>
