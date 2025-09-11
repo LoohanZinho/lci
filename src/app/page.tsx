@@ -63,7 +63,7 @@ export default function HomePage() {
           <div className="flex justify-between items-start mb-6">
             <div>
               <h2 className="text-3xl font-bold">
-                {greeting}, {user.displayName || user.email}!
+                {greeting}, <span className="text-primary">{user.displayName || user.email}!</span>
               </h2>
               <p className="text-muted-foreground">
                 Visão geral do desempenho de suas campanhas.
