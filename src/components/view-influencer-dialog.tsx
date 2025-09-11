@@ -37,6 +37,19 @@ export function ViewInfluencerDialog({
   
   const classification = getInfluencerClassification(influencer.followers);
 
+  const getAddedByName = () => {
+    if (influencer.addedBy === user?.uid) {
+      return "Você";
+    }
+    if (isAdmin) {
+      return influencer.addedByData?.name || "Anônimo";
+    }
+    if (influencer.addedByData?.isAnonymous) {
+      return "Anônimo";
+    }
+    return influencer.addedByData?.name || "Anônimo";
+  }
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-md max-h-[85vh] overflow-y-auto">
@@ -86,7 +99,7 @@ export function ViewInfluencerDialog({
                       </div>
                       <div>
                           <p className="font-medium">
-                            Adicionado por {influencer.addedBy === user?.uid ? "Você" : (influencer.addedByData?.isAnonymous ? 'Anônimo' : influencer.addedByData?.name || 'Anônimo')}
+                            Adicionado por {getAddedByName()}
                           </p>
                           <p className="text-xs text-muted-foreground">
                             {influencer.lastUpdate?.toDate().toLocaleString("pt-BR", { day: '2-digit', month: 'numeric', year: 'numeric' })}
