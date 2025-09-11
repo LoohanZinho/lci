@@ -72,7 +72,7 @@ export default function HomePage() {
                 {greeting}, <span className="text-primary">{user.displayName || user.email}!</span>
               </h2>
               <p className="text-muted-foreground">
-                Visão geral do desempenho de suas campanhas.
+                Encontre, gerencie e adicione novos influenciadores ao seu mural.
               </p>
             </div>
             <div className="flex items-center gap-2">
