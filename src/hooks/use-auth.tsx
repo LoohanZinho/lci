@@ -29,6 +29,7 @@ interface AuthContextType {
   ) => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  updateUserProfile: (displayName: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -86,7 +87,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await signOut(auth);
   };
 
-  const value = { user, loading, signup, login, logout };
+  const updateUserProfile = async (displayName: string) => {
+    if (auth.currentUser) {
+      await updateProfile(auth.currentUser, { displayName });
+      await auth.currentUser.reload();
+      setUser(auth.currentUser);
+    } else {
+      throw new Error("Nenhum usuário logado para atualizar.");
+    }
+  }
+
+  const value = { user, loading, signup, login, logout, updateUserProfile };
 
   return (
     <AuthContext.Provider value={value}>
