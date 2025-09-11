@@ -2,52 +2,30 @@
 
 import {
   ref,
-  uploadBytesResumable,
-  getDownloadURL,
   deleteObject,
-  uploadBytes,
 } from "firebase/storage";
 import { storage } from "./firebase";
 
-export const uploadProofImage = (
-    influencerId: string,
-    file: File,
-    onProgress: (progress: number) => void
-): Promise<string> => {
-  return new Promise((resolve, reject) => {
-    const fileExtension = file.name.split('.').pop();
-    const fileName = `${Date.now()}.${fileExtension}`;
-    const storageRef = ref(storage, `influencer-proofs/${influencerId}/${fileName}`);
-
-    onProgress(0);
-    uploadBytes(storageRef, file).then(snapshot => {
-        onProgress(100);
-        getDownloadURL(snapshot.ref).then(downloadURL => {
-            resolve(downloadURL);
-        }).catch(error => {
-            console.error("Error getting download URL:", error);
-            reject(error);
-        });
-    }).catch(error => {
-        console.error("Upload failed:", error);
-        reject(error);
-    });
-  });
-};
-
+// A função de upload foi movida para um Server Action em src/app/actions.ts
+// para contornar problemas de CORS. Esta função de exclusão ainda é necessária
+// e funciona bem no lado do cliente.
 
 export const deleteProofImageByUrl = async (imageUrl: string): Promise<void> => {
     if (!imageUrl) return;
     try {
+        // O SDK do cliente é inteligente o suficiente para analisar URLs do GCS
+        // mesmo que tenham tokens de acesso.
         const imageRef = ref(storage, imageUrl);
         await deleteObject(imageRef);
-        console.log("Image successfully deleted from storage.");
+        console.log("Imagem excluída com sucesso do storage.");
     } catch (error: any) {
+        // Se a imagem não for encontrada, não é um erro crítico.
         if (error.code !== 'storage/object-not-found') {
-            console.error("Error deleting image from storage:", error);
+            console.error("Erro ao excluir a imagem do storage:", error);
+            // Em um app de produção, você pode querer logar isso em um serviço de monitoramento.
             throw error;
         } else {
-            console.log("Image not found in storage, likely already deleted.");
+            console.log("Imagem não encontrada no storage, provavelmente já foi excluída.");
         }
     }
 }

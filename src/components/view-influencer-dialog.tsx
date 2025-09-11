@@ -81,7 +81,7 @@ export function ViewInfluencerDialog({
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                         {influencer.proofImageUrls.map((url, index) => (
                              <div key={index} className="relative w-full aspect-video rounded-md overflow-hidden">
-                                <Image src={url} alt={`Prova ${index + 1} para ${influencer.name}`} layout="fill" objectFit="contain" />
+                                <Image src={url} alt={`Prova ${index + 1} para ${influencer.name}`} fill style={{ objectFit: 'contain' }} />
                             </div>
                         ))}
                     </div>

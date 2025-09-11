@@ -14,11 +14,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { addInfluencer, NewInfluencer, Influencer, updateInfluencer, UpdatableInfluencerData } from "@/lib/influencers";
 import { useAuth } from "@/hooks/use-auth";
 import { useState, FormEvent, useEffect, useRef } from "react";
-import { uploadProofImage, deleteProofImageByUrl } from "@/lib/storage";
+import { deleteProofImageByUrl } from "@/lib/storage";
 import { Progress } from "@/components/ui/progress";
 import { AlertCircle, Image as ImageIcon, X, UploadCloud } from "lucide-react";
 import Image from 'next/image';
 import { getInfluencerClassification } from "@/lib/classification";
+import { uploadFile } from "@/app/actions";
 
 interface InfluencerFormProps {
   influencer?: Influencer;
@@ -174,11 +175,12 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
             const originalUrls = influencer?.proofImageUrls || [];
             const urlsToDelete = originalUrls.filter(url => !imagePreviews.includes(url));
             if (urlsToDelete.length > 0) {
-                await Promise.all(urlsToDelete.map(url => deleteProofImageByUrl(url)));
+                 setUploadMessage(`Removendo ${urlsToDelete.length} imagem(ns)...`);
+                 await Promise.all(urlsToDelete.map(url => deleteProofImageByUrl(url)));
             }
         }
         
-        // Handle new image uploads
+        // Handle new image uploads via Server Action
         if (imageFiles.length > 0) {
             const influencerIdForStorage = influencer?.id || Date.now().toString();
             const uploadedUrls: string[] = [];
@@ -188,28 +190,24 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
                 const file = imageFiles[i];
                 setUploadMessage(`Enviando ${i + 1} de ${imageFiles.length}...`);
                 try {
-                    const downloadURL = await uploadProofImage(influencerIdForStorage, file, (progress) => {
-                       const overallProgress = ((i + progress) / imageFiles.length) * 100;
-                       setUploadProgress(overallProgress);
-                    });
+                    const formData = new FormData();
+                    formData.append('file', file);
+                    formData.append('influencerId', influencerIdForStorage);
+
+                    const downloadURL = await uploadFile(formData);
                     uploadedUrls.push(downloadURL);
+                    setUploadProgress(((i + 1) / imageFiles.length) * 100);
+
                 } catch (uploadError: any) {
                     console.error("Upload Error:", uploadError);
-                    let errorMessage = `Falha no upload de "${file.name}".`;
-                    if (uploadError.code === 'storage/unauthorized') {
-                        errorMessage += " Causa: Permissão negada. Verifique as regras de segurança do Storage.";
-                    } else if (uploadError.code === 'storage/canceled') {
-                        errorMessage += " Causa: O upload foi cancelado.";
-                    } else {
-                        errorMessage += " Causa: Problema de rede ou configuração de CORS. Tente novamente.";
-                    }
-                    throw new Error(errorMessage);
+                    throw new Error(`Falha no upload de "${file.name}". Causa: ${uploadError.message}`);
                 }
             }
             
             finalImageUrls = [...finalImageUrls, ...uploadedUrls];
         }
 
+        setUploadMessage('Salvando dados...');
         const influencerData = {
             name: formData.name,
             instagram: formData.instagram.startsWith('@') ? formData.instagram : `@${formData.instagram}`,
@@ -298,7 +296,7 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
             <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
                 {imagePreviews.map((preview, index) => (
                     <div key={index} className="relative w-full aspect-square rounded-md overflow-hidden group">
-                        <Image src={preview} alt={`Pré-visualização ${index + 1}`} layout="fill" objectFit="cover" />
+                        <Image src={preview} alt={`Pré-visualização ${index + 1}`} fill style={{ objectFit: 'cover' }} />
                         <div className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                             <Button type="button" variant="destructive" size="icon" onClick={() => removeImage(index)} disabled={isLoading} className="h-8 w-8"><X className="h-4 w-4"/></Button>
                         </div>
