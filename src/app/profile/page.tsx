@@ -16,17 +16,21 @@ export default function ProfilePage() {
   const router = useRouter();
   const { theme, setTheme } = useTheme();
   
+  // State for the form input
   const [displayName, setDisplayName] = useState("");
+  // State for the switch
   const [isAnonymous, setIsAnonymous] = useState(false);
+  
   const [isLoading, setIsLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [error, setError] = useState("");
 
+  // This effect syncs the form state with the auth user state from the provider
   useEffect(() => {
     if (user) {
       const currentName = user.displayName || "";
       setDisplayName(currentName);
-      // A user is anonymous if they don't have a display name.
+      // A user is anonymous if they don't have a display name in their profile
       setIsAnonymous(!currentName); 
     }
   }, [user]);
@@ -46,11 +50,11 @@ export default function ProfilePage() {
     setIsLoading(true);
 
     try {
-      // If user wants to be anonymous, we save an empty display name.
-      // Otherwise, we save the name from the input field.
+      // The name to save is determined by the switch state.
+      // If anonymous, we save an empty string. Otherwise, we save the input's value.
       const nameToSave = isAnonymous ? "" : displayName;
       
-      // We only call the update if the name has actually changed.
+      // We only call the update if the name has actually changed from what's currently in the profile.
       if (nameToSave !== (user.displayName || "")) {
         await updateUserProfile(nameToSave);
       }
@@ -64,6 +68,7 @@ export default function ProfilePage() {
     }
   }
 
+  // This handler just toggles the switch state. It doesn't save anything.
   const handleAnonymousToggle = (checked: boolean) => {
     setIsAnonymous(checked);
   }
@@ -86,6 +91,7 @@ export default function ProfilePage() {
             <div className="max-w-md mx-auto">
                 <Card>
                     <CardHeader>
+                        {/* The title always shows the currently saved user name */}
                         <CardTitle>{user.displayName || "Usuário Anônimo"}</CardTitle>
                         <CardDescription>Gerencie suas informações e preferências.</CardDescription>
                     </CardHeader>
@@ -95,7 +101,7 @@ export default function ProfilePage() {
                                 <Label htmlFor="displayName">Nome de Exibição</Label>
                                 <Input
                                     id="displayName"
-                                    value={displayName}
+                                    value={displayName} // Input value is controlled by component state
                                     onChange={(e) => setDisplayName(e.target.value)}
                                     placeholder="Seu nome"
                                     disabled={isLoading || isAnonymous}
