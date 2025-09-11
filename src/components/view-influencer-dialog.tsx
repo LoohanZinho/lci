@@ -38,13 +38,14 @@ export function ViewInfluencerDialog({
   const classification = getInfluencerClassification(influencer.followers);
   const isOwner = user?.uid === influencer.addedBy;
 
-  const addedByName = (isAdmin || isOwner || influencer.addedByData?.name)
+  // Anunciante está em modo anônimo se o nome não estiver definido nos dados do usuário
+  const posterIsAnonymous = !influencer.addedByData?.name;
+
+  const addedByName = (isAdmin || isOwner || !posterIsAnonymous)
       ? (influencer.addedByData?.name || 'Anônimo')
       : 'Anônimo';
 
-  const addedByEmail = (isAdmin || isOwner || influencer.addedByData?.name) 
-      ? influencer.addedByData?.email 
-      : null;
+  const addedByEmail = (isAdmin || isOwner) && influencer.addedByData?.email;
 
 
   return (
@@ -75,6 +76,9 @@ export function ViewInfluencerDialog({
                     {addedByEmail && 
                         <span className="text-muted-foreground text-xs block">({addedByEmail})</span>
                     }
+                    {isAdmin && posterIsAnonymous && (
+                      <span className="text-blue-500 text-xs block italic">Modo Anônimo Ativado</span>
+                    )}
                 </div>
             } />
             <DetailRow label="Observações" value={
