@@ -22,6 +22,11 @@ interface InfluencerTableProps {
   searchQuery: string;
 }
 
+const getInitials = (name: string) => {
+    if (!name) return "?";
+    return name.charAt(0).toUpperCase();
+}
+
 export function InfluencerTable({ searchQuery }: InfluencerTableProps) {
   const [influencers, setInfluencers] = useState<InfluencerWithUserData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -93,12 +98,19 @@ export function InfluencerTable({ searchQuery }: InfluencerTableProps) {
               filteredInfluencers.map((influencer) => (
                 <TableRow key={influencer.id}>
                   <TableCell>
-                    <div className="font-medium">{influencer.name}</div>
-                    <div className="text-sm text-muted-foreground">
-                      {influencer.instagram}
-                    </div>
-                     <div className="text-xs text-muted-foreground/80 mt-1">
-                      Anunciado por: { isAdmin || influencer.addedByData?.name ? (influencer.addedByData?.name || 'Anônimo') : 'Anônimo'}
+                    <div className="flex items-center gap-3">
+                       <div className="flex items-center justify-center h-10 w-10 rounded-full bg-primary/20 text-primary font-bold">
+                          {getInitials(influencer.name)}
+                        </div>
+                        <div>
+                            <div className="font-medium">{influencer.name}</div>
+                            <div className="text-sm text-muted-foreground">
+                            {influencer.instagram}
+                            </div>
+                            <div className="text-xs text-muted-foreground/80 mt-1">
+                            Anunciado por: { isAdmin || influencer.addedByData?.name ? (influencer.addedByData?.name || 'Anônimo') : 'Anônimo'}
+                            </div>
+                        </div>
                     </div>
                   </TableCell>
                   <TableCell className="hidden sm:table-cell">{influencer.niche}</TableCell>
