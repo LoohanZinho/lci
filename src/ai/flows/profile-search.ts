@@ -8,8 +8,7 @@
  * - ValidateProfileNameOutput - The return type for the validateProfileName function.
  */
 
-import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import {z} from 'zod';
 
 const ValidateProfileNameInputSchema = z.object({
   username: z
@@ -25,21 +24,6 @@ const ValidateProfileNameOutputSchema = z.object({
 export type ValidateProfileNameOutput = z.infer<typeof ValidateProfileNameOutputSchema>;
 
 export async function validateProfileName(input: ValidateProfileNameInput): Promise<ValidateProfileNameOutput> {
-  return validateProfileNameFlow(input);
-}
-
-const getInstagramProfile = ai.defineTool({
-  name: 'getInstagramProfile',
-  description: 'Check if an Instagram profile exists and retrieve its profile picture URL.',
-  inputSchema: z.object({
-    username: z.string().describe('The Instagram username to check.'),
-  }),
-  outputSchema: z.object({
-    isValid: z.boolean().describe('Whether the Instagram profile exists.'),
-    profilePictureUrl: z.string().optional().describe('The URL of the profile picture, if available.'),
-  }),
-},
-async (input) => {
   // In a real application, this would call the Instagram API.
   // Due to the lack of a real API, this is a stub implementation.
   const username = input.username;
@@ -56,30 +40,3 @@ async (input) => {
     };
   }
 }
-);
-
-const validateProfileNamePrompt = ai.definePrompt({
-  name: 'validateProfileNamePrompt',
-  tools: [getInstagramProfile],
-  input: {schema: ValidateProfileNameInputSchema},
-  output: {schema: ValidateProfileNameOutputSchema},
-  prompt: `Use the getInstagramProfile tool to check if the Instagram profile {{username}} is valid.
-  Return the isValid boolean and profilePictureUrl if the profile exists.`,
-});
-
-const validateProfileNameFlow = ai.defineFlow(
-  {
-    name: 'validateProfileNameFlow',
-    inputSchema: ValidateProfileNameInputSchema,
-    outputSchema: ValidateProfileNameOutputSchema,
-  },
-  async input => {
-    const {output} = await validateProfileNamePrompt(input);
-    if (!output) {
-      return {
-        isValid: false,
-      };
-    }
-    return output;
-  }
-);
