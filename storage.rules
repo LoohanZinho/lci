@@ -1,6 +1,9 @@
-{
-  "rules": {
-    ".read": "if true",
-    ".write": "if true"
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Apenas usuários autenticados podem fazer upload de provas
+    match /influencer-proofs/{influencerId}/{allPaths=**} {
+      allow read, write: if request.auth != null;
+    }
   }
 }
