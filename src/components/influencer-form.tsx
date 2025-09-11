@@ -167,9 +167,37 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
     
     setIsLoading(true);
     setError(null);
-    setUploadProgress(0);
+    setUploadProgress(imageFiles.length > 0 ? 0 : null);
 
     try {
+        let finalImageUrls: string[] = [];
+
+        // In edit mode, identify existing URLs and URLs to be deleted.
+        const originalUrls = influencer?.proofImageUrls || [];
+        const remainingUrls = isEditMode ? imagePreviews.filter(p => originalUrls.includes(p)) : [];
+        finalImageUrls.push(...remainingUrls);
+        
+        if (isEditMode) {
+          const urlsToDelete = originalUrls.filter(url => !remainingUrls.includes(url));
+          if(urlsToDelete.length > 0) {
+            await Promise.all(urlsToDelete.map(url => deleteProofImageByUrl(url)));
+          }
+        }
+
+        // Upload new files if any
+        if (imageFiles.length > 0) {
+            const influencerIdForStorage = influencer?.id || Date.now().toString();
+            const uploadedImageUrls = await Promise.all(
+                imageFiles.map((file, index) => {
+                    return uploadProofImage(influencerIdForStorage, file, (progress) => {
+                         const totalProgress = (imageFiles.map((_, i) => i < index ? 100 : (i === index ? progress : 0)).reduce((a, b) => a + b, 0) / imageFiles.length);
+                         setUploadProgress(totalProgress);
+                    });
+                })
+            );
+            finalImageUrls.push(...uploadedImageUrls);
+        }
+
         const influencerData = {
             name: formData.name,
             instagram: formData.instagram.startsWith('@') ? formData.instagram : `@${formData.instagram}`,
@@ -179,64 +207,18 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
             contact: formData.contact,
             notes: formData.notes,
             isFumo: formData.isFumo,
-            addedBy: influencer?.addedBy || user.uid,
+            proofImageUrls: finalImageUrls,
         };
 
         if (isEditMode && influencer) {
-            // Edit Mode
-            const originalUrls = influencer.proofImageUrls || [];
-            const remainingUrls = imagePreviews.filter(p => originalUrls.includes(p));
-
-            const urlsToDelete = originalUrls.filter(url => !remainingUrls.includes(url));
-            if(urlsToDelete.length > 0) {
-              await Promise.all(urlsToDelete.map(url => deleteProofImageByUrl(url)));
-            }
-            
-            let uploadedImageUrls: string[] = [];
-            if(imageFiles.length > 0) {
-                uploadedImageUrls = await Promise.all(
-                    imageFiles.map((file, index) => {
-                        const onProgress = (progress: number) => {
-                            const totalProgress = ((index + 1) / imageFiles.length) * progress;
-                            setUploadProgress(totalProgress);
-                        }
-                        return uploadProofImage(influencer.id, file, onProgress);
-                    })
-                );
-            }
-
-            const dataToUpdate: UpdatableInfluencerData = {
-                ...influencerData,
-                proofImageUrls: [...remainingUrls, ...uploadedImageUrls],
-            };
-            
-            await updateInfluencer(influencer.id, user.uid, dataToUpdate);
-
+             const dataToUpdate: UpdatableInfluencerData = { ...influencerData };
+             await updateInfluencer(influencer.id, user.uid, dataToUpdate);
         } else {
-            // Create Mode
-            const newInfluencerData = {
+             const newInfluencerData: Omit<NewInfluencer, 'lastUpdate' | 'editors'> = {
                 ...influencerData,
-                proofImageUrls: [], // Start with empty array
-            };
-
-            const docRef = await addInfluencer(newInfluencerData);
-            
-            let uploadedImageUrls: string[] = [];
-            if(imageFiles.length > 0) {
-                uploadedImageUrls = await Promise.all(
-                    imageFiles.map((file, index) => {
-                        const onProgress = (progress: number) => {
-                             const totalProgress = ((index + (progress/100)) / imageFiles.length) * 100;
-                             setUploadProgress(totalProgress);
-                        }
-                        return uploadProofImage(docRef.id, file, onProgress);
-                    })
-                );
-            }
-            
-            if (uploadedImageUrls.length > 0) {
-                await updateInfluencer(docRef.id, user.uid, { proofImageUrls: uploadedImageUrls });
-            }
+                addedBy: user.uid
+             }
+             await addInfluencer(newInfluencerData);
         }
         
         if (onFinished) {
