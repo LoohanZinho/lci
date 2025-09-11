@@ -12,7 +12,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTheme } from "next-themes";
 import { Input } from "@/components/ui/input";
 import { getInfluencers, InfluencerWithUserData } from "@/lib/influencers";
@@ -38,6 +38,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 
 
 export default function HomePage() {
@@ -48,11 +50,23 @@ export default function HomePage() {
   const [influencers, setInfluencers] = useState<InfluencerWithUserData[]>([]);
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  const [sortBy, setSortBy] = useState<"lastUpdate" | "followers">("lastUpdate");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
 
   useEffect(() => {
-    const unsubscribe = getInfluencers(setInfluencers);
+    setLoading(true);
+    const unsubscribe = getInfluencers(
+      (data) => {
+        setInfluencers(data);
+        setLoading(false);
+      },
+      sortBy,
+      sortDirection
+    );
     return () => unsubscribe();
-  }, []);
+  }, [sortBy, sortDirection]);
 
   useEffect(() => {
     const getGreeting = () => {
@@ -72,6 +86,22 @@ export default function HomePage() {
     setSearchQuery(suggestion);
     setPopoverOpen(false);
   };
+  
+  const filteredInfluencers = useMemo(() => {
+    if (!searchQuery) {
+      return influencers;
+    }
+    const lowercasedQuery = searchQuery.toLowerCase();
+    return influencers.filter(
+      (influencer) =>
+        influencer.name.toLowerCase().includes(lowercasedQuery) ||
+        influencer.instagram.toLowerCase().includes(lowercasedQuery) ||
+        (influencer.notes &&
+          influencer.notes.toLowerCase().includes(lowercasedQuery)) ||
+        (influencer.status &&
+          influencer.status.toLowerCase().includes(lowercasedQuery))
+    );
+  }, [influencers, searchQuery]);
 
 
   if (!user) {
@@ -132,15 +162,16 @@ export default function HomePage() {
                 Encontre, gerencie e adicione novos influenciadores ao seu mural.
               </p>
             </div>
-            <div className="flex items-center gap-2 w-full md:w-auto">
+          </div>
+          <div className="flex flex-col md:flex-row items-center gap-2 mb-4">
               <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
                 <PopoverTrigger asChild>
-                  <div className="relative w-full md:w-auto">
+                  <div className="relative w-full flex-grow">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
                       type="search"
                       placeholder="Buscar por nome, @, ou nota..."
-                      className="pl-9 w-full md:w-[250px] lg:w-[300px]"
+                      className="pl-9 w-full"
                       value={searchQuery}
                       onChange={(e) => {
                         setSearchQuery(e.target.value);
@@ -181,9 +212,37 @@ export default function HomePage() {
                 </PopoverContent>
               </Popover>
 
+              <div className="flex items-center gap-2 w-full md:w-auto mt-2 md:mt-0">
+                <div className="flex-1">
+                  <Label htmlFor="sort-by" className="text-xs text-muted-foreground">Ordenar por</Label>
+                  <Select value={sortBy} onValueChange={(v) => setSortBy(v as "lastUpdate" | "followers")}>
+                    <SelectTrigger id="sort-by" className="w-full md:w-[150px]">
+                      <SelectValue placeholder="Ordenar por" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="lastUpdate">Última Edição</SelectItem>
+                      <SelectItem value="followers">Seguidores</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex-1">
+                   <Label htmlFor="sort-direction" className="text-xs text-muted-foreground">Direção</Label>
+                  <Select value={sortDirection} onValueChange={(v) => setSortDirection(v as "asc" | "desc")}>
+                    <SelectTrigger id="sort-direction" className="w-full md:w-[140px]">
+                      <SelectValue placeholder="Direção" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="desc">Decrescente</SelectItem>
+                      <SelectItem value="asc">Crescente</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+
               <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
                 <DialogTrigger asChild>
-                  <Button className="w-full md:w-auto">
+                  <Button className="w-full md:w-auto mt-2 md:mt-0 shrink-0">
                     <PlusCircle className="mr-2 h-4 w-4" />
                     Nova Postagem
                   </Button>
@@ -196,9 +255,8 @@ export default function HomePage() {
                 </DialogContent>
               </Dialog>
             </div>
-          </div>
 
-          <InfluencerTable searchQuery={searchQuery} />
+          <InfluencerTable influencers={filteredInfluencers} loading={loading} />
         </div>
       </main>
     </div>

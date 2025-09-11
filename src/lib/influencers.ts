@@ -12,6 +12,7 @@ import {
   getDoc,
   getDocs,
   DocumentReference,
+  OrderByDirection,
 } from "firebase/firestore";
 import { db } from "./firebase";
 import { deleteProofImageByUrl } from "./storage";
@@ -100,9 +101,11 @@ const fetchUsersData = async (uids: string[]): Promise<Record<string, UserData>>
 const { where } = require("firebase/firestore");
 
 export const getInfluencers = (
-    callback: (influencers: InfluencerWithUserData[]) => void
+    callback: (influencers: InfluencerWithUserData[]) => void,
+    sortBy: string = 'lastUpdate',
+    sortDirection: OrderByDirection = 'desc'
   ) => {
-    const q = query(collection(db, "influencers"), orderBy("lastUpdate", "desc"));
+    const q = query(collection(db, "influencers"), orderBy(sortBy, sortDirection));
   
     const unsubscribe = onSnapshot(q, async (querySnapshot) => {
       const influencers: Influencer[] = [];
@@ -119,6 +122,8 @@ export const getInfluencers = (
       }));
 
       callback(influencersWithUserData);
+    }, (error) => {
+        console.error("Error getting influencers: ", error);
     });
   
     return unsubscribe;

@@ -9,8 +9,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { useEffect, useMemo, useState } from "react";
-import { getInfluencers, InfluencerWithUserData } from "@/lib/influencers";
+import { useState } from "react";
+import { InfluencerWithUserData } from "@/lib/influencers";
 import { Flame } from "lucide-react";
 import { InfluencerActions } from "./influencer-actions";
 import { EditInfluencerDialog } from "./edit-influencer-dialog";
@@ -19,7 +19,8 @@ import { useAuth } from "@/hooks/use-auth";
 
 
 interface InfluencerTableProps {
-  searchQuery: string;
+  influencers: InfluencerWithUserData[];
+  loading: boolean;
 }
 
 const getInitials = (name: string) => {
@@ -27,22 +28,10 @@ const getInitials = (name: string) => {
     return name.charAt(0).toUpperCase();
 }
 
-export function InfluencerTable({ searchQuery }: InfluencerTableProps) {
-  const [influencers, setInfluencers] = useState<InfluencerWithUserData[]>([]);
-  const [loading, setLoading] = useState(true);
+export function InfluencerTable({ influencers, loading }: InfluencerTableProps) {
   const [editingInfluencer, setEditingInfluencer] = useState<InfluencerWithUserData | null>(null);
   const [viewingInfluencer, setViewingInfluencer] = useState<InfluencerWithUserData | null>(null);
   const { isAdmin } = useAuth();
-
-  useEffect(() => {
-    setLoading(true);
-    const unsubscribe = getInfluencers((data) => {
-      setInfluencers(data);
-      setLoading(false);
-    });
-
-    return () => unsubscribe();
-  }, []);
 
   const handleEdit = (influencer: InfluencerWithUserData) => {
     setEditingInfluencer(influencer);
@@ -52,24 +41,12 @@ export function InfluencerTable({ searchQuery }: InfluencerTableProps) {
     setViewingInfluencer(influencer);
   };
 
-  const filteredInfluencers = useMemo(() => {
-    if (!searchQuery) {
-      return influencers;
-    }
-    const lowercasedQuery = searchQuery.toLowerCase();
-    return influencers.filter(
-      (influencer) =>
-        influencer.name.toLowerCase().includes(lowercasedQuery) ||
-        influencer.instagram.toLowerCase().includes(lowercasedQuery) ||
-        (influencer.notes &&
-          influencer.notes.toLowerCase().includes(lowercasedQuery)) ||
-        (influencer.status &&
-          influencer.status.toLowerCase().includes(lowercasedQuery))
-    );
-  }, [influencers, searchQuery]);
-
   if (loading) {
-    return <p>Carregando influenciadores...</p>;
+    return (
+      <div className="flex justify-center items-center h-64">
+        <p>Carregando influenciadores...</p>
+      </div>
+    );
   }
 
   return (
@@ -88,14 +65,14 @@ export function InfluencerTable({ searchQuery }: InfluencerTableProps) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredInfluencers.length === 0 && !loading ? (
+            {influencers.length === 0 && !loading ? (
               <TableRow>
                 <TableCell colSpan={7} className="text-center">
                   Nenhum influenciador encontrado.
                 </TableCell>
               </TableRow>
             ) : (
-              filteredInfluencers.map((influencer) => (
+              influencers.map((influencer) => (
                 <TableRow key={influencer.id}>
                   <TableCell>
                     <div className="flex items-center gap-3">
