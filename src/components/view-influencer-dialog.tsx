@@ -12,6 +12,7 @@ import { Badge } from "./ui/badge";
 import { Flame } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import Image from "next/image";
+import { getInfluencerClassification, getClassificationBadgeClass } from "@/lib/classification";
 
 interface ViewInfluencerDialogProps {
   influencer: InfluencerWithUserData;
@@ -34,6 +35,8 @@ export function ViewInfluencerDialog({
 }: ViewInfluencerDialogProps) {
   const { isAdmin } = useAuth();
   
+  const classification = getInfluencerClassification(influencer.followers);
+
   const getAddedByName = () => {
     if (isAdmin) {
       return influencer.addedByData?.name || 'Anônimo (Admin View)';
@@ -68,6 +71,9 @@ export function ViewInfluencerDialog({
           <DialogDescription>{influencer.instagram}</DialogDescription>
         </DialogHeader>
         <div className="text-sm">
+            <DetailRow label="Classificação" value={
+              <Badge variant="outline" className={getClassificationBadgeClass(classification)}>{classification}</Badge>
+            } />
             <DetailRow label="Seguidores" value={influencer.followers.toLocaleString('pt-BR')} />
             <DetailRow label="Nicho" value={influencer.niche || 'Não informado'} />
             <DetailRow label="Status" value={influencer.status} />

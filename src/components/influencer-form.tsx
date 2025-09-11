@@ -18,6 +18,7 @@ import { uploadProofImage, deleteProofImageByUrl } from "@/lib/storage";
 import { Progress } from "@/components/ui/progress";
 import { AlertCircle, Image as ImageIcon, X, UploadCloud } from "lucide-react";
 import Image from 'next/image';
+import { getInfluencerClassification } from "@/lib/classification";
 
 interface InfluencerFormProps {
   influencer?: Influencer;
@@ -60,6 +61,9 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const isEditMode = !!influencer;
+  
+  const followerCount = parseInt(unformatFollowers(formData.followers), 10) || 0;
+  const classification = getInfluencerClassification(followerCount);
 
   useEffect(() => {
     if (influencer) {
@@ -265,7 +269,10 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
           </div>
           <div className="flex flex-col space-y-1.5">
             <Label htmlFor="followers">Seguidores</Label>
-            <Input id="followers" type="text" inputMode="numeric" placeholder="Ex: 150.000" value={formData.followers} onChange={handleChange} required disabled={isLoading} />
+            <div className="flex items-center gap-2">
+              <Input id="followers" type="text" inputMode="numeric" placeholder="Ex: 150.000" value={formData.followers} onChange={handleChange} required disabled={isLoading} className="flex-1" />
+              {followerCount > 0 && <span className="text-sm text-muted-foreground bg-secondary px-3 py-2 rounded-md">{classification}</span>}
+            </div>
           </div>
           <div className="flex flex-col space-y-1.5">
             <Label htmlFor="niche">Nicho/Segmento</Label>

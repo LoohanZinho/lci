@@ -16,6 +16,7 @@ import { InfluencerActions } from "./influencer-actions";
 import { EditInfluencerDialog } from "./edit-influencer-dialog";
 import { ViewInfluencerDialog } from "./view-influencer-dialog";
 import { useAuth } from "@/hooks/use-auth";
+import { getInfluencerClassification, getClassificationBadgeClass } from "@/lib/classification";
 
 
 interface InfluencerTableProps {
@@ -56,7 +57,7 @@ export function InfluencerTable({ influencers, loading }: InfluencerTableProps) 
           <TableHeader>
             <TableRow>
               <TableHead>Influenciador</TableHead>
-              <TableHead className="hidden sm:table-cell">Nicho</TableHead>
+              <TableHead className="hidden sm:table-cell text-center">Classificação</TableHead>
               <TableHead className="hidden md:table-cell text-center">Seguidores</TableHead>
               <TableHead className="hidden md:table-cell">Status</TableHead>
               <TableHead className="text-center">Fumo</TableHead>
@@ -72,7 +73,9 @@ export function InfluencerTable({ influencers, loading }: InfluencerTableProps) 
                 </TableCell>
               </TableRow>
             ) : (
-              influencers.map((influencer) => (
+              influencers.map((influencer) => {
+                const classification = getInfluencerClassification(influencer.followers);
+                return (
                 <TableRow key={influencer.id}>
                   <TableCell>
                     <div className="flex items-center gap-3">
@@ -90,7 +93,11 @@ export function InfluencerTable({ influencers, loading }: InfluencerTableProps) 
                         </div>
                     </div>
                   </TableCell>
-                  <TableCell className="hidden sm:table-cell">{influencer.niche}</TableCell>
+                  <TableCell className="hidden sm:table-cell text-center">
+                    <Badge variant="outline" className={getClassificationBadgeClass(classification)}>
+                      {classification}
+                    </Badge>
+                  </TableCell>
                    <TableCell className="hidden md:table-cell text-center">{influencer.followers.toLocaleString('pt-BR')}</TableCell>
                   <TableCell className="hidden md:table-cell">{influencer.status || "Disponível"}</TableCell>
                   <TableCell className="text-center">
@@ -111,7 +118,8 @@ export function InfluencerTable({ influencers, loading }: InfluencerTableProps) 
                     />
                   </TableCell>
                 </TableRow>
-              ))
+                )
+              })
             )}
           </TableBody>
         </Table>
