@@ -3,7 +3,7 @@
 import { InfluencerForm } from "@/components/influencer-form";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
-import { PlusCircle, Sun, Moon, Search } from "lucide-react";
+import { PlusCircle, Sun, Moon, Search, User as UserIcon, LogOut } from "lucide-react";
 import { InfluencerTable } from "@/components/influencer-table";
 import {
   Dialog,
@@ -12,7 +12,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 import { Input } from "@/components/ui/input";
 import { getInfluencers, Influencer } from "@/lib/influencers";
@@ -29,6 +29,15 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import Link from "next/link";
 
 
 export default function HomePage() {
@@ -85,14 +94,31 @@ export default function HomePage() {
           <Button variant="ghost" size="icon" onClick={toggleTheme}>
             {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
           </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="rounded-full w-8 h-8 bg-primary/20 text-primary"
-            onClick={logout}
-          >
-           {user.displayName?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase()}
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="rounded-full w-8 h-8 bg-primary/20 text-primary"
+              >
+                {user.displayName?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase()}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <Link href="/profile">
+                  <UserIcon className="mr-2 h-4 w-4" />
+                  <span>Perfil</span>
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={logout}>
+                <LogOut className="mr-2 h-4 w-4" />
+                <span>Sair</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </header>
       <main className="flex-1 p-4 md:p-8 bg-secondary/50">
