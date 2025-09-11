@@ -32,7 +32,7 @@ const getInitials = (name: string) => {
 export function InfluencerTable({ influencers, loading }: InfluencerTableProps) {
   const [editingInfluencer, setEditingInfluencer] = useState<InfluencerWithUserData | null>(null);
   const [viewingInfluencer, setViewingInfluencer] = useState<InfluencerWithUserData | null>(null);
-  const { isAdmin } = useAuth();
+  const { user, isAdmin } = useAuth();
 
   const handleEdit = (influencer: InfluencerWithUserData) => {
     setEditingInfluencer(influencer);
@@ -75,6 +75,12 @@ export function InfluencerTable({ influencers, loading }: InfluencerTableProps) 
             ) : (
               influencers.map((influencer) => {
                 const classification = getInfluencerClassification(influencer.followers);
+                
+                const isOwner = user?.uid === influencer.addedBy;
+                const addedByName = (isAdmin || isOwner || influencer.addedByData?.name)
+                    ? (influencer.addedByData?.name || 'Anônimo')
+                    : 'Anônimo';
+
                 return (
                 <TableRow key={influencer.id}>
                   <TableCell>
@@ -88,7 +94,7 @@ export function InfluencerTable({ influencers, loading }: InfluencerTableProps) 
                             {influencer.instagram}
                             </div>
                             <div className="text-xs text-muted-foreground/80 mt-1">
-                            Anunciado por: { isAdmin || influencer.addedByData?.name ? (influencer.addedByData?.name || 'Anônimo') : 'Anônimo'}
+                            Anunciado por: {addedByName}
                             </div>
                         </div>
                     </div>

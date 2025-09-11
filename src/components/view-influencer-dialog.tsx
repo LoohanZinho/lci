@@ -33,27 +33,18 @@ export function ViewInfluencerDialog({
   isOpen,
   onClose,
 }: ViewInfluencerDialogProps) {
-  const { isAdmin } = useAuth();
+  const { user, isAdmin } = useAuth();
   
   const classification = getInfluencerClassification(influencer.followers);
+  const isOwner = user?.uid === influencer.addedBy;
 
-  const getAddedByName = () => {
-    if (isAdmin) {
-      return influencer.addedByData?.name || 'Anônimo (Admin View)';
-    }
-    return influencer.addedByData?.name || 'Anônimo';
-  }
+  const addedByName = (isAdmin || isOwner || influencer.addedByData?.name)
+      ? (influencer.addedByData?.name || 'Anônimo')
+      : 'Anônimo';
 
-  const getAddedByEmail = () => {
-    if (isAdmin) {
-      return influencer.addedByData?.email || null;
-    }
-    // Only show email if the user is not anonymous
-    return influencer.addedByData?.name ? influencer.addedByData?.email : null;
-  }
-
-  const addedByName = getAddedByName();
-  const addedByEmail = getAddedByEmail();
+  const addedByEmail = (isAdmin || isOwner || influencer.addedByData?.name) 
+      ? influencer.addedByData?.email 
+      : null;
 
 
   return (

@@ -26,7 +26,8 @@ export default function ProfilePage() {
     if (user) {
       const currentName = user.displayName || "";
       setDisplayName(currentName);
-      setIsAnonymous(!currentName);
+      // We assume anonymous if the display name is empty on load
+      setIsAnonymous(!currentName); 
     }
   }, [user]);
   
@@ -55,27 +56,12 @@ export default function ProfilePage() {
     }
   }
 
-  const handleAnonymousToggle = async (checked: boolean) => {
+  const handleAnonymousToggle = (checked: boolean) => {
     setIsAnonymous(checked);
-    setIsLoading(true);
-    setError("");
-    setSuccessMessage("");
-    try {
-        if (checked) {
-            // Become anonymous
-            await updateUserProfile("");
-            setDisplayName("");
-            setSuccessMessage("Seu perfil agora é anônimo.");
-        } else {
-            // Restore name - for simplicity, we'll prompt the user to re-enter if they want a name
-            // A better UX might save the last known name, but this is safer.
-            setSuccessMessage("Modo anônimo desativado. Insira um nome de exibição e salve.");
-        }
-    } catch (err) {
-        setError("Ocorreu um erro. Tente novamente.");
-        console.error(err);
-    } finally {
-        setIsLoading(false);
+    if(checked) {
+        setSuccessMessage("Modo anônimo ativado. Seu nome não será exibido nas novas postagens.");
+    } else {
+        setSuccessMessage("Modo anônimo desativado.");
     }
   }
 
