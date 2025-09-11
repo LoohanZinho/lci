@@ -163,97 +163,98 @@ export default function HomePage() {
               </p>
             </div>
           </div>
-          <div className="flex flex-col md:flex-row items-center gap-4 mb-4">
-            <div className="flex-1 w-full">
-              <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
-                <PopoverTrigger asChild>
-                  <div className="relative w-full">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      type="search"
-                      placeholder="Buscar por nome, @, ou nota..."
-                      className="pl-9 w-full"
-                      value={searchQuery}
-                      onChange={(e) => {
-                        setSearchQuery(e.target.value);
-                        if (e.target.value.length > 0) {
-                          setPopoverOpen(true);
-                        } else {
-                          setPopoverOpen(false);
-                        }
-                      }}
-                    />
-                  </div>
-                </PopoverTrigger>
-                <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
-                  <Command>
-                    <CommandInput placeholder="Digite para buscar..." />
-                    <CommandList>
-                      <CommandEmpty>Nenhum resultado.</CommandEmpty>
-                      <CommandGroup>
-                        {influencers
-                          .filter(
-                            (i) =>
-                              i.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                              i.instagram.toLowerCase().includes(searchQuery.toLowerCase())
-                          )
-                          .slice(0, 5)
-                          .map((influencer) => (
-                            <CommandItem
-                              key={influencer.id}
-                              onSelect={() => handleSelectSuggestion(influencer.name)}
-                              value={influencer.name}
-                            >
-                              {influencer.name} ({influencer.instagram})
-                            </CommandItem>
-                          ))}
-                      </CommandGroup>
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
-            </div>
-
-            <div className="flex items-end gap-2 w-full md:w-auto">
-              <div>
-                <Label htmlFor="sort-by" className="text-xs text-muted-foreground">Ordenar por</Label>
-                <Select value={sortBy} onValueChange={(v) => setSortBy(v as "lastUpdate" | "followers")}>
-                  <SelectTrigger id="sort-by" className="w-full md:w-[150px]">
-                    <SelectValue placeholder="Ordenar por" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="lastUpdate">Última Edição</SelectItem>
-                    <SelectItem value="followers">Seguidores</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label htmlFor="sort-direction" className="text-xs text-muted-foreground">Direção</Label>
-                <Select value={sortDirection} onValueChange={(v) => setSortDirection(v as "asc" | "desc")}>
-                  <SelectTrigger id="sort-direction" className="w-full md:w-[140px]">
-                    <SelectValue placeholder="Direção" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="desc">Decrescente</SelectItem>
-                    <SelectItem value="asc">Crescente</SelectItem>
-                  </SelectContent>
-                </Select>
+          <div className="flex flex-col gap-4 mb-4">
+            <div className="w-full">
+                <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
+                  <PopoverTrigger asChild>
+                    <div className="relative w-full">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        type="search"
+                        placeholder="Buscar por nome, @, ou nota..."
+                        className="pl-9 w-full"
+                        value={searchQuery}
+                        onChange={(e) => {
+                          setSearchQuery(e.target.value);
+                          if (e.target.value.length > 0) {
+                            setPopoverOpen(true);
+                          } else {
+                            setPopoverOpen(false);
+                          }
+                        }}
+                      />
+                    </div>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                    <Command>
+                      <CommandInput placeholder="Digite para buscar..." />
+                      <CommandList>
+                        <CommandEmpty>Nenhum resultado.</CommandEmpty>
+                        <CommandGroup>
+                          {influencers
+                            .filter(
+                              (i) =>
+                                i.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                                i.instagram.toLowerCase().includes(searchQuery.toLowerCase())
+                            )
+                            .slice(0, 5)
+                            .map((influencer) => (
+                              <CommandItem
+                                key={influencer.id}
+                                onSelect={() => handleSelectSuggestion(influencer.name)}
+                                value={influencer.name}
+                              >
+                                {influencer.name} ({influencer.instagram})
+                              </CommandItem>
+                            ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
               </div>
 
-              <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-                <DialogTrigger asChild>
-                  <Button className="shrink-0">
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    Nova Postagem
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Adicionar Novo Influenciador</DialogTitle>
-                  </DialogHeader>
-                  <InfluencerForm onFinished={() => setIsFormOpen(false)} />
-                </DialogContent>
-              </Dialog>
+            <div className="flex flex-col md:flex-row items-end gap-2 w-full">
+              <div className="w-full md:w-auto">
+                  <Label htmlFor="sort-by" className="text-xs text-muted-foreground">Ordenar por</Label>
+                  <Select value={sortBy} onValueChange={(v) => setSortBy(v as "lastUpdate" | "followers")}>
+                    <SelectTrigger id="sort-by" className="w-full md:w-[150px]">
+                      <SelectValue placeholder="Ordenar por" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="lastUpdate">Última Edição</SelectItem>
+                      <SelectItem value="followers">Seguidores</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="w-full md:w-auto">
+                  <Label htmlFor="sort-direction" className="text-xs text-muted-foreground">Direção</Label>
+                  <Select value={sortDirection} onValueChange={(v) => setSortDirection(v as "asc" | "desc")}>
+                    <SelectTrigger id="sort-direction" className="w-full md:w-[140px]">
+                      <SelectValue placeholder="Direção" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="desc">Decrescente</SelectItem>
+                      <SelectItem value="asc">Crescente</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="w-full md:w-auto">
+                    <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+                      <DialogTrigger asChild>
+                        <Button className="shrink-0 w-full md:w-auto">
+                          <PlusCircle className="mr-2 h-4 w-4" />
+                          Nova Postagem
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Adicionar Novo Influenciador</DialogTitle>
+                        </DialogHeader>
+                        <InfluencerForm onFinished={() => setIsFormOpen(false)} />
+                      </DialogContent>
+                    </Dialog>
+                </div>
             </div>
           </div>
 
