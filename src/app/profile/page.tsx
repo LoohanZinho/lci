@@ -26,7 +26,7 @@ export default function ProfilePage() {
     if (user) {
       const currentName = user.displayName || "";
       setDisplayName(currentName);
-      // A user is considered anonymous if they have no display name.
+      // A user is anonymous if they don't have a display name.
       setIsAnonymous(!currentName); 
     }
   }, [user]);
@@ -66,9 +66,6 @@ export default function ProfilePage() {
 
   const handleAnonymousToggle = (checked: boolean) => {
     setIsAnonymous(checked);
-    // Clear messages when toggling
-    setSuccessMessage("");
-    setError("");
   }
 
   return (
