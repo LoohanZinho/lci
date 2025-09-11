@@ -5,7 +5,9 @@ import {
   query,
   orderBy,
   serverTimestamp,
-  Timestamp
+  Timestamp,
+  deleteDoc,
+  doc
 } from "firebase/firestore";
 import { db } from "./firebase";
 
@@ -57,3 +59,13 @@ export const getInfluencers = (
   
     return unsubscribe;
   };
+
+export const deleteInfluencer = async (id: string) => {
+  try {
+    await deleteDoc(doc(db, "influencers", id));
+    console.log("Document successfully deleted!");
+  } catch (error) {
+    console.error("Error removing document: ", error);
+    throw error;
+  }
+};

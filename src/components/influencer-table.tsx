@@ -11,6 +11,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { useEffect, useMemo, useState } from "react";
 import { getInfluencers, Influencer } from "@/lib/influencers";
+import { Flame } from "lucide-react";
+import { InfluencerActions } from "./influencer-actions";
 
 interface InfluencerTableProps {
   searchQuery: string;
@@ -38,7 +40,10 @@ export function InfluencerTable({ searchQuery }: InfluencerTableProps) {
       (influencer) =>
         influencer.name.toLowerCase().includes(lowercasedQuery) ||
         influencer.instagram.toLowerCase().includes(lowercasedQuery) ||
-        (influencer.notes && influencer.notes.toLowerCase().includes(lowercasedQuery))
+        (influencer.notes &&
+          influencer.notes.toLowerCase().includes(lowercasedQuery)) ||
+        (influencer.status &&
+          influencer.status.toLowerCase().includes(lowercasedQuery))
     );
   }, [influencers, searchQuery]);
 
@@ -56,12 +61,13 @@ export function InfluencerTable({ searchQuery }: InfluencerTableProps) {
             <TableHead>Status</TableHead>
             <TableHead className="text-center">Fumo</TableHead>
             <TableHead className="text-right">Última Edição</TableHead>
+            <TableHead className="w-[80px] text-right">Ações</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {filteredInfluencers.length === 0 && !loading ? (
             <TableRow>
-              <TableCell colSpan={5} className="text-center">
+              <TableCell colSpan={6} className="text-center">
                 Nenhum influenciador encontrado.
               </TableCell>
             </TableRow>
@@ -78,11 +84,16 @@ export function InfluencerTable({ searchQuery }: InfluencerTableProps) {
                 <TableCell>{influencer.status || "Disponível"}</TableCell>
                 <TableCell className="text-center">
                   {influencer.isFumo && (
-                    <Badge variant="destructive">Sim</Badge>
+                    <Badge variant="destructive" className="p-1.5">
+                      <Flame className="h-4 w-4" />
+                    </Badge>
                   )}
                 </TableCell>
                 <TableCell className="text-right">
                   {influencer.lastUpdate?.toDate().toLocaleDateString("pt-BR")}
+                </TableCell>
+                <TableCell className="text-right">
+                   <InfluencerActions influencerId={influencer.id} />
                 </TableCell>
               </TableRow>
             ))
