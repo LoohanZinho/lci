@@ -3,7 +3,7 @@
 import { InfluencerForm } from "@/components/influencer-form";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
-import { Calendar, Filter, PlusCircle, Sun, Moon } from "lucide-react";
+import { Filter, PlusCircle, Sun, Moon, Search } from "lucide-react";
 import { InfluencerTable } from "@/components/influencer-table";
 import {
   Dialog,
@@ -14,10 +14,12 @@ import {
 } from "@/components/ui/dialog";
 import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
+import { Input } from "@/components/ui/input";
 
 export default function HomePage() {
   const { user, logout } = useAuth();
   const [greeting, setGreeting] = useState("Olá");
+  const [searchQuery, setSearchQuery] = useState("");
   const { theme, setTheme } = useTheme();
 
   useEffect(() => {
@@ -76,10 +78,16 @@ export default function HomePage() {
               </p>
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="outline">
-                <Filter className="mr-2 h-4 w-4" />
-                Filtros
-              </Button>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  type="search"
+                  placeholder="Buscar por nome, @, ou nota..."
+                  className="pl-9"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
               <Dialog>
                 <DialogTrigger asChild>
                   <Button>
@@ -97,7 +105,7 @@ export default function HomePage() {
             </div>
           </div>
 
-          <InfluencerTable />
+          <InfluencerTable searchQuery={searchQuery} />
         </div>
       </main>
     </div>

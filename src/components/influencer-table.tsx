@@ -9,10 +9,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { getInfluencers, Influencer } from "@/lib/influencers";
 
-export function InfluencerTable() {
+interface InfluencerTableProps {
+  searchQuery: string;
+}
+
+export function InfluencerTable({ searchQuery }: InfluencerTableProps) {
   const [influencers, setInfluencers] = useState<Influencer[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -24,6 +28,19 @@ export function InfluencerTable() {
 
     return () => unsubscribe();
   }, []);
+
+  const filteredInfluencers = useMemo(() => {
+    if (!searchQuery) {
+      return influencers;
+    }
+    const lowercasedQuery = searchQuery.toLowerCase();
+    return influencers.filter(
+      (influencer) =>
+        influencer.name.toLowerCase().includes(lowercasedQuery) ||
+        influencer.instagram.toLowerCase().includes(lowercasedQuery) ||
+        (influencer.notes && influencer.notes.toLowerCase().includes(lowercasedQuery))
+    );
+  }, [influencers, searchQuery]);
 
   if (loading) {
     return <p>Carregando influenciadores...</p>;
@@ -42,14 +59,14 @@ export function InfluencerTable() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {influencers.length === 0 && !loading ? (
+          {filteredInfluencers.length === 0 && !loading ? (
             <TableRow>
               <TableCell colSpan={5} className="text-center">
                 Nenhum influenciador encontrado.
               </TableCell>
             </TableRow>
           ) : (
-            influencers.map((influencer) => (
+            filteredInfluencers.map((influencer) => (
               <TableRow key={influencer.id}>
                 <TableCell>
                   <div className="font-medium">{influencer.name}</div>
