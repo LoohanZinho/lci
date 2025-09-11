@@ -3,13 +3,13 @@
 import { InfluencerForm } from "@/components/influencer-form";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
-import { BookUser } from "lucide-react";
+import { BookUser, PlusCircle, Search } from "lucide-react";
+import { InfluencerTable } from "@/components/influencer-table";
+import { Input } from "@/components/ui/input";
 
 export default function HomePage() {
   const { user, logout } = useAuth();
 
-  // O hook useAuth já redireciona se não houver usuário,
-  // mas podemos renderizar null ou um loader enquanto o estado de auth carrega.
   if (!user) {
     return null; 
   }
@@ -23,11 +23,30 @@ export default function HomePage() {
             <span className="font-light">LCI:</span> Mural de Influência
           </h1>
         </div>
-        <Button onClick={logout} variant="ghost">Sair</Button>
+        <div className="flex items-center gap-4">
+          <span className="text-sm text-muted-foreground hidden sm:inline">
+            Olá, {user.displayName || user.email}
+          </span>
+          <Button onClick={logout} variant="ghost">Sair</Button>
+        </div>
       </header>
       <main className="flex-1 p-4 md:p-8">
-        <div className="max-w-2xl mx-auto">
-          <InfluencerForm />
+        <div className="max-w-7xl mx-auto">
+          <div className="flex justify-between items-center mb-6">
+            <div className="relative w-full max-w-sm">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input placeholder="Buscar por nome ou @" className="pl-9" />
+            </div>
+             <Button>
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Adicionar Influenciador
+            </Button>
+          </div>
+
+          <InfluencerTable />
+          
+          {/* O formulário pode ser movido para um modal que abre com o botão "Adicionar" */}
+          {/* <InfluencerForm /> */}
         </div>
       </main>
     </div>

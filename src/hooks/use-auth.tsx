@@ -36,8 +36,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
-      setLoading(false);
+      if (user) {
+        // Just signed in or session existed.
+        // Get the most up-to-date profile.
+        auth.currentUser?.reload().then(() => {
+          const freshUser = auth.currentUser;
+          setUser(freshUser);
+          setLoading(false);
+        });
+      } else {
+        // User is signed out.
+        setUser(null);
+        setLoading(false);
+      }
     });
 
     return () => unsubscribe();
@@ -60,6 +71,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     if(userCredential.user){
         await updateProfile(userCredential.user, { displayName });
+        // Reload user to get displayName
+        await userCredential.user.reload();
+        setUser(auth.currentUser);
     }
   };
 
