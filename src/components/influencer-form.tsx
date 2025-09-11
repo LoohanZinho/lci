@@ -122,18 +122,15 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
     newPreviews.splice(index, 1);
     
     // Check if the removed image was an already uploaded one or a new file
-    const fileIndex = imagePreviews.length - imageFiles.length <= index ? index - (imagePreviews.length - imageFiles.length) : -1;
-
-    if (fileIndex > -1) {
-        // It's a new file that hasn't been uploaded yet
-        newFiles.splice(fileIndex, 1);
-        setImageFiles(newFiles);
-    } 
+    if (urlToRemove.startsWith('blob:')) {
+        const fileIndex = imageFiles.findIndex(file => URL.createObjectURL(file) === urlToRemove);
+        if (fileIndex > -1) {
+            newFiles.splice(fileIndex, 1);
+            setImageFiles(newFiles);
+        }
+    }
 
     setImagePreviews(newPreviews);
-    
-    // If it is in edit mode and the image was already on the server, we need to handle its deletion on submit
-    // We will do this by comparing the initial URLs with the final URLs
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -171,31 +168,36 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
 
     try {
         let finalImageUrls: string[] = [];
-
-        // In edit mode, identify existing URLs and URLs to be deleted.
-        const originalUrls = influencer?.proofImageUrls || [];
-        const remainingUrls = isEditMode ? imagePreviews.filter(p => originalUrls.includes(p)) : [];
-        finalImageUrls.push(...remainingUrls);
         
-        if (isEditMode) {
-          const urlsToDelete = originalUrls.filter(url => !remainingUrls.includes(url));
-          if(urlsToDelete.length > 0) {
-            await Promise.all(urlsToDelete.map(url => deleteProofImageByUrl(url)));
-          }
+        // Handle image uploads and updates
+        const newFilesToUpload = imageFiles.filter(file => imagePreviews.some(p => p.startsWith('blob:') && URL.createObjectURL(file) === p));
+        
+        if (newFilesToUpload.length > 0) {
+            const influencerIdForStorage = influencer?.id || Date.now().toString();
+            const progressPerFile: number[] = new Array(newFilesToUpload.length).fill(0);
+
+            const uploadedUrls = await Promise.all(
+                newFilesToUpload.map((file, index) => 
+                    uploadProofImage(influencerIdForStorage, file, (progress) => {
+                        progressPerFile[index] = progress;
+                        const totalProgress = progressPerFile.reduce((a, b) => a + b, 0) / newFilesToUpload.length;
+                        setUploadProgress(totalProgress);
+                    })
+                )
+            );
+            finalImageUrls.push(...uploadedUrls);
         }
 
-        // Upload new files if any
-        if (imageFiles.length > 0) {
-            const influencerIdForStorage = influencer?.id || Date.now().toString();
-            const uploadedImageUrls = await Promise.all(
-                imageFiles.map((file, index) => {
-                    return uploadProofImage(influencerIdForStorage, file, (progress) => {
-                         const totalProgress = (imageFiles.map((_, i) => i < index ? 100 : (i === index ? progress : 0)).reduce((a, b) => a + b, 0) / imageFiles.length);
-                         setUploadProgress(totalProgress);
-                    });
-                })
-            );
-            finalImageUrls.push(...uploadedImageUrls);
+        // Handle existing images in edit mode
+        if (isEditMode) {
+            const originalUrls = influencer?.proofImageUrls || [];
+            const remainingUrls = imagePreviews.filter(p => !p.startsWith('blob:') && originalUrls.includes(p));
+            finalImageUrls.push(...remainingUrls);
+            
+            const urlsToDelete = originalUrls.filter(url => !remainingUrls.includes(url));
+            if (urlsToDelete.length > 0) {
+                await Promise.all(urlsToDelete.map(url => deleteProofImageByUrl(url)));
+            }
         }
 
         const influencerData = {
@@ -209,15 +211,15 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
             isFumo: formData.isFumo,
             proofImageUrls: finalImageUrls,
         };
-
+        
         if (isEditMode && influencer) {
              const dataToUpdate: UpdatableInfluencerData = { ...influencerData };
              await updateInfluencer(influencer.id, user.uid, dataToUpdate);
         } else {
              const newInfluencerData: Omit<NewInfluencer, 'lastUpdate' | 'editors'> = {
                 ...influencerData,
-                addedBy: user.uid
-             }
+                addedBy: user.uid,
+             };
              await addInfluencer(newInfluencerData);
         }
         
