@@ -20,9 +20,12 @@ import { useRouter, usePathname } from "next/navigation";
 import { LoadingSpinner } from "@/components/loading-spinner";
 import { doc, setDoc } from "firebase/firestore";
 
+const ADMIN_EMAILS = ["lohansantosborges@gmail.com", "natanrabelo934@gmail.com"];
+
 interface AuthContextType {
   user: User | null;
   loading: boolean;
+  isAdmin: boolean;
   signup: (
     email: string,
     password: string,
@@ -38,12 +41,18 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
+      if (currentUser?.email && ADMIN_EMAILS.includes(currentUser.email)) {
+        setIsAdmin(true);
+      } else {
+        setIsAdmin(false);
+      }
       setLoading(false);
     });
 
@@ -113,7 +122,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  const value = { user, loading, signup, login, logout, updateUserProfile };
+  const value = { user, loading, isAdmin, signup, login, logout, updateUserProfile };
 
   return (
     <AuthContext.Provider value={value}>

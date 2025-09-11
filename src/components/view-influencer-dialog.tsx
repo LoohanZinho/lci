@@ -10,6 +10,7 @@ import {
 import { InfluencerWithUserData } from "@/lib/influencers";
 import { Badge } from "./ui/badge";
 import { Flame } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
 
 interface ViewInfluencerDialogProps {
   influencer: InfluencerWithUserData;
@@ -30,6 +31,27 @@ export function ViewInfluencerDialog({
   isOpen,
   onClose,
 }: ViewInfluencerDialogProps) {
+  const { isAdmin } = useAuth();
+  
+  const getAddedByName = () => {
+    if (isAdmin) {
+      return influencer.addedByData?.name || 'Anônimo (Admin View)';
+    }
+    return influencer.addedByData?.name || 'Anônimo';
+  }
+
+  const getAddedByEmail = () => {
+    if (isAdmin) {
+      return influencer.addedByData?.email || null;
+    }
+    // Only show email if the user is not anonymous
+    return influencer.addedByData?.name ? influencer.addedByData?.email : null;
+  }
+
+  const addedByName = getAddedByName();
+  const addedByEmail = getAddedByEmail();
+
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-md">
@@ -51,9 +73,9 @@ export function ViewInfluencerDialog({
             <DetailRow label="Contato" value={influencer.contact || 'Não informado'} />
             <DetailRow label="Anunciado por" value={
                 <div>
-                    {influencer.addedByData?.name || 'Anônimo'}
-                    {influencer.addedByData?.name && influencer.addedByData?.email && 
-                        <span className="text-muted-foreground text-xs block">({influencer.addedByData.email})</span>
+                    {addedByName}
+                    {addedByEmail && 
+                        <span className="text-muted-foreground text-xs block">({addedByEmail})</span>
                     }
                 </div>
             } />

@@ -15,6 +15,7 @@ import { Flame } from "lucide-react";
 import { InfluencerActions } from "./influencer-actions";
 import { EditInfluencerDialog } from "./edit-influencer-dialog";
 import { ViewInfluencerDialog } from "./view-influencer-dialog";
+import { useAuth } from "@/hooks/use-auth";
 
 
 interface InfluencerTableProps {
@@ -26,6 +27,7 @@ export function InfluencerTable({ searchQuery }: InfluencerTableProps) {
   const [loading, setLoading] = useState(true);
   const [editingInfluencer, setEditingInfluencer] = useState<InfluencerWithUserData | null>(null);
   const [viewingInfluencer, setViewingInfluencer] = useState<InfluencerWithUserData | null>(null);
+  const { isAdmin } = useAuth();
 
   useEffect(() => {
     setLoading(true);
@@ -96,7 +98,7 @@ export function InfluencerTable({ searchQuery }: InfluencerTableProps) {
                       {influencer.instagram}
                     </div>
                      <div className="text-xs text-muted-foreground/80 mt-1">
-                      Anunciado por: {influencer.addedByData?.name || 'Anônimo'}
+                      Anunciado por: { isAdmin || influencer.addedByData?.name ? (influencer.addedByData?.name || 'Anônimo') : 'Anônimo'}
                     </div>
                   </TableCell>
                   <TableCell className="hidden sm:table-cell">{influencer.niche}</TableCell>
