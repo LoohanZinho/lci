@@ -74,7 +74,7 @@ export default function HomePage() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-secondary/50">
+    <div className="flex flex-col min-h-screen">
       <header className="flex items-center justify-between p-4 border-b bg-background">
         <div className="flex items-center space-x-2">
           <h1 className="text-xl font-semibold text-primary">
@@ -95,7 +95,7 @@ export default function HomePage() {
           </Button>
         </div>
       </header>
-      <main className="flex-1 p-4 md:p-8">
+      <main className="flex-1 p-4 md:p-8 bg-secondary/50">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4 mb-6">
             <div className="flex-1">
