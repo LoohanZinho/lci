@@ -1,4 +1,5 @@
 import { BookUser } from 'lucide-react';
+import { InfluencerForm } from '@/components/influencer-form';
 
 export default function Home() {
   return (
@@ -14,10 +15,9 @@ export default function Home() {
         </div>
       </header>
       <main className="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h2 className="text-2xl font-semibold mb-4">Bem-vindo ao Mural</h2>
-        <p className="text-muted-foreground">
-          Aqui você poderá registrar e consultar influenciadores, ver histórico de campanhas e muito mais.
-        </p>
+        <div className="max-w-2xl mx-auto">
+          <InfluencerForm />
+        </div>
       </main>
     </div>
   );
