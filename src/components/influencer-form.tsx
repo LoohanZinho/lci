@@ -50,7 +50,7 @@ const unformatFollowers = (value: string) => {
 }
 
 export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) {
-  const [formData, setFormData] = useState<Omit<NewInfluencer, 'lastUpdate' | 'addedBy'>>(initialState);
+  const [formData, setFormData] = useState<Omit<NewInfluencer, 'lastUpdate' | 'addedBy' | 'editors'>>(initialState);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { user } = useAuth();
@@ -170,7 +170,7 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
     setUploadProgress(0);
 
     try {
-        const influencerData: Omit<NewInfluencer, 'lastUpdate' | 'proofImageUrls' | 'editors'> = {
+        const influencerData = {
             name: formData.name,
             instagram: formData.instagram.startsWith('@') ? formData.instagram : `@${formData.instagram}`,
             followers: parseInt(unformatFollowers(formData.followers), 10),
@@ -214,9 +214,8 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
 
         } else {
             // Create Mode
-            const newInfluencerData: Omit<NewInfluencer, 'lastUpdate'> = {
+            const newInfluencerData = {
                 ...influencerData,
-                editors: [user.uid],
                 proofImageUrls: [], // Start with empty array
             };
 

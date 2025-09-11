@@ -74,7 +74,6 @@ export function ViewInfluencerDialog({
             <DetailRow label="Observações" value={
                 <p className="whitespace-pre-wrap">{influencer.notes || 'Nenhuma observação.'}</p>
             } />
-             <DetailRow label="Última Edição" value={influencer.lastUpdate?.toDate().toLocaleString("pt-BR", { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) || 'N/A'} />
 
              {influencer.proofImageUrls && influencer.proofImageUrls.length > 0 && (
                 <div className="py-3 border-b border-border/50">
@@ -91,7 +90,7 @@ export function ViewInfluencerDialog({
 
             <div className="py-3">
               <h4 className="font-semibold text-muted-foreground mb-3">Linha do Tempo de Edições</h4>
-              <div className="space-y-3">
+              <div className="space-y-4">
                   <div className="flex items-start gap-3">
                       <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary">
                           <UserCircle className="h-5 w-5" />
@@ -143,13 +142,18 @@ export function ViewInfluencerDialog({
                                   )}
                                 </>
                               )}
+                              <p className="text-xs text-muted-foreground mt-1">
+                                em {editor.timestamp?.toDate().toLocaleString("pt-BR", { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) || 'N/A'}
+                              </p>
                           </div>
                       </div>
                       )
                     })}
-                   <div className="text-center text-xs text-muted-foreground/80 pt-2">
-                      Apenas edições de usuários não-anônimos são exibidas para não-admins.
-                  </div>
+                   {(!influencer.editorsData || influencer.editorsData.length === 0) && (
+                     <div className="text-center text-xs text-muted-foreground/80 pt-2">
+                        Nenhuma edição registrada.
+                    </div>
+                   )}
               </div>
             </div>
         </div>

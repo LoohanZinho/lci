@@ -18,6 +18,11 @@ import {
 import { db } from "./firebase";
 import { deleteProofImageByUrl } from "./storage";
 
+export interface EditorInfo {
+  userId: string;
+  timestamp: Timestamp;
+}
+
 export interface NewInfluencer {
     name: string;
     instagram: string;
@@ -30,7 +35,7 @@ export interface NewInfluencer {
     lastUpdate: Date;
     addedBy: string;
     proofImageUrls: string[];
-    editors?: string[];
+    editors: EditorInfo[];
 }
 
 export interface Influencer extends Omit<NewInfluencer, 'lastUpdate'> {
@@ -44,18 +49,23 @@ export interface UserData {
   isAnonymous: boolean;
 }
 
-export interface InfluencerWithUserData extends Influencer {
-  addedByData?: UserData;
-  editorsData?: UserData[];
+export interface EditorData extends UserData {
+  timestamp: Timestamp;
 }
 
 
-export const addInfluencer = async (influencer: Omit<NewInfluencer, 'lastUpdate'>): Promise<DocumentReference> => {
+export interface InfluencerWithUserData extends Influencer {
+  addedByData?: UserData;
+  editorsData?: EditorData[];
+}
+
+
+export const addInfluencer = async (influencer: Omit<NewInfluencer, 'lastUpdate' | 'editors'> & { editors?: string[] }): Promise<DocumentReference> => {
   try {
     const docRef = await addDoc(collection(db, "influencers"), {
       ...influencer,
       proofImageUrls: influencer.proofImageUrls || [],
-      editors: influencer.editors || [],
+      editors: [], // Start with an empty array of EditorInfo
       lastUpdate: serverTimestamp(),
     });
     console.log("Document written with ID: ", docRef.id);
@@ -66,14 +76,18 @@ export const addInfluencer = async (influencer: Omit<NewInfluencer, 'lastUpdate'
   }
 };
 
-export type UpdatableInfluencerData = Partial<Omit<NewInfluencer, 'addedBy' | 'lastUpdate'>>
+export type UpdatableInfluencerData = Partial<Omit<NewInfluencer, 'addedBy' | 'lastUpdate' | 'editors'>>
 
 export const updateInfluencer = async (id: string, userId: string, data: UpdatableInfluencerData) => {
   try {
     const docRef = doc(db, "influencers", id);
+    const newEditorInfo: EditorInfo = {
+        userId: userId,
+        timestamp: Timestamp.now(),
+    };
     await updateDoc(docRef, {
       ...data,
-      editors: arrayUnion(userId),
+      editors: arrayUnion(newEditorInfo),
       lastUpdate: serverTimestamp(),
     });
     console.log("Document successfully updated!");
@@ -131,13 +145,16 @@ export const getInfluencers = (
         influencers.push({ id: doc.id, ...doc.data() } as Influencer);
       });
       
-      const uids = influencers.flatMap(i => [i.addedBy, ...(i.editors || [])]).filter(Boolean);
+      const uids = influencers.flatMap(i => [i.addedBy, ...(i.editors || []).map(e => e.userId)]).filter(Boolean);
       const usersData = await fetchUsersData(uids);
 
       const influencersWithUserData: InfluencerWithUserData[] = influencers.map(influencer => ({
         ...influencer,
         addedByData: usersData[influencer.addedBy],
-        editorsData: (influencer.editors || []).map(editorId => usersData[editorId]).filter(Boolean)
+        editorsData: (influencer.editors || []).map(editorInfo => {
+            const userData = usersData[editorInfo.userId];
+            return userData ? { ...userData, timestamp: editorInfo.timestamp } : null;
+        }).filter(Boolean) as EditorData[]
       }));
 
       callback(influencersWithUserData);
