@@ -3,7 +3,7 @@
 import { InfluencerForm } from "@/components/influencer-form";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
-import { Calendar, Filter, PlusCircle, Sun } from "lucide-react";
+import { Calendar, Filter, PlusCircle, Sun, Moon } from "lucide-react";
 import { InfluencerTable } from "@/components/influencer-table";
 import {
   Dialog,
@@ -13,10 +13,12 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useEffect, useState } from "react";
+import { useTheme } from "next-themes";
 
 export default function HomePage() {
   const { user, logout } = useAuth();
   const [greeting, setGreeting] = useState("Olá");
+  const { theme, setTheme } = useTheme();
 
   useEffect(() => {
     const getGreeting = () => {
@@ -36,6 +38,10 @@ export default function HomePage() {
     return null;
   }
 
+  const toggleTheme = () => {
+    setTheme(theme === "dark" ? "light" : "dark");
+  };
+
   return (
     <div className="flex flex-col min-h-screen bg-secondary/50">
       <header className="flex items-center justify-between p-4 border-b bg-background">
@@ -45,8 +51,8 @@ export default function HomePage() {
           </h1>
         </div>
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon">
-            <Sun className="h-5 w-5" />
+          <Button variant="ghost" size="icon" onClick={toggleTheme}>
+            {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
           </Button>
           <Button
             variant="ghost"
