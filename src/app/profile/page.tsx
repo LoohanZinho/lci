@@ -104,7 +104,7 @@ export default function ProfilePage() {
                                     value={displayName} // Input value is controlled by component state
                                     onChange={(e) => setDisplayName(e.target.value)}
                                     placeholder="Seu nome"
-                                    disabled={isLoading || isAnonymous}
+                                    disabled={isLoading}
                                 />
                             </div>
                              <div className="flex flex-col space-y-1.5">
