@@ -41,7 +41,29 @@ export default function ProfilePage() {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (isAnonymous) return;
+    if (isAnonymous) {
+        // If the user wants to be anonymous, we save an empty display name.
+        if (user?.displayName) {
+            setIsLoading(true);
+            setError("");
+            setSuccessMessage("");
+            try {
+                await updateUserProfile("");
+                setSuccessMessage("Modo anônimo ativado. Seu nome não será exibido nas novas postagens.");
+            } catch (err) {
+                setError("Ocorreu um erro ao ativar o modo anônimo. Tente novamente.");
+                console.error(err);
+            } finally {
+                setIsLoading(false);
+            }
+        } else {
+            // Already anonymous, nothing to do.
+             setSuccessMessage("Modo anônimo já está ativado.");
+        }
+        return;
+    };
+
+    // If not anonymous, save the display name
     setError("");
     setSuccessMessage("");
     setIsLoading(true);
@@ -58,11 +80,9 @@ export default function ProfilePage() {
 
   const handleAnonymousToggle = (checked: boolean) => {
     setIsAnonymous(checked);
-    if(checked) {
-        setSuccessMessage("Modo anônimo ativado. Seu nome não será exibido nas novas postagens.");
-    } else {
-        setSuccessMessage("Modo anônimo desativado.");
-    }
+    // Clear messages when toggling
+    setSuccessMessage("");
+    setError("");
   }
 
   return (
@@ -102,13 +122,6 @@ export default function ProfilePage() {
                                 <Label htmlFor="email">Email</Label>
                                 <p id="email" className="text-sm font-medium text-muted-foreground pt-2">{user.email}</p>
                             </div>
-                            {error && <p className="text-sm text-destructive">{error}</p>}
-                            {successMessage && <p className="text-sm text-green-600">{successMessage}</p>}
-                            <Button type="submit" className="w-full" disabled={isLoading || isAnonymous}>
-                               {isLoading ? 'Salvando...' : 'Salvar Alterações'}
-                            </Button>
-                        </form>
-                         <div className="space-y-4">
                             <div className="flex items-center justify-between rounded-lg border p-3">
                                <div className="space-y-0.5">
                                  <Label htmlFor="anonymous-mode">Modo Anônimo</Label>
@@ -123,6 +136,13 @@ export default function ProfilePage() {
                                 disabled={isLoading}
                                />
                             </div>
+                            {error && <p className="text-sm text-destructive">{error}</p>}
+                            {successMessage && <p className="text-sm text-green-600">{successMessage}</p>}
+                            <Button type="submit" className="w-full" disabled={isLoading}>
+                               {isLoading ? 'Salvando...' : 'Salvar Alterações'}
+                            </Button>
+                        </form>
+                         <div className="space-y-4">
                             <Button variant="destructive" className="w-full" onClick={logout}>
                                 Sair da Conta
                             </Button>
