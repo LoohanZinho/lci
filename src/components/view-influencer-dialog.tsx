@@ -11,6 +11,7 @@ import { InfluencerWithUserData } from "@/lib/influencers";
 import { Badge } from "./ui/badge";
 import { Flame } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
+import Image from "next/image";
 
 interface ViewInfluencerDialogProps {
   influencer: InfluencerWithUserData;
@@ -19,7 +20,7 @@ interface ViewInfluencerDialogProps {
 }
 
 const DetailRow = ({ label, value }: { label: string, value: React.ReactNode }) => (
-    <div className="grid grid-cols-3 items-start gap-4">
+    <div className="grid grid-cols-3 items-start gap-4 py-3 border-b border-border/50">
         <span className="font-semibold text-muted-foreground">{label}</span>
         <div className="col-span-2 text-foreground">{value}</div>
     </div>
@@ -54,7 +55,7 @@ export function ViewInfluencerDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl">
             {influencer.name}
@@ -66,7 +67,7 @@ export function ViewInfluencerDialog({
           </DialogTitle>
           <DialogDescription>{influencer.instagram}</DialogDescription>
         </DialogHeader>
-        <div className="py-4 space-y-4 text-sm">
+        <div className="text-sm">
             <DetailRow label="Seguidores" value={influencer.followers.toLocaleString('pt-BR')} />
             <DetailRow label="Nicho" value={influencer.niche || 'Não informado'} />
             <DetailRow label="Status" value={influencer.status} />
@@ -83,6 +84,15 @@ export function ViewInfluencerDialog({
                 <p className="whitespace-pre-wrap">{influencer.notes || 'Nenhuma observação.'}</p>
             } />
              <DetailRow label="Última Edição" value={influencer.lastUpdate?.toDate().toLocaleString("pt-BR", { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) || 'N/A'} />
+
+             {influencer.proofImageUrl && (
+                <div className="py-3">
+                    <span className="font-semibold text-muted-foreground">Prova</span>
+                    <div className="mt-2 relative w-full aspect-video rounded-md overflow-hidden">
+                        <Image src={influencer.proofImageUrl} alt={`Prova para ${influencer.name}`} layout="fill" objectFit="contain" />
+                    </div>
+                </div>
+             )}
         </div>
       </DialogContent>
     </Dialog>

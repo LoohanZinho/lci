@@ -13,6 +13,7 @@ import {
   getDocs,
 } from "firebase/firestore";
 import { db } from "./firebase";
+import { deleteProofImage } from "./storage";
 
 export interface NewInfluencer {
     name: string;
@@ -25,6 +26,7 @@ export interface NewInfluencer {
     isFumo: boolean;
     lastUpdate: Date;
     addedBy: string;
+    proofImageUrl?: string;
 }
 
 export interface Influencer extends Omit<NewInfluencer, 'lastUpdate'> {
@@ -46,6 +48,7 @@ export const addInfluencer = async (influencer: NewInfluencer) => {
   try {
     const docRef = await addDoc(collection(db, "influencers"), {
       ...influencer,
+      proofImageUrl: influencer.proofImageUrl || null,
       lastUpdate: serverTimestamp(), // Use server timestamp for consistency
     });
     console.log("Document written with ID: ", docRef.id);
@@ -56,7 +59,7 @@ export const addInfluencer = async (influencer: NewInfluencer) => {
   }
 };
 
-export type UpdatableInfluencerData = Omit<NewInfluencer, 'addedBy' | 'lastUpdate'>;
+export type UpdatableInfluencerData = Omit<NewInfluencer, 'addedBy' | 'lastUpdate'> & { proofImageUrl?: string };
 
 export const updateInfluencer = async (id: string, data: Partial<UpdatableInfluencerData>) => {
   try {
@@ -122,6 +125,17 @@ export const getInfluencers = (
 
 export const deleteInfluencer = async (id: string) => {
   try {
+    const influencerDoc = await getDoc(doc(db, "influencers", id));
+    if (!influencerDoc.exists()) {
+      throw new Error("Influencer not found");
+    }
+    const influencerData = influencerDoc.data() as Influencer;
+
+    // Delete proof image from storage if it exists
+    if (influencerData.proofImageUrl) {
+      await deleteProofImage(influencerData.proofImageUrl);
+    }
+    
     await deleteDoc(doc(db, "influencers", id));
     console.log("Document successfully deleted!");
   } catch (error) {
