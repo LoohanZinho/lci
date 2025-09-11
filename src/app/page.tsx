@@ -6,12 +6,19 @@ import { useAuth } from "@/hooks/use-auth";
 import { BookUser, PlusCircle, Search } from "lucide-react";
 import { InfluencerTable } from "@/components/influencer-table";
 import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 export default function HomePage() {
   const { user, logout } = useAuth();
 
   if (!user) {
-    return null; 
+    return null;
   }
 
   return (
@@ -37,16 +44,23 @@ export default function HomePage() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input placeholder="Buscar por nome ou @" className="pl-9" />
             </div>
-             <Button>
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Adicionar Influenciador
-            </Button>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button>
+                  <PlusCircle className="mr-2 h-4 w-4" />
+                  Adicionar Influenciador
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                  <DialogTitle>Adicionar Novo Influenciador</DialogTitle>
+                </DialogHeader>
+                <InfluencerForm />
+              </DialogContent>
+            </Dialog>
           </div>
 
           <InfluencerTable />
-          
-          {/* O formulário pode ser movido para um modal que abre com o botão "Adicionar" */}
-          {/* <InfluencerForm /> */}
         </div>
       </main>
     </div>
