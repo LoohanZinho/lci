@@ -3,7 +3,7 @@
 import { InfluencerForm } from "@/components/influencer-form";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
-import { PlusCircle, Sun, Moon, Search, User as UserIcon, LogOut } from "lucide-react";
+import { PlusCircle, Sun, Moon, Search, User as UserIcon, LogOut, BarChart3 } from "lucide-react";
 import { InfluencerTable } from "@/components/influencer-table";
 import {
   Dialog,
@@ -116,8 +116,9 @@ export default function HomePage() {
     <div className="flex flex-col min-h-screen">
       <header className="flex items-center justify-between p-4 border-b bg-background">
         <div className="flex items-center space-x-2">
-          <h1 className="text-xl font-semibold text-primary">
-            Lucrando com Influenciadores
+          <BarChart3 className="h-6 w-6 text-primary" />
+          <h1 className="text-xl font-semibold">
+            <span className="font-light">LCI:</span> Mural de Influência
           </h1>
         </div>
         <div className="flex items-center gap-4">
