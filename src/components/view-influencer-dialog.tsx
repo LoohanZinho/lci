@@ -17,6 +17,14 @@ interface ViewInfluencerDialogProps {
   onClose: () => void;
 }
 
+const DetailRow = ({ label, value }: { label: string, value: React.ReactNode }) => (
+    <div className="grid grid-cols-3 items-start gap-4">
+        <span className="font-semibold text-muted-foreground">{label}</span>
+        <div className="col-span-2 text-foreground">{value}</div>
+    </div>
+);
+
+
 export function ViewInfluencerDialog({
   influencer,
   isOpen,
@@ -24,12 +32,12 @@ export function ViewInfluencerDialog({
 }: ViewInfluencerDialogProps) {
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+          <DialogTitle className="flex items-center gap-2 text-xl">
             {influencer.name}
             {influencer.isFumo && (
-              <Badge variant="destructive" className="p-1.5">
+              <Badge variant="destructive" className="p-1 rounded-full">
                 <Flame className="h-4 w-4" />
               </Badge>
             )}
@@ -37,33 +45,22 @@ export function ViewInfluencerDialog({
           <DialogDescription>{influencer.instagram}</DialogDescription>
         </DialogHeader>
         <div className="py-4 space-y-4 text-sm">
-           <div className="grid grid-cols-3 gap-2">
-             <div className="font-semibold text-muted-foreground">Seguidores</div>
-             <div className="col-span-2">{influencer.followers.toLocaleString('pt-BR')}</div>
-           </div>
-            <div className="grid grid-cols-3 gap-2">
-             <div className="font-semibold text-muted-foreground">Nicho</div>
-             <div className="col-span-2">{influencer.niche}</div>
-           </div>
-           <div className="grid grid-cols-3 gap-2">
-             <div className="font-semibold text-muted-foreground">Status</div>
-             <div className="col-span-2">{influencer.status}</div>
-           </div>
-           <div className="grid grid-cols-3 gap-2">
-             <div className="font-semibold text-muted-foreground">Contato</div>
-             <div className="col-span-2">{influencer.contact || 'Não informado'}</div>
-           </div>
-            <div className="grid grid-cols-3 gap-2">
-             <div className="font-semibold text-muted-foreground">Anunciado por</div>
-             <div className="col-span-2">
-                {influencer.addedByData?.name || 'Anônimo'}
-                {influencer.addedByData?.name && influencer.addedByData?.email && <span className="text-muted-foreground text-xs block">({influencer.addedByData.email})</span>}
-            </div>
-           </div>
-           <div className="grid grid-cols-1 gap-2">
-             <div className="font-semibold text-muted-foreground">Observações</div>
-             <p className="col-span-2 whitespace-pre-wrap">{influencer.notes || 'Nenhuma observação.'}</p>
-           </div>
+            <DetailRow label="Seguidores" value={influencer.followers.toLocaleString('pt-BR')} />
+            <DetailRow label="Nicho" value={influencer.niche || 'Não informado'} />
+            <DetailRow label="Status" value={influencer.status} />
+            <DetailRow label="Contato" value={influencer.contact || 'Não informado'} />
+            <DetailRow label="Anunciado por" value={
+                <div>
+                    {influencer.addedByData?.name || 'Anônimo'}
+                    {influencer.addedByData?.name && influencer.addedByData?.email && 
+                        <span className="text-muted-foreground text-xs block">({influencer.addedByData.email})</span>
+                    }
+                </div>
+            } />
+            <DetailRow label="Observações" value={
+                <p className="whitespace-pre-wrap">{influencer.notes || 'Nenhuma observação.'}</p>
+            } />
+             <DetailRow label="Última Edição" value={influencer.lastUpdate?.toDate().toLocaleDateString("pt-BR") || 'N/A'} />
         </div>
       </DialogContent>
     </Dialog>
