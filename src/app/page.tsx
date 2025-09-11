@@ -43,7 +43,7 @@ import { Label } from "@/components/ui/label";
 
 
 export default function HomePage() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const [greeting, setGreeting] = useState("Olá");
   const [searchQuery, setSearchQuery] = useState("");
   const { theme, setTheme } = useTheme();
@@ -54,6 +54,7 @@ export default function HomePage() {
 
   const [sortBy, setSortBy] = useState<"lastUpdate" | "followers">("lastUpdate");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
 
   useEffect(() => {
     setLoading(true);
@@ -88,11 +89,19 @@ export default function HomePage() {
   };
   
   const filteredInfluencers = useMemo(() => {
+    let tempInfluencers = influencers;
+
+    if (statusFilter !== "all") {
+      tempInfluencers = tempInfluencers.filter(
+        (influencer) => influencer.status === statusFilter
+      );
+    }
+
     if (!searchQuery) {
-      return influencers;
+      return tempInfluencers;
     }
     const lowercasedQuery = searchQuery.toLowerCase();
-    return influencers.filter(
+    return tempInfluencers.filter(
       (influencer) =>
         influencer.name.toLowerCase().includes(lowercasedQuery) ||
         influencer.instagram.toLowerCase().includes(lowercasedQuery) ||
@@ -101,7 +110,7 @@ export default function HomePage() {
         (influencer.status &&
           influencer.status.toLowerCase().includes(lowercasedQuery))
     );
-  }, [influencers, searchQuery]);
+  }, [influencers, searchQuery, statusFilter]);
 
 
   if (!user) {
@@ -237,6 +246,20 @@ export default function HomePage() {
                     <SelectContent>
                       <SelectItem value="desc">Decrescente</SelectItem>
                       <SelectItem value="asc">Crescente</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="w-full md:w-auto">
+                  <Label htmlFor="status-filter" className="text-xs text-muted-foreground">Filtrar por Status</Label>
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger id="status-filter" className="w-full md:w-[160px]">
+                      <SelectValue placeholder="Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos</SelectItem>
+                      <SelectItem value="Disponível">Disponível</SelectItem>
+                      <SelectItem value="Em negociação">Em negociação</SelectItem>
+                      <SelectItem value="Fechado">Fechado</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
