@@ -74,7 +74,7 @@ export function ViewInfluencerDialog({
                 <div>
                     {addedByName}
                     {addedByEmail && 
-                        <span className="text-muted-foreground text-xs block">({addedByEmail})</span>
+                        <span className="text-muted-foreground text-xs ml-1">({addedByEmail})</span>
                     }
                     {isAdmin && posterIsAnonymous && (
                       <span className="text-blue-500 text-xs block italic">Modo Anônimo Ativado</span>
