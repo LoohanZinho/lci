@@ -37,6 +37,10 @@ export function SignupForm() {
               <Label htmlFor="password">Senha</Label>
               <Input id="password" type="password" placeholder="Crie uma senha forte" />
             </div>
+            <div className="flex flex-col space-y-1.5">
+              <Label htmlFor="confirm-password">Repetir Senha</Label>
+              <Input id="confirm-password" type="password" placeholder="Repita sua senha" />
+            </div>
           </div>
         </form>
       </CardContent>
