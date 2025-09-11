@@ -44,7 +44,7 @@ export async function uploadFile(formData: FormData) {
   } catch (error: any) {
     console.error('Erro de upload no servidor:', error);
     // Se o erro for relacionado a credenciais, vamos logar uma mensagem mais específica.
-    if (error.code === 'MISSING_CREDENTIALS') {
+    if (error.code === 'MISSING_CREDENTIALS' || (error.message && error.message.includes("Could not load the default credentials"))) {
         console.error("As credenciais do Admin SDK não foram encontradas. Verifique a variável de ambiente GOOGLE_APPLICATION_CREDENTIALS no servidor.");
         throw new Error("Erro de configuração do servidor ao fazer upload.");
     }

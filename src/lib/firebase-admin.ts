@@ -28,6 +28,16 @@ if (!admin.apps.length) {
   }
 }
 
-export const auth = admin.auth();
-export const db = admin.firestore();
-export const storage = admin.storage();
+let auth, db, storage;
+
+try {
+  auth = admin.auth();
+  db = admin.firestore();
+  storage = admin.storage();
+} catch (error) {
+    console.error("Falha ao exportar serviços do Admin SDK. O SDK foi inicializado corretamente?", error);
+    // Isso pode acontecer se a inicialização falhou.
+    // As chamadas para essas variáveis falharão, mas pelo menos o app não quebra na importação.
+}
+
+export { auth, db, storage };
