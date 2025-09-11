@@ -163,10 +163,11 @@ export default function HomePage() {
               </p>
             </div>
           </div>
-          <div className="flex flex-col md:flex-row items-center gap-2 mb-4">
+          <div className="flex flex-col md:flex-row items-center gap-4 mb-4">
+            <div className="flex-1 w-full">
               <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
                 <PopoverTrigger asChild>
-                  <div className="relative w-full flex-grow">
+                  <div className="relative w-full">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
                       type="search"
@@ -175,7 +176,7 @@ export default function HomePage() {
                       value={searchQuery}
                       onChange={(e) => {
                         setSearchQuery(e.target.value);
-                        if(e.target.value.length > 0){
+                        if (e.target.value.length > 0) {
                           setPopoverOpen(true);
                         } else {
                           setPopoverOpen(false);
@@ -211,38 +212,37 @@ export default function HomePage() {
                   </Command>
                 </PopoverContent>
               </Popover>
+            </div>
 
-              <div className="flex items-center gap-2 w-full md:w-auto mt-2 md:mt-0">
-                <div className="flex-1">
-                  <Label htmlFor="sort-by" className="text-xs text-muted-foreground">Ordenar por</Label>
-                  <Select value={sortBy} onValueChange={(v) => setSortBy(v as "lastUpdate" | "followers")}>
-                    <SelectTrigger id="sort-by" className="w-full md:w-[150px]">
-                      <SelectValue placeholder="Ordenar por" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="lastUpdate">Última Edição</SelectItem>
-                      <SelectItem value="followers">Seguidores</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="flex-1">
-                   <Label htmlFor="sort-direction" className="text-xs text-muted-foreground">Direção</Label>
-                  <Select value={sortDirection} onValueChange={(v) => setSortDirection(v as "asc" | "desc")}>
-                    <SelectTrigger id="sort-direction" className="w-full md:w-[140px]">
-                      <SelectValue placeholder="Direção" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="desc">Decrescente</SelectItem>
-                      <SelectItem value="asc">Crescente</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+            <div className="flex items-end gap-2 w-full md:w-auto">
+              <div>
+                <Label htmlFor="sort-by" className="text-xs text-muted-foreground">Ordenar por</Label>
+                <Select value={sortBy} onValueChange={(v) => setSortBy(v as "lastUpdate" | "followers")}>
+                  <SelectTrigger id="sort-by" className="w-full md:w-[150px]">
+                    <SelectValue placeholder="Ordenar por" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="lastUpdate">Última Edição</SelectItem>
+                    <SelectItem value="followers">Seguidores</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-
+              <div>
+                <Label htmlFor="sort-direction" className="text-xs text-muted-foreground">Direção</Label>
+                <Select value={sortDirection} onValueChange={(v) => setSortDirection(v as "asc" | "desc")}>
+                  <SelectTrigger id="sort-direction" className="w-full md:w-[140px]">
+                    <SelectValue placeholder="Direção" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="desc">Decrescente</SelectItem>
+                    <SelectItem value="asc">Crescente</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
               <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
                 <DialogTrigger asChild>
-                  <Button className="w-full md:w-auto mt-2 md:mt-0 shrink-0">
+                  <Button className="shrink-0">
                     <PlusCircle className="mr-2 h-4 w-4" />
                     Nova Postagem
                   </Button>
@@ -255,6 +255,7 @@ export default function HomePage() {
                 </DialogContent>
               </Dialog>
             </div>
+          </div>
 
           <InfluencerTable influencers={filteredInfluencers} loading={loading} />
         </div>
