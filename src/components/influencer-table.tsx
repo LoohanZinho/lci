@@ -66,6 +66,7 @@ export function InfluencerTable({ searchQuery }: InfluencerTableProps) {
             <TableRow>
               <TableHead>Influenciador</TableHead>
               <TableHead className="hidden sm:table-cell">Nicho</TableHead>
+              <TableHead className="hidden md:table-cell text-center">Seguidores</TableHead>
               <TableHead className="hidden md:table-cell">Status</TableHead>
               <TableHead className="text-center">Fumo</TableHead>
               <TableHead className="text-right hidden lg:table-cell">Última Edição</TableHead>
@@ -75,7 +76,7 @@ export function InfluencerTable({ searchQuery }: InfluencerTableProps) {
           <TableBody>
             {filteredInfluencers.length === 0 && !loading ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center">
+                <TableCell colSpan={7} className="text-center">
                   Nenhum influenciador encontrado.
                 </TableCell>
               </TableRow>
@@ -89,6 +90,7 @@ export function InfluencerTable({ searchQuery }: InfluencerTableProps) {
                     </div>
                   </TableCell>
                   <TableCell className="hidden sm:table-cell">{influencer.niche}</TableCell>
+                   <TableCell className="hidden md:table-cell text-center">{influencer.followers.toLocaleString('pt-BR')}</TableCell>
                   <TableCell className="hidden md:table-cell">{influencer.status || "Disponível"}</TableCell>
                   <TableCell className="text-center">
                     {influencer.isFumo && (
