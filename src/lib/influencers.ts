@@ -13,6 +13,7 @@ import {
   getDocs,
   DocumentReference,
   OrderByDirection,
+  arrayUnion,
 } from "firebase/firestore";
 import { db } from "./firebase";
 import { deleteProofImageByUrl } from "./storage";
@@ -29,6 +30,7 @@ export interface NewInfluencer {
     lastUpdate: Date;
     addedBy: string;
     proofImageUrls: string[];
+    editors?: string[];
 }
 
 export interface Influencer extends Omit<NewInfluencer, 'lastUpdate'> {
@@ -44,6 +46,7 @@ export interface UserData {
 
 export interface InfluencerWithUserData extends Influencer {
   addedByData?: UserData;
+  editorsData?: UserData[];
 }
 
 
@@ -52,6 +55,7 @@ export const addInfluencer = async (influencer: Omit<NewInfluencer, 'lastUpdate'
     const docRef = await addDoc(collection(db, "influencers"), {
       ...influencer,
       proofImageUrls: influencer.proofImageUrls || [],
+      editors: influencer.editors || [],
       lastUpdate: serverTimestamp(),
     });
     console.log("Document written with ID: ", docRef.id);
@@ -64,11 +68,12 @@ export const addInfluencer = async (influencer: Omit<NewInfluencer, 'lastUpdate'
 
 export type UpdatableInfluencerData = Partial<Omit<NewInfluencer, 'addedBy' | 'lastUpdate'>>
 
-export const updateInfluencer = async (id: string, data: UpdatableInfluencerData) => {
+export const updateInfluencer = async (id: string, userId: string, data: UpdatableInfluencerData) => {
   try {
     const docRef = doc(db, "influencers", id);
     await updateDoc(docRef, {
       ...data,
+      editors: arrayUnion(userId),
       lastUpdate: serverTimestamp(),
     });
     console.log("Document successfully updated!");
@@ -82,15 +87,27 @@ export const updateInfluencer = async (id: string, data: UpdatableInfluencerData
 const fetchUsersData = async (uids: string[]): Promise<Record<string, UserData>> => {
   if (uids.length === 0) return {};
   const uniqueUids = [...new Set(uids)];
-  const usersRef = collection(db, "users");
-  const q = query(usersRef, where('__name__', 'in', uniqueUids));
+  
+  // Firestore 'in' query is limited to 30 elements. We need to batch the requests.
+  const batches: Promise<any>[] = [];
+  for (let i = 0; i < uniqueUids.length; i += 30) {
+      const batchUids = uniqueUids.slice(i, i + 30);
+      if (batchUids.length > 0) {
+        const usersRef = collection(db, "users");
+        const q = query(usersRef, where('__name__', 'in', batchUids));
+        batches.push(getDocs(q));
+      }
+  }
   
   try {
-      const querySnapshot = await getDocs(q);
+      const userDocsBatches = await Promise.all(batches);
       const usersData: Record<string, UserData> = {};
-      querySnapshot.forEach((doc) => {
-          usersData[doc.id] = doc.data() as UserData;
-      });
+      
+      for(const userDocs of userDocsBatches) {
+        userDocs.forEach((doc: any) => {
+            usersData[doc.id] = doc.data() as UserData;
+        });
+      }
       return usersData;
   } catch (error) {
       console.error("Error fetching users data: ", error);
@@ -114,12 +131,13 @@ export const getInfluencers = (
         influencers.push({ id: doc.id, ...doc.data() } as Influencer);
       });
       
-      const uids = influencers.map(i => i.addedBy).filter(Boolean);
+      const uids = influencers.flatMap(i => [i.addedBy, ...(i.editors || [])]).filter(Boolean);
       const usersData = await fetchUsersData(uids);
 
       const influencersWithUserData: InfluencerWithUserData[] = influencers.map(influencer => ({
         ...influencer,
-        addedByData: usersData[influencer.addedBy]
+        addedByData: usersData[influencer.addedBy],
+        editorsData: (influencer.editors || []).map(editorId => usersData[editorId]).filter(Boolean)
       }));
 
       callback(influencersWithUserData);

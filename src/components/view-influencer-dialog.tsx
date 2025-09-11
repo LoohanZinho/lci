@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { InfluencerWithUserData } from "@/lib/influencers";
 import { Badge } from "./ui/badge";
-import { Flame } from "lucide-react";
+import { Flame, UserCircle, Edit } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import Image from "next/image";
 import { getInfluencerClassification, getClassificationBadgeClass } from "@/lib/classification";
@@ -36,28 +36,6 @@ export function ViewInfluencerDialog({
   const { user, isAdmin } = useAuth();
   
   const classification = getInfluencerClassification(influencer.followers);
-  const isOwner = user?.uid === influencer.addedBy;
-  const posterIsAnonymous = influencer.addedByData?.isAnonymous;
-
-  let addedByDisplay: React.ReactNode;
-
-  if (isOwner) {
-    addedByDisplay = 'Você';
-  } else if (isAdmin) {
-    const displayName = influencer.addedByData?.name || 'Usuário sem nome';
-    addedByDisplay = (
-      <div>
-        <span>{displayName}</span>
-        {influencer.addedByData?.email && <span className="text-muted-foreground text-xs ml-1">({influencer.addedByData.email})</span>}
-        {posterIsAnonymous && <span className="text-blue-500 text-xs block italic">Modo Anônimo Ativado</span>}
-      </div>
-    );
-  } else if (!posterIsAnonymous) {
-    addedByDisplay = influencer.addedByData?.name || 'Anônimo';
-  } else {
-    addedByDisplay = 'Anônimo';
-  }
-
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -81,14 +59,13 @@ export function ViewInfluencerDialog({
             <DetailRow label="Nicho" value={influencer.niche || 'Não informado'} />
             <DetailRow label="Status" value={influencer.status} />
             <DetailRow label="Contato" value={influencer.contact || 'Não informado'} />
-            <DetailRow label="Anunciado por" value={addedByDisplay} />
             <DetailRow label="Observações" value={
                 <p className="whitespace-pre-wrap">{influencer.notes || 'Nenhuma observação.'}</p>
             } />
              <DetailRow label="Última Edição" value={influencer.lastUpdate?.toDate().toLocaleString("pt-BR", { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) || 'N/A'} />
 
              {influencer.proofImageUrls && influencer.proofImageUrls.length > 0 && (
-                <div className="py-3">
+                <div className="py-3 border-b border-border/50">
                     <span className="font-semibold text-muted-foreground mb-2 block">Provas</span>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                         {influencer.proofImageUrls.map((url, index) => (
@@ -99,6 +76,42 @@ export function ViewInfluencerDialog({
                     </div>
                 </div>
              )}
+
+            <div className="py-3">
+              <h4 className="font-semibold text-muted-foreground mb-3">Linha do Tempo de Edições</h4>
+              <div className="space-y-3">
+                  <div className="flex items-start gap-3">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary">
+                          <UserCircle className="h-5 w-5" />
+                      </div>
+                      <div>
+                          <p className="font-medium">
+                            Adicionado por {influencer.addedBy === user?.uid ? "Você" : (influencer.addedByData?.isAnonymous ? 'Anônimo' : influencer.addedByData?.name || 'Anônimo')}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {influencer.lastUpdate?.toDate().toLocaleString("pt-BR", { day: '2-digit', month: 'numeric', year: 'numeric' })}
+                          </p>
+                      </div>
+                  </div>
+                  {influencer.editorsData && influencer.editorsData
+                    .filter(editor => !editor.isAnonymous)
+                    .map((editor, index) => (
+                      <div key={index} className="flex items-start gap-3">
+                          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-secondary text-secondary-foreground">
+                            <Edit className="h-4 w-4" />
+                          </div>
+                          <div>
+                              <p className="font-medium">
+                                Editado por {editor.name}
+                              </p>
+                          </div>
+                      </div>
+                  ))}
+                   <div className="text-center text-xs text-muted-foreground/80 pt-2">
+                      Apenas edições de usuários não-anônimos são exibidas.
+                  </div>
+              </div>
+            </div>
         </div>
       </DialogContent>
     </Dialog>

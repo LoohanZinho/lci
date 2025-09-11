@@ -170,7 +170,7 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
     setUploadProgress(0);
 
     try {
-        const influencerData: Omit<NewInfluencer, 'lastUpdate' | 'proofImageUrls'> = {
+        const influencerData: Omit<NewInfluencer, 'lastUpdate' | 'proofImageUrls' | 'editors'> = {
             name: formData.name,
             instagram: formData.instagram.startsWith('@') ? formData.instagram : `@${formData.instagram}`,
             followers: parseInt(unformatFollowers(formData.followers), 10),
@@ -210,12 +210,13 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
                 proofImageUrls: [...remainingUrls, ...uploadedImageUrls],
             };
             
-            await updateInfluencer(influencer.id, dataToUpdate);
+            await updateInfluencer(influencer.id, user.uid, dataToUpdate);
 
         } else {
             // Create Mode
             const newInfluencerData: Omit<NewInfluencer, 'lastUpdate'> = {
                 ...influencerData,
+                editors: [user.uid],
                 proofImageUrls: [], // Start with empty array
             };
 
@@ -235,7 +236,7 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
             }
             
             if (uploadedImageUrls.length > 0) {
-                await updateInfluencer(docRef.id, { proofImageUrls: uploadedImageUrls });
+                await updateInfluencer(docRef.id, user.uid, { proofImageUrls: uploadedImageUrls });
             }
         }
         
