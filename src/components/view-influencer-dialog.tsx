@@ -56,8 +56,8 @@ export function ViewInfluencerDialog({
             <div className="grid grid-cols-3 gap-2">
              <div className="font-semibold text-muted-foreground">Anunciado por</div>
              <div className="col-span-2">
-                {influencer.addedByData?.name || 'Desconhecido'}
-                {influencer.addedByData?.email && <span className="text-muted-foreground text-xs block">({influencer.addedByData.email})</span>}
+                {influencer.addedByData?.name || 'Anônimo'}
+                {influencer.addedByData?.name && influencer.addedByData?.email && <span className="text-muted-foreground text-xs block">({influencer.addedByData.email})</span>}
             </div>
            </div>
            <div className="grid grid-cols-1 gap-2">

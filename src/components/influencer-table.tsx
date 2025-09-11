@@ -96,7 +96,7 @@ export function InfluencerTable({ searchQuery }: InfluencerTableProps) {
                       {influencer.instagram}
                     </div>
                      <div className="text-xs text-muted-foreground/80 mt-1">
-                      Anunciado por: {influencer.addedByData?.name || 'Desconhecido'}
+                      Anunciado por: {influencer.addedByData?.name || 'Anônimo'}
                     </div>
                   </TableCell>
                   <TableCell className="hidden sm:table-cell">{influencer.niche}</TableCell>
