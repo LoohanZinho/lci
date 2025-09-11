@@ -9,8 +9,8 @@ const fontSans = FontSans({
 });
 
 export const metadata: Metadata = {
-  title: "Mural de Influência",
-  description: "Gerencie e consulte influenciadores de forma colaborativa.",
+  title: "LCI: Mural de Influência",
+  description: "Mural de Influência do projeto Lucrando com Influenciadores (LCI).",
 };
 
 export default function RootLayout({

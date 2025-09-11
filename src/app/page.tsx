@@ -9,7 +9,9 @@ export default function Home() {
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-2">
               <BookUser className="h-6 w-6 text-primary" />
-              <h1 className="text-xl font-bold">Mural de Influência</h1>
+              <h1 className="text-xl font-bold">
+                <span className="font-light">LCI:</span> Mural de Influência
+              </h1>
             </div>
           </div>
         </div>
