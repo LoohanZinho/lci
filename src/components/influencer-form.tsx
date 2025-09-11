@@ -182,15 +182,29 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
         if (imageFiles.length > 0) {
             const influencerIdForStorage = influencer?.id || Date.now().toString();
             const uploadedUrls: string[] = [];
+            setUploadProgress(0);
 
             for (let i = 0; i < imageFiles.length; i++) {
                 const file = imageFiles[i];
                 setUploadMessage(`Enviando ${i + 1} de ${imageFiles.length}...`);
-                
-                const downloadURL = await uploadProofImage(influencerIdForStorage, file, (progress) => {
-                    setUploadProgress(progress);
-                });
-                uploadedUrls.push(downloadURL);
+                try {
+                    const downloadURL = await uploadProofImage(influencerIdForStorage, file, (progress) => {
+                       const overallProgress = ((i + progress) / imageFiles.length) * 100;
+                       setUploadProgress(overallProgress);
+                    });
+                    uploadedUrls.push(downloadURL);
+                } catch (uploadError: any) {
+                    console.error("Upload Error:", uploadError);
+                    let errorMessage = `Falha no upload de "${file.name}".`;
+                    if (uploadError.code === 'storage/unauthorized') {
+                        errorMessage += " Causa: Permissão negada. Verifique as regras de segurança do Storage.";
+                    } else if (uploadError.code === 'storage/canceled') {
+                        errorMessage += " Causa: O upload foi cancelado.";
+                    } else {
+                        errorMessage += " Causa: Problema de rede ou configuração de CORS. Tente novamente.";
+                    }
+                    throw new Error(errorMessage);
+                }
             }
             
             finalImageUrls = [...finalImageUrls, ...uploadedUrls];
@@ -223,9 +237,9 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
             onFinished();
         }
 
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      setError(`Falha ao ${isEditMode ? 'atualizar' : 'adicionar'} influenciador. Tente novamente.`);
+      setError(err.message || `Falha ao ${isEditMode ? 'atualizar' : 'adicionar'} influenciador. Tente novamente.`);
     } finally {
         setIsLoading(false);
         setUploadProgress(null);
@@ -304,7 +318,7 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
             <p className="text-xs text-muted-foreground/80 mt-1">PNG, JPG, GIF até 5MB cada.</p>
           </div>
 
-          {uploadProgress !== null && (
+          {uploadProgress !== null && !error && (
             <div className="space-y-2">
                 <div className="flex justify-between items-center">
                     <Label className="text-primary">{uploadMessage}</Label>
@@ -331,5 +345,3 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
     </div>
   );
 }
-
-    

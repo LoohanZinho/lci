@@ -19,15 +19,15 @@ export const uploadProofImage = (
     const fileName = `${Date.now()}.${fileExtension}`;
     const storageRef = ref(storage, `influencer-proofs/${influencerId}/${fileName}`);
 
-    // Usar uploadBytes (put) para um upload mais simples que evita problemas de CORS
-    // em alguns ambientes. A barra de progresso será menos granular, mas o upload
-    // será mais confiável.
     onProgress(0);
     uploadBytes(storageRef, file).then(snapshot => {
         onProgress(100);
         getDownloadURL(snapshot.ref).then(downloadURL => {
             resolve(downloadURL);
-        }).catch(reject);
+        }).catch(error => {
+            console.error("Error getting download URL:", error);
+            reject(error);
+        });
     }).catch(error => {
         console.error("Upload failed:", error);
         reject(error);
