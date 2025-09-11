@@ -27,7 +27,7 @@ export interface NewInfluencer {
     isFumo: boolean;
     lastUpdate: Date;
     addedBy: string;
-    proofImageUrl: string | null;
+    proofImageUrls: string[];
 }
 
 export interface Influencer extends Omit<NewInfluencer, 'lastUpdate'> {
@@ -45,11 +45,11 @@ export interface InfluencerWithUserData extends Influencer {
 }
 
 
-export const addInfluencer = async (influencer: NewInfluencer): Promise<DocumentReference> => {
+export const addInfluencer = async (influencer: Omit<NewInfluencer, 'lastUpdate'>): Promise<DocumentReference> => {
   try {
     const docRef = await addDoc(collection(db, "influencers"), {
       ...influencer,
-      proofImageUrl: influencer.proofImageUrl || null,
+      proofImageUrls: influencer.proofImageUrls || [],
       lastUpdate: serverTimestamp(),
     });
     console.log("Document written with ID: ", docRef.id);
@@ -132,9 +132,9 @@ export const deleteInfluencer = async (id: string) => {
     }
     const influencerData = influencerDoc.data() as Influencer;
 
-    // Delete proof image from storage if it exists
-    if (influencerData.proofImageUrl) {
-      await deleteProofImageByUrl(influencerData.proofImageUrl);
+    // Delete proof images from storage if they exist
+    if (influencerData.proofImageUrls && influencerData.proofImageUrls.length > 0) {
+      await Promise.all(influencerData.proofImageUrls.map(url => deleteProofImageByUrl(url)));
     }
     
     await deleteDoc(doc(db, "influencers", id));

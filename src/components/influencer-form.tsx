@@ -16,9 +16,8 @@ import { useAuth } from "@/hooks/use-auth";
 import { useState, FormEvent, useEffect, useRef } from "react";
 import { uploadProofImage, deleteProofImageByUrl } from "@/lib/storage";
 import { Progress } from "@/components/ui/progress";
-import { AlertCircle, Image as ImageIcon, X } from "lucide-react";
+import { AlertCircle, Image as ImageIcon, X, UploadCloud } from "lucide-react";
 import Image from 'next/image';
-import { DocumentReference } from "firebase/firestore";
 
 interface InfluencerFormProps {
   influencer?: Influencer;
@@ -34,7 +33,7 @@ const initialState = {
   contact: "",
   notes: "",
   isFumo: false,
-  proofImageUrl: "",
+  proofImageUrls: [],
 };
 
 const formatFollowers = (value: string) => {
@@ -50,13 +49,13 @@ const unformatFollowers = (value: string) => {
 }
 
 export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) {
-  const [formData, setFormData] = useState(initialState);
+  const [formData, setFormData] = useState<Omit<NewInfluencer, 'lastUpdate' | 'addedBy'>>(initialState);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { user } = useAuth();
 
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -64,7 +63,7 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
 
   useEffect(() => {
     if (influencer) {
-      setFormData({
+      const currentData = {
         name: influencer.name,
         instagram: influencer.instagram.startsWith('@') ? influencer.instagram.substring(1) : influencer.instagram,
         followers: formatFollowers(influencer.followers.toString()),
@@ -73,42 +72,64 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
         contact: influencer.contact,
         notes: influencer.notes,
         isFumo: influencer.isFumo,
-        proofImageUrl: influencer.proofImageUrl || "",
-      });
-      if (influencer.proofImageUrl) {
-        setImagePreview(influencer.proofImageUrl);
-      }
+        proofImageUrls: influencer.proofImageUrls || [],
+      };
+      setFormData(currentData);
+      setImagePreviews(influencer.proofImageUrls || []);
+      setImageFiles([]);
     } else {
       setFormData(initialState);
-      setImagePreview(null);
-      setImageFile(null);
+      setImagePreviews([]);
+      setImageFiles([]);
     }
   }, [influencer]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) { // 5MB limit
-        setError("A imagem não pode ter mais de 5MB.");
-        return;
-      }
-      setError(null);
-      setImageFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+    const files = e.target.files;
+    if (!files) return;
+
+    const newFiles = Array.from(files);
+    const totalImages = imagePreviews.length + newFiles.length;
+
+    if (totalImages > 10) {
+      setError("Você pode adicionar no máximo 10 imagens.");
+      return;
     }
+
+    for(const file of newFiles) {
+        if (file.size > 5 * 1024 * 1024) { // 5MB limit
+            setError(`A imagem "${file.name}" excede o limite de 5MB.`);
+            return;
+        }
+    }
+    
+    setError(null);
+    setImageFiles(prev => [...prev, ...newFiles]);
+
+    const newPreviews = newFiles.map(file => URL.createObjectURL(file));
+    setImagePreviews(prev => [...prev, ...newPreviews]);
   };
 
-  const removeImage = () => {
-    setImageFile(null);
-    setImagePreview(null);
-    if(fileInputRef.current) {
-        fileInputRef.current.value = "";
-    }
-    setFormData(prev => ({...prev, proofImageUrl: "" }));
+  const removeImage = async (index: number) => {
+    const newPreviews = [...imagePreviews];
+    const newFiles = [...imageFiles];
+    
+    const urlToRemove = newPreviews[index];
+    newPreviews.splice(index, 1);
+    
+    // Check if the removed image was an already uploaded one or a new file
+    const fileIndex = imagePreviews.length - imageFiles.length <= index ? index - (imagePreviews.length - imageFiles.length) : -1;
+
+    if (fileIndex > -1) {
+        // It's a new file that hasn't been uploaded yet
+        newFiles.splice(fileIndex, 1);
+        setImageFiles(newFiles);
+    } 
+
+    setImagePreviews(newPreviews);
+    
+    // If it is in edit mode and the image was already on the server, we need to handle its deletion on submit
+    // We will do this by comparing the initial URLs with the final URLs
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -142,13 +163,10 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
     
     setIsLoading(true);
     setError(null);
-    setUploadProgress(null);
-
-    let finalImageUrl: string | null = influencer?.proofImageUrl || null;
-    const originalImageUrl = influencer?.proofImageUrl;
+    setUploadProgress(0);
 
     try {
-        const influencerData: Omit<NewInfluencer, 'lastUpdate' | 'proofImageUrl'> & { proofImageUrl?: string | null } = {
+        const influencerData: Omit<NewInfluencer, 'lastUpdate' | 'proofImageUrls'> = {
             name: formData.name,
             instagram: formData.instagram.startsWith('@') ? formData.instagram : `@${formData.instagram}`,
             followers: parseInt(unformatFollowers(formData.followers), 10),
@@ -162,38 +180,58 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
 
         if (isEditMode && influencer) {
             // Edit Mode
-            let dataToUpdate: Partial<UpdatableInfluencerData> = { ...influencerData };
+            const originalUrls = influencer.proofImageUrls || [];
+            const remainingUrls = imagePreviews.filter(p => originalUrls.includes(p));
 
-            if (imageFile) {
-                // New image uploaded, upload it first
-                const onProgress = (progress: number) => setUploadProgress(progress);
-                finalImageUrl = await uploadProofImage(influencer.id, imageFile, onProgress);
-                dataToUpdate.proofImageUrl = finalImageUrl;
-
-                // If there was an old image, delete it after updating
-                if (originalImageUrl) {
-                    await deleteProofImageByUrl(originalImageUrl);
-                }
-            } else if (!formData.proofImageUrl && originalImageUrl) {
-                // Image was removed, delete from storage and update DB
-                await deleteProofImageByUrl(originalImageUrl);
-                dataToUpdate.proofImageUrl = null;
+            const urlsToDelete = originalUrls.filter(url => !remainingUrls.includes(url));
+            if(urlsToDelete.length > 0) {
+              await Promise.all(urlsToDelete.map(url => deleteProofImageByUrl(url)));
             }
+            
+            let uploadedImageUrls: string[] = [];
+            if(imageFiles.length > 0) {
+                uploadedImageUrls = await Promise.all(
+                    imageFiles.map((file, index) => {
+                        const onProgress = (progress: number) => {
+                            const totalProgress = ((index + 1) / imageFiles.length) * progress;
+                            setUploadProgress(totalProgress);
+                        }
+                        return uploadProofImage(influencer.id, file, onProgress);
+                    })
+                );
+            }
+
+            const dataToUpdate: UpdatableInfluencerData = {
+                ...influencerData,
+                proofImageUrls: [...remainingUrls, ...uploadedImageUrls],
+            };
+            
             await updateInfluencer(influencer.id, dataToUpdate);
+
         } else {
             // Create Mode
-            const newInfluencerData: NewInfluencer = {
+            const newInfluencerData: Omit<NewInfluencer, 'lastUpdate'> = {
                 ...influencerData,
-                lastUpdate: new Date(),
-                proofImageUrl: null,
+                proofImageUrls: [], // Start with empty array
             };
 
             const docRef = await addInfluencer(newInfluencerData);
-
-            if (imageFile) {
-                const onProgress = (progress: number) => setUploadProgress(progress);
-                finalImageUrl = await uploadProofImage(docRef.id, imageFile, onProgress);
-                await updateInfluencer(docRef.id, { proofImageUrl: finalImageUrl });
+            
+            let uploadedImageUrls: string[] = [];
+            if(imageFiles.length > 0) {
+                uploadedImageUrls = await Promise.all(
+                    imageFiles.map((file, index) => {
+                        const onProgress = (progress: number) => {
+                             const totalProgress = ((index + (progress/100)) / imageFiles.length) * 100;
+                             setUploadProgress(totalProgress);
+                        }
+                        return uploadProofImage(docRef.id, file, onProgress);
+                    })
+                );
+            }
+            
+            if (uploadedImageUrls.length > 0) {
+                await updateInfluencer(docRef.id, { proofImageUrls: uploadedImageUrls });
             }
         }
         
@@ -255,24 +293,27 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
 
           <div className="flex flex-col space-y-1.5">
             <Label htmlFor="proofImage">Prova (Print, etc.)</Label>
-            {imagePreview ? (
-              <div className="relative w-full max-w-sm aspect-video rounded-md overflow-hidden group">
-                <Image src={imagePreview} alt="Pré-visualização" layout="fill" objectFit="cover" />
-                <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                   <Button type="button" variant="destructive" size="icon" onClick={removeImage} disabled={isLoading}><X className="h-5 w-5"/></Button>
-                </div>
-              </div>
-            ) : (
-                <div 
-                    className="flex flex-col items-center justify-center w-full p-6 border-2 border-dashed rounded-md cursor-pointer hover:bg-muted/50"
-                    onClick={() => fileInputRef.current?.click()}
-                >
-                    <ImageIcon className="h-8 w-8 text-muted-foreground mb-2"/>
-                    <p className="text-sm text-muted-foreground">Clique para adicionar uma imagem</p>
-                    <p className="text-xs text-muted-foreground/80">PNG, JPG, GIF até 5MB</p>
-                </div>
-            )}
-            <Input id="proofImage" type="file" accept="image/png, image/jpeg, image/gif" onChange={handleImageChange} className="hidden" ref={fileInputRef} disabled={isLoading} />
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
+                {imagePreviews.map((preview, index) => (
+                    <div key={index} className="relative w-full aspect-square rounded-md overflow-hidden group">
+                        <Image src={preview} alt={`Pré-visualização ${index + 1}`} layout="fill" objectFit="cover" />
+                        <div className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Button type="button" variant="destructive" size="icon" onClick={() => removeImage(index)} disabled={isLoading} className="h-8 w-8"><X className="h-4 w-4"/></Button>
+                        </div>
+                    </div>
+                ))}
+                {imagePreviews.length < 10 && (
+                    <div 
+                        className="flex flex-col items-center justify-center w-full aspect-square border-2 border-dashed rounded-md cursor-pointer hover:bg-muted/50 transition-colors"
+                        onClick={() => fileInputRef.current?.click()}
+                    >
+                        <UploadCloud className="h-8 w-8 text-muted-foreground mb-2"/>
+                        <p className="text-xs text-center text-muted-foreground">Adicionar ({imagePreviews.length}/10)</p>
+                    </div>
+                )}
+            </div>
+            <Input id="proofImage" type="file" accept="image/png, image/jpeg, image/gif" onChange={handleImageChange} className="hidden" ref={fileInputRef} disabled={isLoading || imagePreviews.length >= 10} multiple />
+            <p className="text-xs text-muted-foreground/80 mt-1">PNG, JPG, GIF até 5MB cada.</p>
           </div>
 
           {uploadProgress !== null && (

@@ -85,11 +85,15 @@ export function ViewInfluencerDialog({
             } />
              <DetailRow label="Última Edição" value={influencer.lastUpdate?.toDate().toLocaleString("pt-BR", { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) || 'N/A'} />
 
-             {influencer.proofImageUrl && (
+             {influencer.proofImageUrls && influencer.proofImageUrls.length > 0 && (
                 <div className="py-3">
-                    <span className="font-semibold text-muted-foreground">Prova</span>
-                    <div className="mt-2 relative w-full aspect-video rounded-md overflow-hidden">
-                        <Image src={influencer.proofImageUrl} alt={`Prova para ${influencer.name}`} layout="fill" objectFit="contain" />
+                    <span className="font-semibold text-muted-foreground mb-2 block">Provas</span>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                        {influencer.proofImageUrls.map((url, index) => (
+                             <div key={index} className="relative w-full aspect-video rounded-md overflow-hidden">
+                                <Image src={url} alt={`Prova ${index + 1} para ${influencer.name}`} layout="fill" objectFit="contain" />
+                            </div>
+                        ))}
                     </div>
                 </div>
              )}
