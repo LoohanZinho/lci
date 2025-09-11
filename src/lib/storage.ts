@@ -3,12 +3,41 @@
 import {
   ref,
   deleteObject,
+  uploadBytesResumable,
+  getDownloadURL
 } from "firebase/storage";
 import { storage } from "./firebase";
 
-// A função de upload foi movida para um Server Action em src/app/actions.ts
-// para contornar problemas de CORS. Esta função de exclusão ainda é necessária
-// e funciona bem no lado do cliente.
+export const uploadProofImage = (
+    influencerId: string,
+    file: File,
+    onProgress: (progress: number) => void
+  ): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const fileName = `${Date.now()}.${file.name.split('.').pop()}`;
+      const filePath = `influencer-proofs/${influencerId}/${fileName}`;
+      const storageRef = ref(storage, filePath);
+  
+      const uploadTask = uploadBytesResumable(storageRef, file);
+  
+      uploadTask.on(
+        "state_changed",
+        (snapshot) => {
+          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          onProgress(progress);
+        },
+        (error) => {
+          console.error("Upload failed:", error);
+          reject(new Error(`Falha no upload de "${file.name}". Causa: ${error.message}`));
+        },
+        () => {
+          getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+            resolve(downloadURL);
+          }).catch(reject);
+        }
+      );
+    });
+  };
 
 export const deleteProofImageByUrl = async (imageUrl: string): Promise<void> => {
     if (!imageUrl) return;

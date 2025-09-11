@@ -1,0 +1,8 @@
+[
+  {
+    "origin": ["https://studio--studio-324918385-59672.us-central1.hosted.app", "http://localhost:3000"],
+    "method": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    "responseHeader": ["Content-Type", "Authorization"],
+    "maxAgeSeconds": 3600
+  }
+]

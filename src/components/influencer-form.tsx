@@ -14,12 +14,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { addInfluencer, NewInfluencer, Influencer, updateInfluencer, UpdatableInfluencerData } from "@/lib/influencers";
 import { useAuth } from "@/hooks/use-auth";
 import { useState, FormEvent, useEffect, useRef } from "react";
-import { deleteProofImageByUrl } from "@/lib/storage";
+import { deleteProofImageByUrl, uploadProofImage } from "@/lib/storage";
 import { Progress } from "@/components/ui/progress";
 import { AlertCircle, Image as ImageIcon, X, UploadCloud } from "lucide-react";
 import Image from 'next/image';
 import { getInfluencerClassification } from "@/lib/classification";
-import { uploadFile } from "@/app/actions";
 
 interface InfluencerFormProps {
   influencer?: Influencer;
@@ -180,31 +179,37 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
             }
         }
         
-        // Handle new image uploads via Server Action
+        // Handle new image uploads
         if (imageFiles.length > 0) {
-            const influencerIdForStorage = influencer?.id || Date.now().toString();
-            const uploadedUrls: string[] = [];
-            setUploadProgress(0);
-
-            for (let i = 0; i < imageFiles.length; i++) {
-                const file = imageFiles[i];
-                setUploadMessage(`Enviando ${i + 1} de ${imageFiles.length}...`);
-                try {
-                    const formData = new FormData();
-                    formData.append('file', file);
-                    formData.append('influencerId', influencerIdForStorage);
-
-                    const downloadURL = await uploadFile(formData);
-                    uploadedUrls.push(downloadURL);
-                    setUploadProgress(((i + 1) / imageFiles.length) * 100);
-
-                } catch (uploadError: any) {
-                    console.error("Upload Error:", uploadError);
-                    throw new Error(`Falha no upload de "${file.name}". Causa: ${uploadError.message}`);
-                }
-            }
-            
-            finalImageUrls = [...finalImageUrls, ...uploadedUrls];
+          const influencerIdForStorage = influencer?.id || Date.now().toString();
+          const uploadedUrls: string[] = [];
+          let totalProgress = 0;
+          const progressPerFile = 100 / imageFiles.length;
+      
+          setUploadProgress(0);
+      
+          await Promise.all(
+            imageFiles.map(async (file, index) => {
+              setUploadMessage(`Enviando ${index + 1} de ${imageFiles.length}...`);
+              try {
+                const downloadURL = await uploadProofImage(
+                  influencerIdForStorage,
+                  file,
+                  (progress) => {
+                    // This will be complex to aggregate, so we'll simplify the overall progress
+                  }
+                );
+                uploadedUrls.push(downloadURL);
+                totalProgress += progressPerFile;
+                setUploadProgress(totalProgress);
+              } catch (uploadError: any) {
+                console.error("Upload Error:", uploadError);
+                throw new Error(`Falha no upload de "${file.name}". Causa: ${uploadError.message}`);
+              }
+            })
+          );
+      
+          finalImageUrls = [...finalImageUrls, ...uploadedUrls];
         }
 
         setUploadMessage('Salvando dados...');
