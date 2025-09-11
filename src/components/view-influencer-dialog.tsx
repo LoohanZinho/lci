@@ -37,15 +37,25 @@ export function ViewInfluencerDialog({
   
   const classification = getInfluencerClassification(influencer.followers);
   const isOwner = user?.uid === influencer.addedBy;
-
-  // Anunciante está em modo anônimo se o nome não estiver definido nos dados do usuário
   const posterIsAnonymous = !influencer.addedByData?.name;
 
-  const addedByName = (isAdmin || isOwner || !posterIsAnonymous)
-      ? (influencer.addedByData?.name || 'Anônimo')
-      : 'Anônimo';
+  let addedByDisplay: React.ReactNode;
 
-  const addedByEmail = (isAdmin || isOwner) ? influencer.addedByData?.email : null;
+  if (isOwner) {
+    addedByDisplay = 'Você';
+  } else if (isAdmin) {
+    addedByDisplay = (
+      <div>
+        <span>{influencer.addedByData?.name || 'Anônimo'}</span>
+        {influencer.addedByData?.email && <span className="text-muted-foreground text-xs ml-1">({influencer.addedByData.email})</span>}
+        {posterIsAnonymous && <span className="text-blue-500 text-xs block italic">Modo Anônimo Ativado</span>}
+      </div>
+    );
+  } else if (!posterIsAnonymous) {
+    addedByDisplay = influencer.addedByData?.name || 'Anônimo';
+  } else {
+    addedByDisplay = 'Anônimo';
+  }
 
 
   return (
@@ -70,17 +80,7 @@ export function ViewInfluencerDialog({
             <DetailRow label="Nicho" value={influencer.niche || 'Não informado'} />
             <DetailRow label="Status" value={influencer.status} />
             <DetailRow label="Contato" value={influencer.contact || 'Não informado'} />
-            <DetailRow label="Anunciado por" value={
-                <div>
-                    {addedByName}
-                    {addedByEmail && 
-                        <span className="text-muted-foreground text-xs ml-1">({addedByEmail})</span>
-                    }
-                    {isAdmin && posterIsAnonymous && (
-                      <span className="text-blue-500 text-xs block italic">Modo Anônimo Ativado</span>
-                    )}
-                </div>
-            } />
+            <DetailRow label="Anunciado por" value={addedByDisplay} />
             <DetailRow label="Observações" value={
                 <p className="whitespace-pre-wrap">{influencer.notes || 'Nenhuma observação.'}</p>
             } />

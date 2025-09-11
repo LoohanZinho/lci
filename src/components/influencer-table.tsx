@@ -78,9 +78,15 @@ export function InfluencerTable({ influencers, loading }: InfluencerTableProps) 
                 
                 const isOwner = user?.uid === influencer.addedBy;
                 const posterIsAnonymous = !influencer.addedByData?.name;
-                const addedByName = (isAdmin || isOwner || !posterIsAnonymous)
-                    ? (influencer.addedByData?.name || 'Anônimo')
-                    : 'Anônimo';
+                
+                let addedByName: string;
+                if (isOwner) {
+                  addedByName = 'Você';
+                } else if (isAdmin || !posterIsAnonymous) {
+                  addedByName = influencer.addedByData?.name || 'Anônimo';
+                } else {
+                  addedByName = 'Anônimo';
+                }
 
                 return (
                 <TableRow key={influencer.id}>
