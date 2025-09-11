@@ -21,18 +21,27 @@ export function SignupForm() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const { signup } = useAuth();
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError(null);
+
+    if (password.length < 6) {
+      setError("A senha deve ter no mínimo 6 caracteres.");
+      return;
+    }
+
     if (password !== confirmPassword) {
       setError("As senhas não coincidem.");
       return;
     }
+    
+    setIsLoading(true);
     try {
       await signup(email, password, name);
-      // O redirecionamento será tratado pelo hook useAuth e pela página de cadastro
+      // Redirect will be handled by the useAuth hook
     } catch (err: any) {
       if (err.code === "auth/email-already-in-use") {
         setError("Este e-mail já está em uso.");
@@ -40,6 +49,7 @@ export function SignupForm() {
         setError("Falha ao criar conta. Tente novamente.");
       }
       console.error(err);
+      setIsLoading(false);
     }
   };
 
@@ -63,6 +73,7 @@ export function SignupForm() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
+                disabled={isLoading}
               />
             </div>
             <div className="flex flex-col space-y-1.5">
@@ -74,10 +85,11 @@ export function SignupForm() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                disabled={isLoading}
               />
             </div>
             <div className="flex flex-col space-y-1.5">
-              <Label htmlFor="password">Senha</Label>
+              <Label htmlFor="password">Senha (mín. 6 caracteres)</Label>
               <Input
                 id="password"
                 type="password"
@@ -85,6 +97,7 @@ export function SignupForm() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                disabled={isLoading}
               />
             </div>
             <div className="flex flex-col space-y-1.5">
@@ -96,13 +109,14 @@ export function SignupForm() {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
+                disabled={isLoading}
               />
             </div>
             {error && <p className="text-sm text-destructive">{error}</p>}
           </div>
         </CardContent>
         <CardFooter className="flex flex-col items-stretch gap-4">
-          <Button type="submit">Cadastrar</Button>
+          <Button type="submit" disabled={isLoading}>{isLoading ? 'Cadastrando...' : 'Cadastrar'}</Button>
           <div className="text-center text-sm">
             Já tem uma conta?{" "}
             <Link href="/login" className="underline">

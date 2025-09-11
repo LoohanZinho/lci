@@ -20,32 +20,61 @@ interface InfluencerFormProps {
   onFinished?: () => void;
 }
 
+const initialState = {
+  name: "",
+  instagram: "",
+  followers: "",
+  status: "Disponível",
+  niche: "",
+  contact: "",
+  notes: "",
+  isFumo: false,
+};
+
 export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) {
-  const [name, setName] = useState("");
-  const [instagram, setInstagram] = useState("");
-  const [followers, setFollowers] = useState("");
-  const [status, setStatus] = useState("Disponível");
-  const [niche, setNiche] = useState("");
-  const [contact, setContact] = useState("");
-  const [notes, setNotes] = useState("");
-  const [isFumo, setIsFumo] = useState(false);
+  const [formData, setFormData] = useState(initialState);
   const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const { user } = useAuth();
 
   const isEditMode = !!influencer;
 
   useEffect(() => {
     if (influencer) {
-      setName(influencer.name);
-      setInstagram(influencer.instagram.startsWith('@') ? influencer.instagram.substring(1) : influencer.instagram);
-      setFollowers(influencer.followers.toString());
-      setStatus(influencer.status);
-      setNiche(influencer.niche);
-      setContact(influencer.contact);
-      setNotes(influencer.notes);
-      setIsFumo(influencer.isFumo);
+      setFormData({
+        name: influencer.name,
+        instagram: influencer.instagram.startsWith('@') ? influencer.instagram.substring(1) : influencer.instagram,
+        followers: influencer.followers.toString(),
+        status: influencer.status,
+        niche: influencer.niche,
+        contact: influencer.contact,
+        notes: influencer.notes,
+        isFumo: influencer.isFumo,
+      });
+    } else {
+      setFormData(initialState);
     }
   }, [influencer]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { id, value, type } = e.target;
+    if (type === 'checkbox') {
+        const { checked } = e.target as HTMLInputElement;
+        setFormData(prev => ({...prev, [id]: checked}));
+    } else {
+        setFormData(prev => ({...prev, [id]: value}));
+    }
+  };
+
+  const handleSelectChange = (value: string) => {
+    setFormData(prev => ({...prev, status: value}));
+  }
+
+  const handleCancel = () => {
+    if (onFinished) {
+      onFinished();
+    }
+  }
 
 
   const handleSubmit = async (e: FormEvent) => {
@@ -54,20 +83,23 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
       setError("Você precisa estar logado para realizar esta ação.");
       return;
     }
+    
+    setIsLoading(true);
+    setError(null);
 
     const influencerData = {
-      name,
-      instagram: instagram.startsWith('@') ? instagram : `@${instagram}`,
-      followers: parseInt(followers, 10),
-      status,
-      niche,
-      contact,
-      notes,
-      isFumo,
+      name: formData.name,
+      instagram: formData.instagram.startsWith('@') ? formData.instagram : `@${formData.instagram}`,
+      followers: parseInt(formData.followers, 10),
+      status: formData.status,
+      niche: formData.niche,
+      contact: formData.contact,
+      notes: formData.notes,
+      isFumo: formData.isFumo,
     };
 
     try {
-      if (isEditMode) {
+      if (isEditMode && influencer) {
         await updateInfluencer(influencer.id, influencerData);
       } else {
         const newInfluencer: NewInfluencer = {
@@ -76,6 +108,7 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
           addedBy: user.uid,
         };
         await addInfluencer(newInfluencer);
+        setFormData(initialState); // Reset form after adding
       }
       
       if (onFinished) {
@@ -85,11 +118,13 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
     } catch (err) {
       console.error(err);
       setError(`Falha ao ${isEditMode ? 'atualizar' : 'adicionar'} influenciador. Tente novamente.`);
+    } finally {
+        setIsLoading(false);
     }
   };
 
   return (
-    <div className="py-4 max-h-[70vh] overflow-y-auto px-1">
+    <div className="py-4 max-h-[70vh] overflow-y-auto px-1 pr-4">
       <form onSubmit={handleSubmit}>
         <div className="grid w-full items-center gap-4">
           <div className="flex flex-col space-y-1.5">
@@ -97,9 +132,10 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
             <Input
               id="name"
               placeholder="Ex: Maria Souza"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
+              value={formData.name}
+              onChange={handleChange}
               required
+              disabled={isLoading}
             />
           </div>
           <div className="flex flex-col space-y-1.5">
@@ -109,10 +145,11 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
               <Input
                 id="instagram"
                 placeholder="username"
-                value={instagram}
-                onChange={(e) => setInstagram(e.target.value.replace(/@/g, ''))}
+                value={formData.instagram.replace(/@/g, '')}
+                onChange={(e) => setFormData(prev => ({ ...prev, instagram: e.target.value.replace(/@/g, '')}))}
                 required
                 className="border-0 bg-transparent p-0 pl-1 focus-visible:ring-0 focus-visible:ring-offset-0"
+                disabled={isLoading}
               />
             </div>
           </div>
@@ -122,9 +159,10 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
               id="followers"
               type="number"
               placeholder="Ex: 150000"
-              value={followers}
-              onChange={(e) => setFollowers(e.target.value)}
+              value={formData.followers}
+              onChange={handleChange}
               required
+              disabled={isLoading}
             />
           </div>
           <div className="flex flex-col space-y-1.5">
@@ -132,13 +170,14 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
             <Input
               id="niche"
               placeholder="Ex: Fitness, Moda"
-              value={niche}
-              onChange={(e) => setNiche(e.target.value)}
+              value={formData.niche}
+              onChange={handleChange}
+              disabled={isLoading}
             />
           </div>
           <div className="flex flex-col space-y-1.5">
             <Label htmlFor="status">Status</Label>
-            <Select value={status} onValueChange={setStatus}>
+            <Select value={formData.status} onValueChange={handleSelectChange} disabled={isLoading}>
               <SelectTrigger id="status">
                 <SelectValue placeholder="Selecione o status" />
               </SelectTrigger>
@@ -154,8 +193,9 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
             <Input
               id="contact"
               placeholder="Email ou WhatsApp"
-              value={contact}
-              onChange={(e) => setContact(e.target.value)}
+              value={formData.contact}
+              onChange={handleChange}
+              disabled={isLoading}
             />
           </div>
           <div className="flex flex-col space-y-1.5">
@@ -163,25 +203,29 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
             <Textarea
               id="notes"
               placeholder="Responde rápido, cobra valor fixo..."
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
+              value={formData.notes}
+              onChange={handleChange}
+              disabled={isLoading}
             />
           </div>
            <div className="flex items-center space-x-2">
              <input
               type="checkbox"
               id="isFumo"
-              checked={isFumo}
-              onChange={(e) => setIsFumo(e.target.checked)}
+              checked={formData.isFumo}
+              onChange={handleChange}
               className="h-4 w-4"
+              disabled={isLoading}
             />
-            <Label htmlFor="isFumo">Marcar como "Fumo" (Não deu ROI)</Label>
+            <Label htmlFor="isFumo" className="cursor-pointer">Marcar como "Fumo" (Não deu ROI)</Label>
           </div>
           {error && <p className="text-sm text-destructive">{error}</p>}
         </div>
         <div className="flex justify-end space-x-2 pt-6">
-           <Button type="button" variant="ghost" onClick={onFinished}>Cancelar</Button>
-          <Button type="submit">{isEditMode ? 'Salvar Alterações' : 'Adicionar'}</Button>
+           <Button type="button" variant="ghost" onClick={handleCancel} disabled={isLoading}>Cancelar</Button>
+          <Button type="submit" disabled={isLoading}>
+            {isLoading ? (isEditMode ? 'Salvando...' : 'Adicionando...') : (isEditMode ? 'Salvar Alterações' : 'Adicionar')}
+          </Button>
         </div>
       </form>
     </div>

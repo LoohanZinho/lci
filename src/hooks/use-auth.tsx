@@ -17,11 +17,16 @@ import {
 } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { useRouter, usePathname } from "next/navigation";
+import { LoadingSpinner } from "@/components/loading-spinner";
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  signup: (email: string, password: string, displayName: string) => Promise<void>;
+  signup: (
+    email: string,
+    password: string,
+    displayName: string
+  ) => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
 }
@@ -35,20 +40,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const pathname = usePathname();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        // Just signed in or session existed.
-        // Get the most up-to-date profile.
-        auth.currentUser?.reload().then(() => {
-          const freshUser = auth.currentUser;
-          setUser(freshUser);
-          setLoading(false);
-        });
-      } else {
-        // User is signed out.
-        setUser(null);
-        setLoading(false);
-      }
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      setLoading(false);
     });
 
     return () => unsubscribe();
@@ -66,14 +60,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [user, loading, pathname, router]);
 
-
-  const signup = async (email: string, password: string, displayName: string) => {
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    if(userCredential.user){
-        await updateProfile(userCredential.user, { displayName });
-        // Reload user to get displayName
-        await userCredential.user.reload();
-        setUser(auth.currentUser);
+  const signup = async (
+    email: string,
+    password: string,
+    displayName: string
+  ) => {
+    const userCredential = await createUserWithEmailAndPassword(
+      auth,
+      email,
+      password
+    );
+    if (userCredential.user) {
+      await updateProfile(userCredential.user, { displayName });
+      // To get the displayName immediately, we reload the user state
+      await userCredential.user.reload();
+      setUser(auth.currentUser);
     }
   };
 
@@ -87,9 +88,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const value = { user, loading, signup, login, logout };
 
-  return <AuthContext.Provider value={value}>
-    {!loading && children}
-  </AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={value}>
+      {loading ? <LoadingSpinner /> : children}
+    </AuthContext.Provider>
+  );
 }
 
 export function useAuth() {
