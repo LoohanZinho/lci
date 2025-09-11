@@ -9,44 +9,26 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-
-// Dados de exemplo
-const influencers = [
-  {
-    id: "1",
-    name: "João Silva",
-    instagram: "@joaosilva",
-    status: "Fechado com Zé",
-    isFumo: true,
-    lastUpdate: "2024-07-28",
-  },
-  {
-    id: "2",
-    name: "Maria Oliveira",
-    instagram: "@maria.o",
-    status: "Disponível",
-    isFumo: false,
-    lastUpdate: "2024-07-27",
-  },
-  {
-    id: "3",
-    name: "Ana Costa",
-    instagram: "@anacostaa",
-    status: "Fechado (anônimo)",
-    isFumo: false,
-    lastUpdate: "2024-07-25",
-  },
-  {
-    id: "4",
-    name: "Carlos Pereira",
-    instagram: "@carlos.p",
-    status: "Disponível",
-    isFumo: false,
-    lastUpdate: "2024-07-22",
-  },
-];
+import { useEffect, useState } from "react";
+import { getInfluencers, Influencer } from "@/lib/influencers";
 
 export function InfluencerTable() {
+  const [influencers, setInfluencers] = useState<Influencer[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const unsubscribe = getInfluencers((data) => {
+      setInfluencers(data);
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  if (loading) {
+    return <p>Carregando influenciadores...</p>;
+  }
+
   return (
     <div className="rounded-lg border">
       <Table>
@@ -59,25 +41,33 @@ export function InfluencerTable() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {influencers.map((influencer) => (
-            <TableRow key={influencer.id}>
-              <TableCell>
-                <div className="font-medium">{influencer.name}</div>
-                <div className="text-sm text-muted-foreground">
-                  {influencer.instagram}
-                </div>
-              </TableCell>
-              <TableCell>{influencer.status}</TableCell>
-              <TableCell className="text-center">
-                {influencer.isFumo && (
-                  <Badge variant="destructive">Sim</Badge>
-                )}
-              </TableCell>
-              <TableCell className="text-right">
-                {new Date(influencer.lastUpdate).toLocaleDateString("pt-BR")}
+          {influencers.length === 0 && !loading ? (
+            <TableRow>
+              <TableCell colSpan={4} className="text-center">
+                Nenhum influenciador encontrado.
               </TableCell>
             </TableRow>
-          ))}
+          ) : (
+            influencers.map((influencer) => (
+              <TableRow key={influencer.id}>
+                <TableCell>
+                  <div className="font-medium">{influencer.name}</div>
+                  <div className="text-sm text-muted-foreground">
+                    {influencer.instagram}
+                  </div>
+                </TableCell>
+                <TableCell>{influencer.status || "Disponível"}</TableCell>
+                <TableCell className="text-center">
+                  {influencer.isFumo && (
+                    <Badge variant="destructive">Sim</Badge>
+                  )}
+                </TableCell>
+                <TableCell className="text-right">
+                  {influencer.lastUpdate?.toDate().toLocaleDateString("pt-BR")}
+                </TableCell>
+              </TableRow>
+            ))
+          )}
         </TableBody>
       </Table>
     </div>
