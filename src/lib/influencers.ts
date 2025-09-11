@@ -39,6 +39,7 @@ export interface Influencer extends Omit<NewInfluencer, 'lastUpdate'> {
 export interface UserData {
   name: string;
   email: string;
+  isAnonymous: boolean;
 }
 
 export interface InfluencerWithUserData extends Influencer {

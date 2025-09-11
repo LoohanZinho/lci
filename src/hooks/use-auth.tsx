@@ -18,14 +18,21 @@ import {
 import { auth, db } from "@/lib/firebase";
 import { useRouter, usePathname } from "next/navigation";
 import { LoadingSpinner } from "@/components/loading-spinner";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, setDoc, getDoc } from "firebase/firestore";
 
 const ADMIN_EMAILS = ["lohansantosborges@gmail.com", "natanrabelo934@gmail.com"];
+
+interface UserProfile {
+  name: string;
+  email: string;
+  isAnonymous: boolean;
+}
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
   isAdmin: boolean;
+  userProfile: UserProfile | null;
   signup: (
     email: string,
     password: string,
@@ -33,25 +40,44 @@ interface AuthContextType {
   ) => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
-  updateUserProfile: (displayName: string) => Promise<void>;
+  updateUserProfile: (data: { name: string; isAnonymous: boolean }) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
-      if (currentUser?.email && ADMIN_EMAILS.includes(currentUser.email)) {
-        setIsAdmin(true);
+      if (currentUser) {
+        setIsAdmin(ADMIN_EMAILS.includes(currentUser.email || ""));
+
+        // Fetch user profile from Firestore
+        const userDocRef = doc(db, "users", currentUser.uid);
+        const userDoc = await getDoc(userDocRef);
+        if (userDoc.exists()) {
+          setUserProfile(userDoc.data() as UserProfile);
+        } else {
+          // If profile doesn't exist, create it from auth data
+           const profile: UserProfile = {
+            name: currentUser.displayName || "",
+            email: currentUser.email || "",
+            isAnonymous: !currentUser.displayName,
+          };
+          await setDoc(userDocRef, profile);
+          setUserProfile(profile);
+        }
+
       } else {
         setIsAdmin(false);
+        setUserProfile(null);
       }
       setLoading(false);
     });
@@ -61,7 +87,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (loading) return;
-
     const isAuthPage = pathname === "/login" || pathname === "/signup";
 
     if (!user && !isAuthPage) {
@@ -85,15 +110,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (newUser) {
       await updateProfile(newUser, { displayName });
       
-      // Save user info to 'users' collection
-      await setDoc(doc(db, "users", newUser.uid), {
+      const profile: UserProfile = {
         name: displayName,
         email: email,
-      });
+        isAnonymous: false,
+      };
+      await setDoc(doc(db, "users", newUser.uid), profile);
 
-      // To get the displayName immediately, we reload the user state
       await newUser.reload();
       setUser(auth.currentUser);
+      setUserProfile(profile);
     }
   };
 
@@ -105,24 +131,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await signOut(auth);
   };
 
-  const updateUserProfile = async (displayName: string) => {
+  const updateUserProfile = async (data: { name: string; isAnonymous: boolean }) => {
     if (auth.currentUser) {
-      await updateProfile(auth.currentUser, { displayName });
+      // Update Firebase Auth profile
+      await updateProfile(auth.currentUser, { displayName: data.name });
 
-      // Update user info in 'users' collection
-      await setDoc(doc(db, "users", auth.currentUser.uid), {
-        name: displayName,
-        email: auth.currentUser.email,
-      }, { merge: true });
+      const userDocRef = doc(db, "users", auth.currentUser.uid);
+      const updatedProfile: UserProfile = {
+        name: data.name,
+        email: auth.currentUser.email || "",
+        isAnonymous: data.isAnonymous,
+      };
+      
+      await setDoc(userDocRef, updatedProfile, { merge: true });
 
       await auth.currentUser.reload();
       setUser(auth.currentUser);
+      setUserProfile(updatedProfile);
     } else {
       throw new Error("Nenhum usuário logado para atualizar.");
     }
   }
 
-  const value = { user, loading, isAdmin, signup, login, logout, updateUserProfile };
+  const value = { user, loading, isAdmin, userProfile, signup, login, logout, updateUserProfile };
 
   return (
     <AuthContext.Provider value={value}>

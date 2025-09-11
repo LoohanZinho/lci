@@ -37,7 +37,7 @@ export function ViewInfluencerDialog({
   
   const classification = getInfluencerClassification(influencer.followers);
   const isOwner = user?.uid === influencer.addedBy;
-  const posterIsAnonymous = !influencer.addedByData?.name;
+  const posterIsAnonymous = influencer.addedByData?.isAnonymous;
 
   let addedByDisplay: React.ReactNode;
 

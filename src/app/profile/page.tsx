@@ -12,28 +12,23 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 
 export default function ProfilePage() {
-  const { user, logout, updateUserProfile } = useAuth();
+  const { user, userProfile, logout, updateUserProfile } = useAuth();
   const router = useRouter();
   const { theme, setTheme } = useTheme();
   
-  // State for the form input
   const [displayName, setDisplayName] = useState("");
-  // State for the switch
   const [isAnonymous, setIsAnonymous] = useState(false);
   
   const [isLoading, setIsLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [error, setError] = useState("");
 
-  // This effect syncs the form state with the auth user state from the provider
   useEffect(() => {
-    if (user) {
-      const currentName = user.displayName || "";
-      setDisplayName(currentName);
-      // A user is anonymous if they don't have a display name in their profile
-      setIsAnonymous(!currentName); 
+    if (userProfile) {
+      setDisplayName(userProfile.name || "");
+      setIsAnonymous(userProfile.isAnonymous || false); 
     }
-  }, [user]);
+  }, [userProfile]);
   
   if (!user) {
     return null;
@@ -50,15 +45,7 @@ export default function ProfilePage() {
     setIsLoading(true);
 
     try {
-      // The name to save is determined by the switch state.
-      // If anonymous, we save an empty string. Otherwise, we save the input's value.
-      const nameToSave = isAnonymous ? "" : displayName;
-      
-      // We only call the update if the name has actually changed from what's currently in the profile.
-      if (nameToSave !== (user.displayName || "")) {
-        await updateUserProfile(nameToSave);
-      }
-      
+      await updateUserProfile({ name: displayName, isAnonymous });
       setSuccessMessage("Preferências salvas com sucesso!");
     } catch (err) {
       setError("Ocorreu um erro ao salvar as preferências. Tente novamente.");
@@ -66,11 +53,6 @@ export default function ProfilePage() {
     } finally {
       setIsLoading(false);
     }
-  }
-
-  // This handler just toggles the switch state. It doesn't save anything.
-  const handleAnonymousToggle = (checked: boolean) => {
-    setIsAnonymous(checked);
   }
 
   return (
@@ -91,8 +73,7 @@ export default function ProfilePage() {
             <div className="max-w-md mx-auto">
                 <Card>
                     <CardHeader>
-                        {/* The title always shows the currently saved user name */}
-                        <CardTitle>{user.displayName || "Usuário Anônimo"}</CardTitle>
+                        <CardTitle>{userProfile?.name || "Usuário Anônimo"}</CardTitle>
                         <CardDescription>Gerencie suas informações e preferências.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-6">
@@ -101,7 +82,7 @@ export default function ProfilePage() {
                                 <Label htmlFor="displayName">Nome de Exibição</Label>
                                 <Input
                                     id="displayName"
-                                    value={displayName} // Input value is controlled by component state
+                                    value={displayName}
                                     onChange={(e) => setDisplayName(e.target.value)}
                                     placeholder="Seu nome"
                                     disabled={isLoading}
@@ -121,7 +102,7 @@ export default function ProfilePage() {
                                <Switch
                                 id="anonymous-mode"
                                 checked={isAnonymous}
-                                onCheckedChange={handleAnonymousToggle}
+                                onCheckedChange={setIsAnonymous}
                                 disabled={isLoading}
                                />
                             </div>

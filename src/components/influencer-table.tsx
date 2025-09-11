@@ -77,7 +77,7 @@ export function InfluencerTable({ influencers, loading }: InfluencerTableProps) 
                 const classification = getInfluencerClassification(influencer.followers);
                 
                 const isOwner = user?.uid === influencer.addedBy;
-                const posterIsAnonymous = !influencer.addedByData?.name;
+                const posterIsAnonymous = influencer.addedByData?.isAnonymous;
                 
                 let addedByName: string;
                 if (isOwner) {
