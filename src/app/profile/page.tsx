@@ -9,6 +9,7 @@ import { useTheme } from "next-themes";
 import { useState, FormEvent, useEffect } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
 
 export default function ProfilePage() {
   const { user, logout, updateUserProfile } = useAuth();
@@ -16,13 +17,16 @@ export default function ProfilePage() {
   const { theme, setTheme } = useTheme();
   
   const [displayName, setDisplayName] = useState("");
+  const [isAnonymous, setIsAnonymous] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if (user?.displayName) {
-      setDisplayName(user.displayName);
+    if (user) {
+      const currentName = user.displayName || "";
+      setDisplayName(currentName);
+      setIsAnonymous(!currentName);
     }
   }, [user]);
   
@@ -36,6 +40,7 @@ export default function ProfilePage() {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    if (isAnonymous) return;
     setError("");
     setSuccessMessage("");
     setIsLoading(true);
@@ -50,17 +55,22 @@ export default function ProfilePage() {
     }
   }
 
-  const handleBecomeAnonymous = async () => {
+  const handleAnonymousToggle = async (checked: boolean) => {
+    setIsAnonymous(checked);
+    setIsLoading(true);
     setError("");
     setSuccessMessage("");
-    if(!window.confirm("Tem certeza que deseja remover seu nome e se tornar anônimo?")) {
-        return;
-    }
-    setIsLoading(true);
     try {
-        await updateUserProfile("");
-        setDisplayName("");
-        setSuccessMessage("Seu perfil agora é anônimo.");
+        if (checked) {
+            // Become anonymous
+            await updateUserProfile("");
+            setDisplayName("");
+            setSuccessMessage("Seu perfil agora é anônimo.");
+        } else {
+            // Restore name - for simplicity, we'll prompt the user to re-enter if they want a name
+            // A better UX might save the last known name, but this is safer.
+            setSuccessMessage("Modo anônimo desativado. Insira um nome de exibição e salve.");
+        }
     } catch (err) {
         setError("Ocorreu um erro. Tente novamente.");
         console.error(err);
@@ -99,23 +109,34 @@ export default function ProfilePage() {
                                     value={displayName}
                                     onChange={(e) => setDisplayName(e.target.value)}
                                     placeholder="Seu nome"
-                                    disabled={isLoading}
+                                    disabled={isLoading || isAnonymous}
                                 />
                             </div>
                              <div className="flex flex-col space-y-1.5">
                                 <Label htmlFor="email">Email</Label>
-                                <p id="email" className="font-semibold text-muted-foreground">{user.email}</p>
+                                <p id="email" className="text-sm font-medium text-muted-foreground pt-2">{user.email}</p>
                             </div>
                             {error && <p className="text-sm text-destructive">{error}</p>}
                             {successMessage && <p className="text-sm text-green-600">{successMessage}</p>}
-                            <Button type="submit" className="w-full" disabled={isLoading}>
+                            <Button type="submit" className="w-full" disabled={isLoading || isAnonymous}>
                                {isLoading ? 'Salvando...' : 'Salvar Alterações'}
                             </Button>
                         </form>
                          <div className="space-y-4">
-                            <Button variant="outline" className="w-full" onClick={handleBecomeAnonymous} disabled={isLoading}>
-                                Tornar Anônimo
-                            </Button>
+                            <div className="flex items-center justify-between rounded-lg border p-3">
+                               <div className="space-y-0.5">
+                                 <Label htmlFor="anonymous-mode">Modo Anônimo</Label>
+                                 <p className="text-xs text-muted-foreground">
+                                    Seu nome não será exibido nas postagens.
+                                 </p>
+                               </div>
+                               <Switch
+                                id="anonymous-mode"
+                                checked={isAnonymous}
+                                onCheckedChange={handleAnonymousToggle}
+                                disabled={isLoading}
+                               />
+                            </div>
                             <Button variant="destructive" className="w-full" onClick={logout}>
                                 Sair da Conta
                             </Button>
