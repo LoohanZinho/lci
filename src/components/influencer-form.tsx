@@ -58,6 +58,7 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
+  const [uploadMessage, setUploadMessage] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const isEditMode = !!influencer;
@@ -108,30 +109,28 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
     }
     
     setError(null);
-    setImageFiles(prev => [...prev, ...newFiles]);
+    const updatedFiles = [...imageFiles, ...newFiles];
+    setImageFiles(updatedFiles);
 
     const newPreviews = newFiles.map(file => URL.createObjectURL(file));
     setImagePreviews(prev => [...prev, ...newPreviews]);
   };
 
-  const removeImage = async (index: number) => {
-    const newPreviews = [...imagePreviews];
-    const newFiles = [...imageFiles];
-    
-    const urlToRemove = newPreviews[index];
-    newPreviews.splice(index, 1);
-    
-    // Check if the removed image was an already uploaded one or a new file
+  const removeImage = (indexToRemove: number) => {
+    const urlToRemove = imagePreviews[indexToRemove];
+  
+    // Filter out the preview
+    setImagePreviews(prev => prev.filter((_, i) => i !== indexToRemove));
+  
+    // Check if the removed preview was from a new file (blob URL)
     if (urlToRemove.startsWith('blob:')) {
-        const fileIndex = imageFiles.findIndex(file => URL.createObjectURL(file) === urlToRemove);
-        if (fileIndex > -1) {
-            newFiles.splice(fileIndex, 1);
-            setImageFiles(newFiles);
-        }
+      const fileIndexToRemove = imageFiles.findIndex(file => URL.createObjectURL(file) === urlToRemove);
+      if (fileIndexToRemove > -1) {
+        setImageFiles(prev => prev.filter((_, i) => i !== fileIndexToRemove));
+      }
     }
-
-    setImagePreviews(newPreviews);
-  }
+  };
+  
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { id, value, type } = e.target;
@@ -164,40 +163,37 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
     
     setIsLoading(true);
     setError(null);
-    setUploadProgress(imageFiles.length > 0 ? 0 : null);
+    setUploadProgress(null);
+    setUploadMessage('');
 
     try {
-        let finalImageUrls: string[] = [];
-        
-        // Handle image uploads and updates
-        const newFilesToUpload = imageFiles.filter(file => imagePreviews.some(p => p.startsWith('blob:') && URL.createObjectURL(file) === p));
-        
-        if (newFilesToUpload.length > 0) {
-            const influencerIdForStorage = influencer?.id || Date.now().toString();
-            const progressPerFile: number[] = new Array(newFilesToUpload.length).fill(0);
+        let finalImageUrls: string[] = isEditMode ? imagePreviews.filter(p => !p.startsWith('blob:')) : [];
 
-            const uploadedUrls = await Promise.all(
-                newFilesToUpload.map((file, index) => 
-                    uploadProofImage(influencerIdForStorage, file, (progress) => {
-                        progressPerFile[index] = progress;
-                        const totalProgress = progressPerFile.reduce((a, b) => a + b, 0) / newFilesToUpload.length;
-                        setUploadProgress(totalProgress);
-                    })
-                )
-            );
-            finalImageUrls.push(...uploadedUrls);
-        }
-
-        // Handle existing images in edit mode
+        // Handle image deletions in edit mode
         if (isEditMode) {
             const originalUrls = influencer?.proofImageUrls || [];
-            const remainingUrls = imagePreviews.filter(p => !p.startsWith('blob:') && originalUrls.includes(p));
-            finalImageUrls.push(...remainingUrls);
-            
-            const urlsToDelete = originalUrls.filter(url => !remainingUrls.includes(url));
+            const urlsToDelete = originalUrls.filter(url => !imagePreviews.includes(url));
             if (urlsToDelete.length > 0) {
                 await Promise.all(urlsToDelete.map(url => deleteProofImageByUrl(url)));
             }
+        }
+        
+        // Handle new image uploads
+        if (imageFiles.length > 0) {
+            const influencerIdForStorage = influencer?.id || Date.now().toString();
+            const uploadedUrls: string[] = [];
+
+            for (let i = 0; i < imageFiles.length; i++) {
+                const file = imageFiles[i];
+                setUploadMessage(`Enviando ${i + 1} de ${imageFiles.length}...`);
+                
+                const downloadURL = await uploadProofImage(influencerIdForStorage, file, (progress) => {
+                    setUploadProgress(progress);
+                });
+                uploadedUrls.push(downloadURL);
+            }
+            
+            finalImageUrls = [...finalImageUrls, ...uploadedUrls];
         }
 
         const influencerData = {
@@ -233,6 +229,7 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
     } finally {
         setIsLoading(false);
         setUploadProgress(null);
+        setUploadMessage('');
     }
   };
 
@@ -308,9 +305,12 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
           </div>
 
           {uploadProgress !== null && (
-            <div className="space-y-1">
-                <Label>Progresso do Upload</Label>
-                <Progress value={uploadProgress} />
+            <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                    <Label className="text-primary">{uploadMessage}</Label>
+                    <span className="text-sm font-medium text-primary">{Math.round(uploadProgress)}%</span>
+                </div>
+                <Progress value={uploadProgress} className="h-2" />
             </div>
           )}
 
@@ -324,10 +324,12 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
         <div className="flex justify-end space-x-2 pt-6">
            <Button type="button" variant="ghost" onClick={handleCancel} disabled={isLoading}>Cancelar</Button>
           <Button type="submit" disabled={isLoading}>
-            {isLoading ? (uploadProgress !== null ? `Enviando... ${Math.round(uploadProgress)}%` : (isEditMode ? 'Salvando...' : 'Adicionando...')) : (isEditMode ? 'Salvar Alterações' : 'Adicionar')}
+            {isLoading ? (uploadMessage ? 'Enviando...' : (isEditMode ? 'Salvando...' : 'Adicionando...')) : (isEditMode ? 'Salvar Alterações' : 'Adicionar')}
           </Button>
         </div>
       </form>
     </div>
   );
 }
+
+    
