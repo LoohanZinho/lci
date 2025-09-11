@@ -55,6 +55,9 @@ export default function HomePage() {
   const [sortBy, setSortBy] = useState<"lastUpdate" | "followers">("lastUpdate");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 50;
 
   useEffect(() => {
     setLoading(true);
@@ -111,6 +114,22 @@ export default function HomePage() {
           influencer.status.toLowerCase().includes(lowercasedQuery))
     );
   }, [influencers, searchQuery, statusFilter]);
+
+  const totalPages = Math.ceil(filteredInfluencers.length / itemsPerPage);
+
+  const paginatedInfluencers = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return filteredInfluencers.slice(startIndex, endIndex);
+  }, [filteredInfluencers, currentPage]);
+
+  useEffect(() => {
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(totalPages);
+    } else if (currentPage === 0 && totalPages > 0) {
+      setCurrentPage(1);
+    }
+  }, [filteredInfluencers, totalPages, currentPage]);
 
 
   if (!user) {
@@ -284,7 +303,30 @@ export default function HomePage() {
             </div>
           </div>
 
-          <InfluencerTable influencers={filteredInfluencers} loading={loading} />
+          <InfluencerTable influencers={paginatedInfluencers} loading={loading} />
+          {totalPages > 1 && (
+            <div className="flex items-center justify-end space-x-2 py-4">
+              <div className="flex-1 text-sm text-muted-foreground">
+                Página {currentPage} de {totalPages}
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+              >
+                Anterior
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+              >
+                Próxima
+              </Button>
+            </div>
+          )}
         </div>
       </main>
     </div>
