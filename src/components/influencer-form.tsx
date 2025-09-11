@@ -11,13 +11,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { addInfluencer, NewInfluencer, Influencer, updateInfluencer } from "@/lib/influencers";
+import { addInfluencer, NewInfluencer, Influencer, updateInfluencer, UpdatableInfluencerData } from "@/lib/influencers";
 import { useAuth } from "@/hooks/use-auth";
 import { useState, FormEvent, useEffect, useRef } from "react";
-import { uploadProofImage } from "@/lib/storage";
+import { uploadProofImage, deleteProofImageByUrl } from "@/lib/storage";
 import { Progress } from "@/components/ui/progress";
 import { AlertCircle, Image as ImageIcon, X } from "lucide-react";
 import Image from 'next/image';
+import { DocumentReference } from "firebase/firestore";
 
 interface InfluencerFormProps {
   influencer?: Influencer;
@@ -79,6 +80,8 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
       }
     } else {
       setFormData(initialState);
+      setImagePreview(null);
+      setImageFile(null);
     }
   }, [influencer]);
 
@@ -105,7 +108,6 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
     if(fileInputRef.current) {
         fileInputRef.current.value = "";
     }
-    // In edit mode, this will mark the image for deletion on submit
     setFormData(prev => ({...prev, proofImageUrl: "" }));
   }
 
@@ -131,7 +133,6 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
     }
   }
 
-
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!user) {
@@ -143,20 +144,11 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
     setError(null);
     setUploadProgress(null);
 
-    let finalImageUrl = influencer?.proofImageUrl || "";
+    let finalImageUrl: string | null = influencer?.proofImageUrl || null;
+    const originalImageUrl = influencer?.proofImageUrl;
 
     try {
-        if (imageFile) {
-            const onProgress = (progress: number) => {
-                setUploadProgress(progress);
-            };
-            const influencerIdForPath = influencer?.id || user.uid + Date.now();
-            finalImageUrl = await uploadProofImage(influencerIdForPath, imageFile, onProgress);
-        } else if (isEditMode && formData.proofImageUrl === "") {
-            finalImageUrl = ""; // Image was removed
-        }
-    
-        const influencerData: Omit<NewInfluencer, 'lastUpdate'> = {
+        const influencerData: Omit<NewInfluencer, 'lastUpdate' | 'proofImageUrl'> & { proofImageUrl?: string | null } = {
             name: formData.name,
             instagram: formData.instagram.startsWith('@') ? formData.instagram : `@${formData.instagram}`,
             followers: parseInt(unformatFollowers(formData.followers), 10),
@@ -166,20 +158,43 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
             notes: formData.notes,
             isFumo: formData.isFumo,
             addedBy: influencer?.addedBy || user.uid,
-            proofImageUrl: finalImageUrl,
         };
 
         if (isEditMode && influencer) {
-            await updateInfluencer(influencer.id, influencerData);
+            // Edit Mode
+            let dataToUpdate: Partial<UpdatableInfluencerData> = { ...influencerData };
+
+            if (imageFile) {
+                // New image uploaded, upload it first
+                const onProgress = (progress: number) => setUploadProgress(progress);
+                finalImageUrl = await uploadProofImage(influencer.id, imageFile, onProgress);
+                dataToUpdate.proofImageUrl = finalImageUrl;
+
+                // If there was an old image, delete it after updating
+                if (originalImageUrl) {
+                    await deleteProofImageByUrl(originalImageUrl);
+                }
+            } else if (!formData.proofImageUrl && originalImageUrl) {
+                // Image was removed, delete from storage and update DB
+                await deleteProofImageByUrl(originalImageUrl);
+                dataToUpdate.proofImageUrl = null;
+            }
+            await updateInfluencer(influencer.id, dataToUpdate);
         } else {
-            const newInfluencer: NewInfluencer = {
+            // Create Mode
+            const newInfluencerData: NewInfluencer = {
                 ...influencerData,
                 lastUpdate: new Date(),
+                proofImageUrl: null,
             };
-            await addInfluencer(newInfluencer);
-            setFormData(initialState);
-            setImageFile(null);
-            setImagePreview(null);
+
+            const docRef = await addInfluencer(newInfluencerData);
+
+            if (imageFile) {
+                const onProgress = (progress: number) => setUploadProgress(progress);
+                finalImageUrl = await uploadProofImage(docRef.id, imageFile, onProgress);
+                await updateInfluencer(docRef.id, { proofImageUrl: finalImageUrl });
+            }
         }
         
         if (onFinished) {
@@ -199,7 +214,6 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
     <div className="py-4 max-h-[70vh] overflow-y-auto px-1 pr-4">
       <form onSubmit={handleSubmit}>
         <div className="grid w-full items-center gap-4">
-          {/* Form fields */}
           <div className="flex flex-col space-y-1.5">
             <Label htmlFor="name">Nome do Influenciador</Label>
             <Input id="name" placeholder="Ex: Maria Souza" value={formData.name} onChange={handleChange} required disabled={isLoading} />
@@ -239,7 +253,6 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
             <Textarea id="notes" placeholder="Responde rápido, cobra valor fixo..." value={formData.notes} onChange={handleChange} disabled={isLoading} />
           </div>
 
-          {/* Image Upload */}
           <div className="flex flex-col space-y-1.5">
             <Label htmlFor="proofImage">Prova (Print, etc.)</Label>
             {imagePreview ? (

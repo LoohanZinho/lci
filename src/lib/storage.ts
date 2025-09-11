@@ -37,13 +37,13 @@ export const uploadProofImage = (
   });
 };
 
-export const deleteProofImage = async (imageUrl: string): Promise<void> => {
+export const deleteProofImageByUrl = async (imageUrl: string): Promise<void> => {
+    if (!imageUrl) return;
     try {
         const imageRef = ref(storage, imageUrl);
         await deleteObject(imageRef);
         console.log("Image successfully deleted from storage.");
     } catch (error: any) {
-        // It's okay if the file doesn't exist (e.g., already deleted)
         if (error.code !== 'storage/object-not-found') {
             console.error("Error deleting image from storage:", error);
             throw error;

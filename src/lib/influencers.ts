@@ -11,9 +11,10 @@ import {
   updateDoc,
   getDoc,
   getDocs,
+  DocumentReference,
 } from "firebase/firestore";
 import { db } from "./firebase";
-import { deleteProofImage } from "./storage";
+import { deleteProofImageByUrl } from "./storage";
 
 export interface NewInfluencer {
     name: string;
@@ -26,7 +27,7 @@ export interface NewInfluencer {
     isFumo: boolean;
     lastUpdate: Date;
     addedBy: string;
-    proofImageUrl?: string;
+    proofImageUrl: string | null;
 }
 
 export interface Influencer extends Omit<NewInfluencer, 'lastUpdate'> {
@@ -44,12 +45,12 @@ export interface InfluencerWithUserData extends Influencer {
 }
 
 
-export const addInfluencer = async (influencer: NewInfluencer) => {
+export const addInfluencer = async (influencer: NewInfluencer): Promise<DocumentReference> => {
   try {
     const docRef = await addDoc(collection(db, "influencers"), {
       ...influencer,
       proofImageUrl: influencer.proofImageUrl || null,
-      lastUpdate: serverTimestamp(), // Use server timestamp for consistency
+      lastUpdate: serverTimestamp(),
     });
     console.log("Document written with ID: ", docRef.id);
     return docRef;
@@ -59,9 +60,9 @@ export const addInfluencer = async (influencer: NewInfluencer) => {
   }
 };
 
-export type UpdatableInfluencerData = Omit<NewInfluencer, 'addedBy' | 'lastUpdate'> & { proofImageUrl?: string };
+export type UpdatableInfluencerData = Partial<Omit<NewInfluencer, 'addedBy' | 'lastUpdate'>>
 
-export const updateInfluencer = async (id: string, data: Partial<UpdatableInfluencerData>) => {
+export const updateInfluencer = async (id: string, data: UpdatableInfluencerData) => {
   try {
     const docRef = doc(db, "influencers", id);
     await updateDoc(docRef, {
@@ -133,7 +134,7 @@ export const deleteInfluencer = async (id: string) => {
 
     // Delete proof image from storage if it exists
     if (influencerData.proofImageUrl) {
-      await deleteProofImage(influencerData.proofImageUrl);
+      await deleteProofImageByUrl(influencerData.proofImageUrl);
     }
     
     await deleteDoc(doc(db, "influencers", id));
