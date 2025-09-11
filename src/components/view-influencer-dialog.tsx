@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { InfluencerWithUserData } from "@/lib/influencers";
 import { Badge } from "./ui/badge";
-import { Flame, UserCircle, Edit } from "lucide-react";
+import { Flame, UserCircle, Edit, ShieldAlert } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import Image from "next/image";
 import { getInfluencerClassification, getClassificationBadgeClass } from "@/lib/classification";
@@ -41,14 +41,13 @@ export function ViewInfluencerDialog({
     if (influencer.addedBy === user?.uid) {
       return "Você";
     }
-    if (isAdmin) {
-      return influencer.addedByData?.name || "Anônimo";
-    }
-    if (influencer.addedByData?.isAnonymous) {
+    if (influencer.addedByData?.isAnonymous && !isAdmin) {
       return "Anônimo";
     }
     return influencer.addedByData?.name || "Anônimo";
   }
+  
+  const posterIsAnonymous = influencer.addedByData?.isAnonymous;
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -97,31 +96,59 @@ export function ViewInfluencerDialog({
                       <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary">
                           <UserCircle className="h-5 w-5" />
                       </div>
-                      <div>
+                       <div>
                           <p className="font-medium">
                             Adicionado por {getAddedByName()}
                           </p>
-                          <p className="text-xs text-muted-foreground">
-                            {influencer.lastUpdate?.toDate().toLocaleString("pt-BR", { day: '2-digit', month: 'numeric', year: 'numeric' })}
+                           {isAdmin && (
+                            <>
+                              <p className="text-xs text-muted-foreground">{influencer.addedByData?.email}</p>
+                              {posterIsAnonymous && (
+                                <div className="flex items-center gap-1 text-xs text-amber-600 mt-1">
+                                  <ShieldAlert className="h-3 w-3" />
+                                  <span>Modo Anônimo Ativado</span>
+                                </div>
+                              )}
+                            </>
+                          )}
+                          <p className="text-xs text-muted-foreground mt-1">
+                            em {influencer.lastUpdate?.toDate().toLocaleString("pt-BR", { day: '2-digit', month: 'numeric', year: 'numeric' })}
                           </p>
                       </div>
                   </div>
                   {influencer.editorsData && influencer.editorsData
-                    .filter(editor => !editor.isAnonymous)
-                    .map((editor, index) => (
+                    .filter(editor => !editor.isAnonymous || isAdmin)
+                    .map((editor, index) => {
+                      if (editor.email === influencer.addedByData?.email) return null; // Don't show adder as editor
+
+                      const editorName = (editor.isAnonymous && !isAdmin) ? "Anônimo" : editor.name;
+
+                      return (
                       <div key={index} className="flex items-start gap-3">
                           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-secondary text-secondary-foreground">
                             <Edit className="h-4 w-4" />
                           </div>
                           <div>
                               <p className="font-medium">
-                                Editado por {editor.name}
+                                Editado por {editorName}
                               </p>
+                               {isAdmin && (
+                                <>
+                                  <p className="text-xs text-muted-foreground">{editor.email}</p>
+                                  {editor.isAnonymous && (
+                                     <div className="flex items-center gap-1 text-xs text-amber-600 mt-1">
+                                      <ShieldAlert className="h-3 w-3" />
+                                      <span>Modo Anônimo Ativado</span>
+                                    </div>
+                                  )}
+                                </>
+                              )}
                           </div>
                       </div>
-                  ))}
+                      )
+                    })}
                    <div className="text-center text-xs text-muted-foreground/80 pt-2">
-                      Apenas edições de usuários não-anônimos são exibidas.
+                      Apenas edições de usuários não-anônimos são exibidas para não-admins.
                   </div>
               </div>
             </div>

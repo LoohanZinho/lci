@@ -82,7 +82,7 @@ export function InfluencerTable({ influencers, loading }: InfluencerTableProps) 
                 let addedByName: string;
                 if (isOwner) {
                   addedByName = 'Você';
-                } else if (isAdmin || !posterIsAnonymous) {
+                } else if (!posterIsAnonymous || isAdmin) {
                   addedByName = influencer.addedByData?.name || 'Anônimo';
                 } else {
                   addedByName = 'Anônimo';
