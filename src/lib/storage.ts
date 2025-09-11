@@ -1,8 +1,11 @@
+"use client";
+
 import {
   ref,
   uploadBytesResumable,
   getDownloadURL,
-  deleteObject
+  deleteObject,
+  uploadBytes,
 } from "firebase/storage";
 import { storage } from "./firebase";
 
@@ -16,26 +19,22 @@ export const uploadProofImage = (
     const fileName = `${Date.now()}.${fileExtension}`;
     const storageRef = ref(storage, `influencer-proofs/${influencerId}/${fileName}`);
 
-    const uploadTask = uploadBytesResumable(storageRef, file);
-
-    uploadTask.on(
-      "state_changed",
-      (snapshot) => {
-        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-        onProgress(progress);
-      },
-      (error) => {
+    // Usar uploadBytes (put) para um upload mais simples que evita problemas de CORS
+    // em alguns ambientes. A barra de progresso será menos granular, mas o upload
+    // será mais confiável.
+    onProgress(0);
+    uploadBytes(storageRef, file).then(snapshot => {
+        onProgress(100);
+        getDownloadURL(snapshot.ref).then(downloadURL => {
+            resolve(downloadURL);
+        }).catch(reject);
+    }).catch(error => {
         console.error("Upload failed:", error);
         reject(error);
-      },
-      () => {
-        getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-          resolve(downloadURL);
-        });
-      }
-    );
+    });
   });
 };
+
 
 export const deleteProofImageByUrl = async (imageUrl: string): Promise<void> => {
     if (!imageUrl) return;
