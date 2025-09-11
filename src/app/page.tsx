@@ -76,10 +76,6 @@ export default function HomePage() {
               </p>
             </div>
             <div className="flex items-center gap-2">
-               <Button variant="outline">
-                <Calendar className="mr-2 h-4 w-4" />
-                Este Mês
-              </Button>
               <Button variant="outline">
                 <Filter className="mr-2 h-4 w-4" />
                 Filtros
