@@ -23,7 +23,7 @@ export function EditInfluencerDialog({
 }: EditInfluencerDialogProps) {
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent>
         <DialogHeader>
           <DialogTitle>Editar Influenciador</DialogTitle>
           <DialogDescription>

@@ -38,6 +38,7 @@ export default function HomePage() {
   const { theme, setTheme } = useTheme();
   const [influencers, setInfluencers] = useState<Influencer[]>([]);
   const [popoverOpen, setPopoverOpen] = useState(false);
+  const [isFormOpen, setIsFormOpen] = useState(false);
 
   useEffect(() => {
     const unsubscribe = getInfluencers(setInfluencers);
@@ -96,8 +97,8 @@ export default function HomePage() {
       </header>
       <main className="flex-1 p-4 md:p-8">
         <div className="max-w-7xl mx-auto">
-          <div className="flex justify-between items-start mb-6">
-            <div>
+          <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4 mb-6">
+            <div className="flex-1">
               <h2 className="text-3xl font-bold">
                 {greeting}, <span className="text-primary">{user.displayName || user.email}!</span>
               </h2>
@@ -105,15 +106,15 @@ export default function HomePage() {
                 Encontre, gerencie e adicione novos influenciadores ao seu mural.
               </p>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 w-full md:w-auto">
               <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
                 <PopoverTrigger asChild>
-                  <div className="relative">
+                  <div className="relative w-full md:w-auto">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
                       type="search"
                       placeholder="Buscar por nome, @, ou nota..."
-                      className="pl-9"
+                      className="pl-9 w-full md:w-[250px] lg:w-[300px]"
                       value={searchQuery}
                       onChange={(e) => {
                         setSearchQuery(e.target.value);
@@ -154,18 +155,18 @@ export default function HomePage() {
                 </PopoverContent>
               </Popover>
 
-              <Dialog>
+              <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
                 <DialogTrigger asChild>
-                  <Button>
+                  <Button className="w-full md:w-auto">
                     <PlusCircle className="mr-2 h-4 w-4" />
                     Nova Postagem
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="sm:max-w-[425px]">
+                <DialogContent>
                   <DialogHeader>
                     <DialogTitle>Adicionar Novo Influenciador</DialogTitle>
                   </DialogHeader>
-                  <InfluencerForm />
+                  <InfluencerForm onFinished={() => setIsFormOpen(false)} />
                 </DialogContent>
               </Dialog>
             </div>

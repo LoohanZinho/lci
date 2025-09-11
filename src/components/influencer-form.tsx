@@ -14,7 +14,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { addInfluencer, NewInfluencer, Influencer, updateInfluencer } from "@/lib/influencers";
 import { useAuth } from "@/hooks/use-auth";
 import { useState, FormEvent, useEffect } from "react";
-import { DialogClose } from "@radix-ui/react-dialog";
 
 interface InfluencerFormProps {
   influencer?: Influencer;
@@ -81,18 +80,6 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
       
       if (onFinished) {
         onFinished();
-      } else {
-        // Reset form for add mode
-        setName("");
-        setInstagram("");
-        setFollowers("");
-        setStatus("Disponível");
-        setNiche("");
-        setContact("");
-        setNotes("");
-        setIsFumo(false);
-        setError(null);
-        document.getElementById('close-dialog')?.click();
       }
 
     } catch (err) {
@@ -102,7 +89,7 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
   };
 
   return (
-    <div className="py-4">
+    <div className="py-4 max-h-[70vh] overflow-y-auto px-1">
       <form onSubmit={handleSubmit}>
         <div className="grid w-full items-center gap-4">
           <div className="flex flex-col space-y-1.5">
@@ -193,7 +180,6 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
           <Button type="submit">{isEditMode ? 'Salvar Alterações' : 'Adicionar'}</Button>
         </div>
       </form>
-       <DialogClose id="close-dialog" className="hidden" />
     </div>
   );
 }

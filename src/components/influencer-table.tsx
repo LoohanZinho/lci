@@ -60,15 +60,15 @@ export function InfluencerTable({ searchQuery }: InfluencerTableProps) {
 
   return (
     <>
-      <div className="rounded-lg border">
+      <div className="rounded-lg border bg-card">
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead>Influenciador</TableHead>
-              <TableHead>Nicho</TableHead>
-              <TableHead>Status</TableHead>
+              <TableHead className="hidden sm:table-cell">Nicho</TableHead>
+              <TableHead className="hidden md:table-cell">Status</TableHead>
               <TableHead className="text-center">Fumo</TableHead>
-              <TableHead className="text-right">Última Edição</TableHead>
+              <TableHead className="text-right hidden lg:table-cell">Última Edição</TableHead>
               <TableHead className="w-[80px] text-right">Ações</TableHead>
             </TableRow>
           </TableHeader>
@@ -88,8 +88,8 @@ export function InfluencerTable({ searchQuery }: InfluencerTableProps) {
                       {influencer.instagram}
                     </div>
                   </TableCell>
-                  <TableCell>{influencer.niche}</TableCell>
-                  <TableCell>{influencer.status || "Disponível"}</TableCell>
+                  <TableCell className="hidden sm:table-cell">{influencer.niche}</TableCell>
+                  <TableCell className="hidden md:table-cell">{influencer.status || "Disponível"}</TableCell>
                   <TableCell className="text-center">
                     {influencer.isFumo && (
                       <Badge variant="destructive" className="p-1.5">
@@ -97,7 +97,7 @@ export function InfluencerTable({ searchQuery }: InfluencerTableProps) {
                       </Badge>
                     )}
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-right hidden lg:table-cell">
                     {influencer.lastUpdate?.toDate().toLocaleDateString("pt-BR")}
                   </TableCell>
                   <TableCell className="text-right">
