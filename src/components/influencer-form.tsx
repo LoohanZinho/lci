@@ -31,6 +31,18 @@ const initialState = {
   isFumo: false,
 };
 
+const formatFollowers = (value: string) => {
+    if (!value) return "";
+    const cleanedValue = value.replace(/\D/g, "");
+    if (cleanedValue === "") return "";
+    return new Intl.NumberFormat('pt-BR').format(parseInt(cleanedValue, 10));
+}
+
+const unformatFollowers = (value: string) => {
+    if (!value) return "";
+    return value.replace(/\D/g, "");
+}
+
 export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) {
   const [formData, setFormData] = useState(initialState);
   const [error, setError] = useState<string | null>(null);
@@ -44,7 +56,7 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
       setFormData({
         name: influencer.name,
         instagram: influencer.instagram.startsWith('@') ? influencer.instagram.substring(1) : influencer.instagram,
-        followers: influencer.followers.toString(),
+        followers: formatFollowers(influencer.followers.toString()),
         status: influencer.status,
         niche: influencer.niche,
         contact: influencer.contact,
@@ -61,6 +73,8 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
     if (type === 'checkbox') {
         const { checked } = e.target as HTMLInputElement;
         setFormData(prev => ({...prev, [id]: checked}));
+    } else if (id === 'followers') {
+        setFormData(prev => ({...prev, followers: formatFollowers(value)}));
     } else {
         setFormData(prev => ({...prev, [id]: value}));
     }
@@ -90,7 +104,7 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
     const influencerData = {
       name: formData.name,
       instagram: formData.instagram.startsWith('@') ? formData.instagram : `@${formData.instagram}`,
-      followers: parseInt(formData.followers, 10),
+      followers: parseInt(unformatFollowers(formData.followers), 10),
       status: formData.status,
       niche: formData.niche,
       contact: formData.contact,
@@ -157,8 +171,9 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
             <Label htmlFor="followers">Seguidores</Label>
             <Input
               id="followers"
-              type="number"
-              placeholder="Ex: 150000"
+              type="text"
+              inputMode="numeric"
+              placeholder="Ex: 150.000"
               value={formData.followers}
               onChange={handleChange}
               required
