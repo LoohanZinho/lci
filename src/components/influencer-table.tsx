@@ -13,6 +13,8 @@ import { useEffect, useMemo, useState } from "react";
 import { getInfluencers, Influencer } from "@/lib/influencers";
 import { Flame } from "lucide-react";
 import { InfluencerActions } from "./influencer-actions";
+import { EditInfluencerDialog } from "./edit-influencer-dialog";
+
 
 interface InfluencerTableProps {
   searchQuery: string;
@@ -21,6 +23,7 @@ interface InfluencerTableProps {
 export function InfluencerTable({ searchQuery }: InfluencerTableProps) {
   const [influencers, setInfluencers] = useState<Influencer[]>([]);
   const [loading, setLoading] = useState(true);
+  const [editingInfluencer, setEditingInfluencer] = useState<Influencer | null>(null);
 
   useEffect(() => {
     const unsubscribe = getInfluencers((data) => {
@@ -30,6 +33,10 @@ export function InfluencerTable({ searchQuery }: InfluencerTableProps) {
 
     return () => unsubscribe();
   }, []);
+
+  const handleEdit = (influencer: Influencer) => {
+    setEditingInfluencer(influencer);
+  };
 
   const filteredInfluencers = useMemo(() => {
     if (!searchQuery) {
@@ -52,54 +59,67 @@ export function InfluencerTable({ searchQuery }: InfluencerTableProps) {
   }
 
   return (
-    <div className="rounded-lg border">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Influenciador</TableHead>
-            <TableHead>Nicho</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead className="text-center">Fumo</TableHead>
-            <TableHead className="text-right">Última Edição</TableHead>
-            <TableHead className="w-[80px] text-right">Ações</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {filteredInfluencers.length === 0 && !loading ? (
+    <>
+      <div className="rounded-lg border">
+        <Table>
+          <TableHeader>
             <TableRow>
-              <TableCell colSpan={6} className="text-center">
-                Nenhum influenciador encontrado.
-              </TableCell>
+              <TableHead>Influenciador</TableHead>
+              <TableHead>Nicho</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead className="text-center">Fumo</TableHead>
+              <TableHead className="text-right">Última Edição</TableHead>
+              <TableHead className="w-[80px] text-right">Ações</TableHead>
             </TableRow>
-          ) : (
-            filteredInfluencers.map((influencer) => (
-              <TableRow key={influencer.id}>
-                <TableCell>
-                  <div className="font-medium">{influencer.name}</div>
-                  <div className="text-sm text-muted-foreground">
-                    {influencer.instagram}
-                  </div>
-                </TableCell>
-                <TableCell>{influencer.niche}</TableCell>
-                <TableCell>{influencer.status || "Disponível"}</TableCell>
-                <TableCell className="text-center">
-                  {influencer.isFumo && (
-                    <Badge variant="destructive" className="p-1.5">
-                      <Flame className="h-4 w-4" />
-                    </Badge>
-                  )}
-                </TableCell>
-                <TableCell className="text-right">
-                  {influencer.lastUpdate?.toDate().toLocaleDateString("pt-BR")}
-                </TableCell>
-                <TableCell className="text-right">
-                   <InfluencerActions influencerId={influencer.id} />
+          </TableHeader>
+          <TableBody>
+            {filteredInfluencers.length === 0 && !loading ? (
+              <TableRow>
+                <TableCell colSpan={6} className="text-center">
+                  Nenhum influenciador encontrado.
                 </TableCell>
               </TableRow>
-            ))
-          )}
-        </TableBody>
-      </Table>
-    </div>
+            ) : (
+              filteredInfluencers.map((influencer) => (
+                <TableRow key={influencer.id}>
+                  <TableCell>
+                    <div className="font-medium">{influencer.name}</div>
+                    <div className="text-sm text-muted-foreground">
+                      {influencer.instagram}
+                    </div>
+                  </TableCell>
+                  <TableCell>{influencer.niche}</TableCell>
+                  <TableCell>{influencer.status || "Disponível"}</TableCell>
+                  <TableCell className="text-center">
+                    {influencer.isFumo && (
+                      <Badge variant="destructive" className="p-1.5">
+                        <Flame className="h-4 w-4" />
+                      </Badge>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {influencer.lastUpdate?.toDate().toLocaleDateString("pt-BR")}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <InfluencerActions 
+                      influencer={influencer}
+                      onEdit={() => handleEdit(influencer)}
+                    />
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
+      
+      {editingInfluencer && (
+        <EditInfluencerDialog
+          influencer={editingInfluencer}
+          isOpen={!!editingInfluencer}
+          onClose={() => setEditingInfluencer(null)}
+        />
+      )}
+    </>
   );
 }

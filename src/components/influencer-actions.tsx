@@ -9,14 +9,15 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { MoreHorizontal, Edit, Trash2 } from "lucide-react";
-import { deleteInfluencer } from "@/lib/influencers";
+import { deleteInfluencer, Influencer } from "@/lib/influencers";
 import { useState } from "react";
 
 interface InfluencerActionsProps {
-  influencerId: string;
+  influencer: Influencer;
+  onEdit: () => void;
 }
 
-export function InfluencerActions({ influencerId }: InfluencerActionsProps) {
+export function InfluencerActions({ influencer, onEdit }: InfluencerActionsProps) {
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleDelete = async () => {
@@ -27,7 +28,7 @@ export function InfluencerActions({ influencerId }: InfluencerActionsProps) {
     }
     setIsDeleting(true);
     try {
-      await deleteInfluencer(influencerId);
+      await deleteInfluencer(influencer.id);
     } catch (error) {
       console.error("Failed to delete influencer", error);
       alert("Falha ao excluir o influenciador.");
@@ -45,7 +46,7 @@ export function InfluencerActions({ influencerId }: InfluencerActionsProps) {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => alert(`Editar ${influencerId}`)}>
+        <DropdownMenuItem onClick={onEdit}>
           <Edit className="mr-2 h-4 w-4" />
           <span>Editar</span>
         </DropdownMenuItem>

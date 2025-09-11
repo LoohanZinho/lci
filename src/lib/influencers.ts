@@ -7,7 +7,8 @@ import {
   serverTimestamp,
   Timestamp,
   deleteDoc,
-  doc
+  doc,
+  updateDoc,
 } from "firebase/firestore";
 import { db } from "./firebase";
 
@@ -24,7 +25,7 @@ export interface NewInfluencer {
     addedBy: string;
 }
 
-export interface Influencer extends NewInfluencer {
+export interface Influencer extends Omit<NewInfluencer, 'lastUpdate'> {
     id: string;
     lastUpdate: Timestamp;
 }
@@ -43,6 +44,23 @@ export const addInfluencer = async (influencer: NewInfluencer) => {
     throw e;
   }
 };
+
+export type UpdatableInfluencerData = Omit<NewInfluencer, 'addedBy' | 'lastUpdate'>;
+
+export const updateInfluencer = async (id: string, data: Partial<UpdatableInfluencerData>) => {
+  try {
+    const docRef = doc(db, "influencers", id);
+    await updateDoc(docRef, {
+      ...data,
+      lastUpdate: serverTimestamp(),
+    });
+    console.log("Document successfully updated!");
+  } catch (error) {
+    console.error("Error updating document: ", error);
+    throw error;
+  }
+};
+
 
 export const getInfluencers = (
     callback: (influencers: Influencer[]) => void

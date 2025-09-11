@@ -11,12 +11,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { addInfluencer, NewInfluencer } from "@/lib/influencers";
+import { addInfluencer, NewInfluencer, Influencer, updateInfluencer } from "@/lib/influencers";
 import { useAuth } from "@/hooks/use-auth";
-import { useState, FormEvent } from "react";
+import { useState, FormEvent, useEffect } from "react";
 import { DialogClose } from "@radix-ui/react-dialog";
 
-export function InfluencerForm() {
+interface InfluencerFormProps {
+  influencer?: Influencer;
+  onFinished?: () => void;
+}
+
+export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) {
   const [name, setName] = useState("");
   const [instagram, setInstagram] = useState("");
   const [followers, setFollowers] = useState("");
@@ -24,17 +29,34 @@ export function InfluencerForm() {
   const [niche, setNiche] = useState("");
   const [contact, setContact] = useState("");
   const [notes, setNotes] = useState("");
+  const [isFumo, setIsFumo] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
+
+  const isEditMode = !!influencer;
+
+  useEffect(() => {
+    if (influencer) {
+      setName(influencer.name);
+      setInstagram(influencer.instagram);
+      setFollowers(influencer.followers.toString());
+      setStatus(influencer.status);
+      setNiche(influencer.niche);
+      setContact(influencer.contact);
+      setNotes(influencer.notes);
+      setIsFumo(influencer.isFumo);
+    }
+  }, [influencer]);
+
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!user) {
-      setError("Você precisa estar logado para adicionar um influenciador.");
+      setError("Você precisa estar logado para realizar esta ação.");
       return;
     }
 
-    const newInfluencer: NewInfluencer = {
+    const influencerData = {
       name,
       instagram,
       followers: parseInt(followers, 10),
@@ -42,27 +64,40 @@ export function InfluencerForm() {
       niche,
       contact,
       notes,
-      isFumo: false,
-      lastUpdate: new Date(),
-      addedBy: user.uid,
+      isFumo,
     };
 
     try {
-      await addInfluencer(newInfluencer);
-      // Reset form
-      setName("");
-      setInstagram("");
-      setFollowers("");
-      setStatus("Disponível");
-      setNiche("");
-      setContact("");
-      setNotes("");
-      setError(null);
-      // Close dialog
-      document.getElementById('close-dialog')?.click();
+      if (isEditMode) {
+        await updateInfluencer(influencer.id, influencerData);
+      } else {
+        const newInfluencer: NewInfluencer = {
+          ...influencerData,
+          lastUpdate: new Date(),
+          addedBy: user.uid,
+        };
+        await addInfluencer(newInfluencer);
+      }
+      
+      if (onFinished) {
+        onFinished();
+      } else {
+        // Reset form for add mode
+        setName("");
+        setInstagram("");
+        setFollowers("");
+        setStatus("Disponível");
+        setNiche("");
+        setContact("");
+        setNotes("");
+        setIsFumo(false);
+        setError(null);
+        document.getElementById('close-dialog')?.click();
+      }
+
     } catch (err) {
       console.error(err);
-      setError("Falha ao adicionar influenciador. Tente novamente.");
+      setError(`Falha ao ${isEditMode ? 'atualizar' : 'adicionar'} influenciador. Tente novamente.`);
     }
   };
 
@@ -141,13 +176,21 @@ export function InfluencerForm() {
               onChange={(e) => setNotes(e.target.value)}
             />
           </div>
+           <div className="flex items-center space-x-2">
+             <input
+              type="checkbox"
+              id="isFumo"
+              checked={isFumo}
+              onChange={(e) => setIsFumo(e.target.checked)}
+              className="h-4 w-4"
+            />
+            <Label htmlFor="isFumo">Marcar como "Fumo" (Não deu ROI)</Label>
+          </div>
           {error && <p className="text-sm text-destructive">{error}</p>}
         </div>
         <div className="flex justify-end space-x-2 pt-6">
-          <DialogClose asChild>
-            <Button variant="ghost">Cancelar</Button>
-          </DialogClose>
-          <Button type="submit">Adicionar</Button>
+           <Button type="button" variant="ghost" onClick={onFinished}>Cancelar</Button>
+          <Button type="submit">{isEditMode ? 'Salvar Alterações' : 'Adicionar'}</Button>
         </div>
       </form>
        <DialogClose id="close-dialog" className="hidden" />
