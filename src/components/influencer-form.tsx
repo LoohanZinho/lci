@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -25,7 +26,21 @@ interface InfluencerFormProps {
   onFinished?: () => void;
 }
 
-const initialState = {
+// Interface for the form's state, allowing followers to be a string for display purposes.
+interface FormData {
+  name: string;
+  instagram: string;
+  followers: string;
+  status: string;
+  niche: string;
+  contact: string;
+  notes: string;
+  isFumo: boolean;
+  proofImageUrls: string[];
+}
+
+
+const initialState: FormData = {
   name: "",
   instagram: "",
   followers: "",
@@ -50,7 +65,7 @@ const unformatFollowers = (value: string) => {
 }
 
 export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) {
-  const [formData, setFormData] = useState<Omit<NewInfluencer, 'lastUpdate' | 'addedBy' | 'editors'>>(initialState);
+  const [formData, setFormData] = useState<FormData>(initialState);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { user } = useAuth();
@@ -68,7 +83,7 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
 
   useEffect(() => {
     if (influencer) {
-      const currentData = {
+      const currentData: FormData = {
         name: influencer.name,
         instagram: influencer.instagram.startsWith('@') ? influencer.instagram.substring(1) : influencer.instagram,
         followers: formatFollowers(influencer.followers.toString()),
@@ -183,28 +198,30 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
         if (imageFiles.length > 0) {
           const influencerIdForStorage = influencer?.id || Date.now().toString();
           const uploadedUrls: string[] = [];
-          let totalProgress = 0;
-          const progressPerFile = 100 / imageFiles.length;
-      
+          let filesUploaded = 0;
+          
           setUploadProgress(0);
+          setUploadMessage(`Enviando 0 de ${imageFiles.length}...`);
       
           await Promise.all(
             imageFiles.map(async (file, index) => {
-              setUploadMessage(`Enviando ${index + 1} de ${imageFiles.length}...`);
               try {
                 const downloadURL = await uploadProofImage(
                   influencerIdForStorage,
                   file,
                   (progress) => {
-                    // This will be complex to aggregate, so we'll simplify the overall progress
+                    // This logic is simplified since uploadBytesResumable provides granular progress.
                   }
                 );
                 uploadedUrls.push(downloadURL);
-                totalProgress += progressPerFile;
-                setUploadProgress(totalProgress);
+                filesUploaded++;
+                const overallProgress = (filesUploaded / imageFiles.length) * 100;
+                setUploadProgress(overallProgress);
+                setUploadMessage(`Enviando ${filesUploaded} de ${imageFiles.length}...`);
               } catch (uploadError: any) {
-                console.error("Upload Error:", uploadError);
-                throw new Error(`Falha no upload de "${file.name}". Causa: ${uploadError.message}`);
+                 console.error("Upload Error:", uploadError);
+                 // Stop further uploads on the first error.
+                 throw new Error(`Falha no upload de "${file.name}". Causa: ${uploadError.message || 'Erro desconhecido'}`);
               }
             })
           );
@@ -348,3 +365,5 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
     </div>
   );
 }
+
+    
