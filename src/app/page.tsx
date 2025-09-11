@@ -239,7 +239,7 @@ export default function HomePage() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="w-full md:w-auto">
+                <div className="w-full md:w-auto md:ml-auto">
                     <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
                       <DialogTrigger asChild>
                         <Button className="shrink-0 w-full md:w-auto">
