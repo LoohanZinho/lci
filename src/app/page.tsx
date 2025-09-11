@@ -1,28 +1,35 @@
-'use server';
+"use client";
 
-import { redirect } from 'next/navigation';
+import { InfluencerForm } from "@/components/influencer-form";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/use-auth";
+import { BookUser } from "lucide-react";
 
-// Mock function to check authentication
-// In a real app, this would check a session, cookie, or token
-async function isAuthenticated() {
-  // For now, we'll simulate a logged-out user
-  // to demonstrate the redirect.
-  return false; 
-}
+export default function HomePage() {
+  const { user, logout } = useAuth();
 
-export default async function HomePage() {
-  const loggedIn = await isAuthenticated();
-
-  if (!loggedIn) {
-    redirect('/login');
+  // O hook useAuth já redireciona se não houver usuário,
+  // mas podemos renderizar null ou um loader enquanto o estado de auth carrega.
+  if (!user) {
+    return null; 
   }
 
-  // The rest of the page component will only be rendered if the user is authenticated.
-  // We can rebuild the influencer form and list here later.
   return (
-    <div>
-      <h1>Bem-vindo ao Mural de Influência!</h1>
-      <p>Conteúdo protegido.</p>
+    <div className="flex flex-col min-h-screen">
+      <header className="flex items-center justify-between p-4 border-b">
+        <div className="flex items-center space-x-2">
+          <BookUser className="h-8 w-8 text-primary" />
+          <h1 className="text-2xl font-bold">
+            <span className="font-light">LCI:</span> Mural de Influência
+          </h1>
+        </div>
+        <Button onClick={logout} variant="ghost">Sair</Button>
+      </header>
+      <main className="flex-1 p-4 md:p-8">
+        <div className="max-w-2xl mx-auto">
+          <InfluencerForm />
+        </div>
+      </main>
     </div>
   );
 }

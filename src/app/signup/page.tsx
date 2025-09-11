@@ -1,7 +1,22 @@
+"use client";
+
 import { SignupForm } from "@/components/signup-form";
 import { BookUser } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 export default function SignupPage() {
+  const { user } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (user) {
+      router.push('/');
+    }
+  }, [user, router]);
+
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4">
       <div className="flex items-center space-x-2 mb-8">
