@@ -45,26 +45,55 @@ function ImageViewer({ images, startIndex, onClose }: { images: string[], startI
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm" onClick={onClose}>
-      <div className="relative w-full h-full max-w-4xl max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
+    <div 
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-background/80 backdrop-blur-sm transition-opacity duration-300 animate-in fade-in" 
+      onClick={onClose}
+    >
+      <Button 
+        variant="ghost" 
+        size="icon" 
+        className="fixed top-4 right-4 text-white h-10 w-10 rounded-full bg-black/30 hover:bg-black/50 hover:text-white z-10" 
+        onClick={onClose}
+      >
+        <X className="h-6 w-6" />
+        <span className="sr-only">Fechar</span>
+      </Button>
+      
+      <div 
+        className="relative w-full h-full max-w-4xl max-h-[85vh] transform transition-transform duration-300 animate-in zoom-in-95" 
+        onClick={(e) => e.stopPropagation()}
+      >
         <Image
           src={images[currentIndex]}
           alt={`Prova ampliada ${currentIndex + 1}`}
           fill
-          style={{ objectFit: 'contain' }}
+          className="object-contain"
         />
       </div>
-       <Button variant="ghost" size="icon" className="fixed top-4 right-4 text-white h-10 w-10" onClick={onClose}>
-        <X className="h-6 w-6" />
-      </Button>
+
       {images.length > 1 && (
         <>
-          <Button variant="ghost" size="icon" className="fixed left-4 top-1/2 -translate-y-1/2 text-white h-12 w-12" onClick={goToPrevious}>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="fixed left-4 top-1/2 -translate-y-1/2 text-white h-12 w-12 rounded-full bg-black/30 hover:bg-black/50 hover:text-white" 
+            onClick={goToPrevious}
+          >
             <ChevronLeft className="h-8 w-8" />
+            <span className="sr-only">Anterior</span>
           </Button>
-          <Button variant="ghost" size="icon" className="fixed right-4 top-1/2 -translate-y-1/2 text-white h-12 w-12" onClick={goToNext}>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="fixed right-4 top-1/2 -translate-y-1/2 text-white h-12 w-12 rounded-full bg-black/30 hover:bg-black/50 hover:text-white" 
+            onClick={goToNext}
+          >
             <ChevronRight className="h-8 w-8" />
+            <span className="sr-only">Próxima</span>
           </Button>
+          <div className="fixed bottom-4 left-1/2 -translate-x-1/2 text-white text-sm bg-black/50 px-3 py-1 rounded-full">
+            {currentIndex + 1} / {images.length}
+          </div>
         </>
       )}
     </div>
