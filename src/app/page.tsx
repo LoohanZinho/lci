@@ -280,6 +280,7 @@ export default function HomePage() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Todos</SelectItem>
+                      <SelectItem value="Desconhecido">Desconhecido</SelectItem>
                       <SelectItem value="Disponível">Disponível</SelectItem>
                       <SelectItem value="Em negociação">Em negociação</SelectItem>
                       <SelectItem value="Fechado">Fechado</SelectItem>
@@ -335,3 +336,5 @@ export default function HomePage() {
     </div>
   );
 }
+
+    

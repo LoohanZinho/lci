@@ -357,6 +357,7 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
             <Select value={formData.status} onValueChange={handleSelectChange} disabled={isLoading}>
               <SelectTrigger id="status"><SelectValue placeholder="Selecione o status" /></SelectTrigger>
               <SelectContent position="popper">
+                <SelectItem value="Desconhecido">Desconhecido</SelectItem>
                 <SelectItem value="Disponível">Disponível</SelectItem>
                 <SelectItem value="Em negociação">Em negociação</SelectItem>
                 <SelectItem value="Fechado">Fechado</SelectItem>
@@ -431,3 +432,5 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
     </div>
   );
 }
+
+    
