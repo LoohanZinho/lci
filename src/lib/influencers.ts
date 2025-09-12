@@ -228,6 +228,7 @@ export const getInfluencers = (
 
       const influencersWithUserData: InfluencerWithUserData[] = influencers.map(influencer => ({
         ...influencer,
+        status: influencer.status || "Desconhecido", // Garante que status nunca seja nulo
         addedByData: usersData[influencer.addedBy],
         editorsData: (influencer.editors || []).map(editorInfo => {
             const userData = usersData[editorInfo.userId];
