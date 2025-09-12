@@ -1,4 +1,7 @@
 import admin from 'firebase-admin';
+import type { Auth } from 'firebase-admin/auth';
+import type { Firestore } from 'firebase-admin/firestore';
+import type { Storage } from 'firebase-admin/storage';
 
 // Esta configuração é para o SDK do Admin, que roda no servidor.
 // Ele obtém as credenciais das variáveis de ambiente do servidor.
@@ -28,7 +31,9 @@ if (!admin.apps.length) {
   }
 }
 
-let auth, db, storage;
+let auth: Auth;
+let db: Firestore;
+let storage: Storage;
 
 try {
   auth = admin.auth();
