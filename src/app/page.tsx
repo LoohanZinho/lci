@@ -146,7 +146,7 @@ export default function HomePage() {
       <header className="flex items-center justify-between p-4 border-b bg-background">
         <div className="flex items-center space-x-3">
             <Image
-                src="https://i.imgur.com/DkRNtRL.png"
+                src={theme === 'dark' ? "https://i.imgur.com/DkRNtRL.png" : "https://i.imgur.com/uYwvJ7Q.png"}
                 alt="LCI: Mural de Influência Logo"
                 width={150}
                 height={45}

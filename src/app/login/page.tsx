@@ -5,10 +5,12 @@ import { useAuth } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import Image from "next/image";
+import { useTheme } from "next-themes";
 
 export default function LoginPage() {
   const { user } = useAuth();
   const router = useRouter();
+  const { theme } = useTheme();
 
   useEffect(() => {
     if (user) {
@@ -21,7 +23,7 @@ export default function LoginPage() {
       <div className="text-center mb-8">
         <div className="flex items-center justify-center space-x-3 mb-4">
             <Image
-                src="https://i.imgur.com/DkRNtRL.png"
+                src={theme === 'dark' ? "https://i.imgur.com/DkRNtRL.png" : "https://i.imgur.com/uYwvJ7Q.png"}
                 alt="LCI: Mural de Influência Logo"
                 width={250}
                 height={76}
