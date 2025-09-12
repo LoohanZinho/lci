@@ -34,11 +34,13 @@ const DetailRow = ({ label, value }: { label: string, value: React.ReactNode }) 
 function ImageViewer({ images, startIndex, onClose }: { images: string[], startIndex: number, onClose: () => void }) {
   const [currentIndex, setCurrentIndex] = useState(startIndex);
 
-  const goToPrevious = () => {
+  const goToPrevious = (e: React.MouseEvent) => {
+    e.stopPropagation();
     setCurrentIndex(prevIndex => (prevIndex === 0 ? images.length - 1 : prevIndex - 1));
   };
 
-  const goToNext = () => {
+  const goToNext = (e: React.MouseEvent) => {
+    e.stopPropagation();
     setCurrentIndex(prevIndex => (prevIndex === images.length - 1 ? 0 : prevIndex + 1));
   };
 
