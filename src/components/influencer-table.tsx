@@ -118,7 +118,7 @@ export function InfluencerTable({ influencers, loading }: InfluencerTableProps) 
                         <span>{formatNumber(influencer.followers)}</span>
                     </div>
                    </TableCell>
-                  <TableCell className="hidden md:table-cell">{influencer.status || "Disponível"}</TableCell>
+                  <TableCell className="hidden md:table-cell">{influencer.status || "Desconhecido"}</TableCell>
                   <TableCell className="text-center">
                     {influencer.isFumo && (
                       <Badge variant="destructive" className="p-1.5">

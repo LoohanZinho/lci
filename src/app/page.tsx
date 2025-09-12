@@ -281,7 +281,6 @@ export default function HomePage() {
                     <SelectContent>
                       <SelectItem value="all">Todos</SelectItem>
                       <SelectItem value="Desconhecido">Desconhecido</SelectItem>
-                      <SelectItem value="Disponível">Disponível</SelectItem>
                       <SelectItem value="Em negociação">Em negociação</SelectItem>
                       <SelectItem value="Fechado">Fechado</SelectItem>
                       <SelectItem value="Prejuízo">Prejuízo</SelectItem>

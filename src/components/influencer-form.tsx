@@ -48,7 +48,7 @@ const initialState: FormData = {
   name: "",
   instagram: "",
   followers: "",
-  status: "Disponível",
+  status: "Desconhecido",
   niche: "",
   notes: "",
   isFumo: false,
@@ -354,7 +354,6 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
               <SelectTrigger id="status"><SelectValue placeholder="Selecione o status" /></SelectTrigger>
               <SelectContent position="popper">
                 <SelectItem value="Desconhecido">Desconhecido</SelectItem>
-                <SelectItem value="Disponível">Disponível</SelectItem>
                 <SelectItem value="Em negociação">Em negociação</SelectItem>
                 <SelectItem value="Fechado">Fechado</SelectItem>
                 <SelectItem value="Prejuízo">Prejuízo</SelectItem>
