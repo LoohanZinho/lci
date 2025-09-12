@@ -18,7 +18,7 @@ import {
   where,
 } from "firebase/firestore";
 import { db } from "./firebase";
-import { deleteProofImageByUrl } from "./storage";
+import { deleteProofImageAction } from "@/app/actions";
 
 export type UpdatableInfluencerData = Partial<Omit<NewInfluencer, 'addedBy' | 'lastUpdate' | 'editors'>>
 
@@ -254,7 +254,7 @@ export const deleteInfluencer = async (id: string) => {
     const influencerData = influencerDoc.data() as Influencer;
 
     if (influencerData.proofImageUrls && influencerData.proofImageUrls.length > 0) {
-      await Promise.all(influencerData.proofImageUrls.map(url => deleteProofImageByUrl(url)));
+      await Promise.all(influencerData.proofImageUrls.map(url => deleteProofImageAction(url)));
     }
     
     await deleteDoc(doc(db, "influencers", id));
