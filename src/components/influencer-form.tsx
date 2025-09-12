@@ -326,7 +326,7 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
             </div>
           </div>
           <div className="flex flex-col space-y-1.5">
-            <Label htmlFor="niche">Nicho/Segmento</Label>
+            <Label htmlFor="niche">Nicho/Segmento (opcional)</Label>
             <Input id="niche" placeholder="Ex: Fitness, Moda" value={formData.niche} onChange={handleChange} disabled={isLoading} />
           </div>
            <div className="flex flex-col space-y-1.5">
@@ -384,7 +384,7 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
             </div>
           )}
           <div className="flex flex-col space-y-1.5">
-            <Label htmlFor="notes">Observações/Situação</Label>
+            <Label htmlFor="notes">Observações/Situação (opcional)</Label>
             <Textarea id="notes" placeholder="Responde rápido, cobra valor fixo..." value={formData.notes} onChange={handleChange} disabled={isLoading} />
           </div>
 
