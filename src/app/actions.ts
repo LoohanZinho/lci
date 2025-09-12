@@ -4,88 +4,9 @@
 import { auth, storage } from "@/lib/firebase-admin";
 import { revalidatePath } from "next/cache";
 
-interface UploadResult {
-  downloadURL?: string;
-  error?: string;
-}
-
-export async function uploadFile(
-  formData: FormData
-): Promise<UploadResult> {
-  try {
-    const file = formData.get("file") as File | null;
-    const influencerId = formData.get("influencerId") as string | null;
-
-    if (!file || !influencerId) {
-      return { error: "Arquivo ou ID do influenciador não fornecido." };
-    }
-    
-    // Verificando a inicialização do admin
-    if (!storage || typeof storage.bucket !== 'function') {
-      console.error("Firebase Admin SDK Storage não inicializado corretamente.");
-      return { error: "Erro de configuração do servidor ao fazer upload." };
-    }
-
-    const bucket = storage.bucket();
-    const fileName = `${Date.now()}.${file.name.split('.').pop()}`;
-    const filePath = `influencer-proofs/${influencerId}/${fileName}`;
-    
-    const bucketFile = bucket.file(filePath);
-
-    const writeStream = bucketFile.createWriteStream({
-        metadata: {
-            contentType: file.type,
-        },
-    });
-
-    // Converte o ReadableStream da Web (file.stream()) para o stream do Node.js
-    const fileStream = file.stream();
-    
-    // @ts-ignore - Tipos de stream podem ser incompatíveis, mas a lógica funciona
-    await new Promise((resolve, reject) => {
-        const readable = new ReadableStream({
-            start(controller) {
-                const reader = fileStream.getReader();
-                function push() {
-                    reader.read().then(({ done, value }) => {
-                        if (done) {
-                            controller.close();
-                            return;
-                        }
-                        controller.enqueue(value);
-                        push();
-                    }).catch(reject);
-                }
-                push();
-            }
-        });
-
-        // @ts-ignore
-        readable.pipe(writeStream)
-            .on('finish', resolve)
-            .on('error', (err: any) => {
-                 console.error("Falha no streaming para o GCS:", err);
-                 reject(new Error("Falha ao salvar o arquivo no servidor."));
-            });
-    });
-
-
-    // Construímos a URL pública no formato padrão.
-    const downloadURL = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodeURIComponent(filePath)}?alt=media`;
-
-    revalidatePath("/");
-    
-    return { downloadURL };
-
-  } catch (error: any) {
-    console.error("Falha no upload do servidor:", error);
-    // Verificar se o erro é de permissão no bucket
-     if (error.code === 403 || (error.errors && error.errors[0].reason === 'forbidden')) {
-        return { error: "Permissão negada para escrever no bucket de armazenamento. Verifique as regras do Storage." };
-    }
-    return { error: error.message || "Ocorreu um erro desconhecido no servidor." };
-  }
-}
+// A função de upload foi movida para o lado do cliente em `influencer-form.tsx`
+// para resolver problemas de limite de corpo de requisição (erro 400).
+// Esta função de servidor não é mais usada para upload.
 
 interface ProfilePicResult {
   profilePicUrl?: string;

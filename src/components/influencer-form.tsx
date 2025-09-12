@@ -22,7 +22,9 @@ import Image from 'next/image';
 import { getInfluencerClassification } from "@/lib/classification";
 import { Timestamp } from "firebase/firestore";
 import { Badge } from "./ui/badge";
-import { uploadFile } from "@/app/actions";
+import { storage } from "@/lib/firebase"; // Client-side firebase
+import { ref, uploadBytesResumable, getDownloadURL, UploadTaskSnapshot } from "firebase/storage";
+
 
 interface InfluencerFormProps {
   influencer?: Influencer;
@@ -48,7 +50,7 @@ const initialState: FormData = {
   name: "",
   instagram: "",
   followers: "",
-  status: "", // Default to empty to force selection
+  status: "",
   niche: "",
   notes: "",
   isFumo: false,
@@ -218,41 +220,48 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
     setUploadMessage('');
 
     try {
-        // Handle image deletions
+        // 1. Handle image deletions from storage
         if (urlsToDelete.length > 0) {
              setUploadMessage(`Removendo ${urlsToDelete.length} imagem(ns)...`);
              await Promise.all(urlsToDelete.map(url => deleteProofImageByUrl(url)));
         }
 
-        // Filter out blob previews to get the list of currently saved URLs
+        // 2. Filter out blob previews to get the list of currently saved URLs
         let finalImageUrls: string[] = imagePreviews.filter(p => !p.startsWith('blob:'));
         
-        // Handle new image uploads via Server Action
+        // 3. Handle new image uploads directly on the client
         if (imageFiles.length > 0) {
           const influencerIdForStorage = formInstanceId;
-          const uploadedUrls: string[] = [];
+          const uploadPromises: Promise<string>[] = [];
           
-          setUploadProgress(0); // Indicate that upload is starting
+          setUploadProgress(0);
       
-          for (let i = 0; i < imageFiles.length; i++) {
-            const file = imageFiles[i];
-            setUploadMessage(`Enviando ${i + 1} de ${imageFiles.length}...`);
-            const uploadFormData = new FormData();
-            uploadFormData.append("file", file);
-            uploadFormData.append("influencerId", influencerIdForStorage);
+          imageFiles.forEach((file, index) => {
+            setUploadMessage(`Enviando ${index + 1} de ${imageFiles.length}...`);
+            const filePath = `influencer-proofs/${influencerIdForStorage}/${Date.now()}-${file.name}`;
+            const storageRef = ref(storage, filePath);
+            const uploadTask = uploadBytesResumable(storageRef, file);
 
-            const result = await uploadFile(uploadFormData);
-            
-            if (result.error) {
-              throw new Error(`Falha no upload. Causa: ${result.error}`);
-            }
-            if (result.downloadURL) {
-              uploadedUrls.push(result.downloadURL);
-            }
-            // Update "progress" after each file. Not a real progress bar, but shows activity.
-            setUploadProgress(((i + 1) / imageFiles.length) * 100);
-          }
+            const promise = new Promise<string>((resolve, reject) => {
+                uploadTask.on('state_changed', 
+                    (snapshot: UploadTaskSnapshot) => {
+                        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                        setUploadProgress(progress);
+                    }, 
+                    (error) => {
+                        console.error("Upload failed", error);
+                        reject(new Error(`Falha no upload do arquivo ${file.name}.`));
+                    }, 
+                    async () => {
+                        const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+                        resolve(downloadURL);
+                    }
+                );
+            });
+            uploadPromises.push(promise);
+          });
       
+          const uploadedUrls = await Promise.all(uploadPromises);
           finalImageUrls = [...finalImageUrls, ...uploadedUrls];
         }
 
@@ -430,7 +439,7 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
            <Button type="button" variant="ghost" onClick={handleCancel} disabled={isLoading}>Cancelar</Button>
             <div className="relative group">
                 <div className="absolute -inset-0.5 bg-gradient-to-r from-[#fbda25] to-[#a98900] rounded-lg blur-sm opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
-                <Button type="submit" className="relative bg-gradient-to-r from-[#fbda25] to-[#d3ab00] text-black" disabled={isLoading}>
+                <Button type="submit" className="relative bg-gradient-to-r from-[#fbda25] to-[#d3ab00] text-black" disabled={isLoading || !formData.status}>
                     {isLoading ? (uploadProgress !== null ? 'Enviando...' : (isEditMode ? 'Salvando...' : 'Adicionando...')) : (isEditMode ? 'Salvar Alterações' : 'Adicionar')}
                 </Button>
             </div>
