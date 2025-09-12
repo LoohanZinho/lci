@@ -148,8 +148,8 @@ export default function HomePage() {
             <Image
                 src={theme === 'dark' ? "https://i.imgur.com/DkRNtRL.png" : "https://i.imgur.com/uYwvJ7Q.png"}
                 alt="LCI: Mural de Influência Logo"
-                width={150}
-                height={45}
+                width={120}
+                height={36}
                 priority
             />
         </div>
@@ -188,7 +188,7 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4 mb-6">
             <div className="flex-1">
-              <h2 className="text-3xl font-bold">
+              <h2 className="text-2xl font-bold">
                 {greeting}, <span className="text-primary">{user.displayName || user.email}!</span>
               </h2>
               <p className="text-muted-foreground">
@@ -336,5 +336,3 @@ export default function HomePage() {
     </div>
   );
 }
-
-    
