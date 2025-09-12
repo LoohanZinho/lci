@@ -24,7 +24,7 @@ export default function SignupPage() {
       <div className="text-center mb-8">
         <div className="flex items-center justify-center space-x-3 mb-4">
             <Image
-                src={theme === 'dark' ? "https://i.imgur.com/DkRNtRL.png" : "https://i.imgur.com/uYwvJ7Q.png"}
+                src={theme === 'dark' ? "https://i.imgur.com/uYwvJ7Q.png" : "https://i.imgur.com/DkRNtRL.png"}
                 alt="LCI: Mural de Influência Logo"
                 width={250}
                 height={76}
