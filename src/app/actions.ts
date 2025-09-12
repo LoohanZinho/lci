@@ -7,28 +7,6 @@ import { Readable } from 'stream';
 
 // --- AÇÕES DE UPLOAD E DELEÇÃO DE IMAGENS ---
 
-export async function uploadFileAction(formData: FormData): Promise<{ success: boolean, url?: string, error?: string }> {
-  const file = formData.get("file") as File | null;
-  const influencerId = formData.get("influencerId") as string | null;
-
-  if (!file || !influencerId) {
-    return { success: false, error: "Arquivo ou ID do influenciador não encontrado." };
-  }
-
-  try {
-    const fileBuffer = Buffer.from(await file.arrayBuffer());
-    const readableStream = new Readable();
-    readableStream.push(fileBuffer);
-    readableStream.push(null);
-
-    const downloadURL = await uploadProofImage(readableStream, file.name, file.type, influencerId);
-    return { success: true, url: downloadURL };
-  } catch (error: any) {
-    console.error("❌ Erro no upload via Server Action:", error);
-    return { success: false, error: "Falha ao fazer upload do arquivo. " + error.message };
-  }
-}
-
 export async function deleteProofImageAction(imageUrl: string): Promise<{ success: boolean, error?: string }> {
     if (!imageUrl) {
         return { success: false, error: "URL da imagem não fornecida." };
