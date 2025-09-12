@@ -6,6 +6,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
+  DialogPortal,
 } from "@/components/ui/dialog";
 import { EditorData, InfluencerWithUserData } from "@/lib/influencers";
 import { Badge } from "./ui/badge";
@@ -52,7 +53,7 @@ function ImageViewer({ images, startIndex, onClose }: { images: string[], startI
       <Button 
         variant="ghost" 
         size="icon" 
-        className="fixed top-4 right-4 text-white h-10 w-10 rounded-full bg-black/30 hover:bg-black/50 hover:text-white z-10" 
+        className="fixed top-4 right-4 text-white h-10 w-10 rounded-full bg-black/30 hover:bg-black/50 hover:text-white z-[101]" 
         onClick={onClose}
       >
         <X className="h-6 w-6" />
@@ -76,7 +77,7 @@ function ImageViewer({ images, startIndex, onClose }: { images: string[], startI
           <Button 
             variant="ghost" 
             size="icon" 
-            className="fixed left-4 top-1/2 -translate-y-1/2 text-white h-12 w-12 rounded-full bg-black/30 hover:bg-black/50 hover:text-white" 
+            className="fixed left-4 top-1/2 -translate-y-1/2 text-white h-12 w-12 rounded-full bg-black/30 hover:bg-black/50 hover:text-white z-[101]" 
             onClick={goToPrevious}
           >
             <ChevronLeft className="h-8 w-8" />
@@ -85,13 +86,13 @@ function ImageViewer({ images, startIndex, onClose }: { images: string[], startI
           <Button 
             variant="ghost" 
             size="icon" 
-            className="fixed right-4 top-1/2 -translate-y-1/2 text-white h-12 w-12 rounded-full bg-black/30 hover:bg-black/50 hover:text-white" 
+            className="fixed right-4 top-1/2 -translate-y-1/2 text-white h-12 w-12 rounded-full bg-black/30 hover:bg-black/50 hover:text-white z-[101]" 
             onClick={goToNext}
           >
             <ChevronRight className="h-8 w-8" />
             <span className="sr-only">Próxima</span>
           </Button>
-          <div className="fixed bottom-4 left-1/2 -translate-x-1/2 text-white text-sm bg-black/50 px-3 py-1 rounded-full">
+          <div className="fixed bottom-4 left-1/2 -translate-x-1/2 text-white text-sm bg-black/50 px-3 py-1 rounded-full z-[101]">
             {currentIndex + 1} / {images.length}
           </div>
         </>
@@ -269,13 +270,14 @@ export function ViewInfluencerDialog({
             </div>
         </div>
       </DialogContent>
-    </Dialog>
-    {imageViewerOpen && (
-      <ImageViewer 
-        images={influencer.proofImageUrls} 
-        startIndex={imageViewerStartIndex} 
-        onClose={() => setImageViewerOpen(false)} 
-      />
+      {imageViewerOpen && (
+        <DialogPortal>
+            <ImageViewer 
+                images={influencer.proofImageUrls} 
+                startIndex={imageViewerStartIndex} 
+                onClose={() => setImageViewerOpen(false)} 
+            />
+        </DialogPortal>
     )}
      {selectedEdit && (
         <ViewChangesDialog
@@ -284,6 +286,7 @@ export function ViewInfluencerDialog({
             editor={selectedEdit}
         />
      )}
+    </Dialog>
      </>
   );
 }
