@@ -116,9 +116,16 @@ export function SignupForm() {
           </div>
         </CardContent>
         <CardFooter className="flex flex-col items-stretch gap-4">
-          <Button type="submit" disabled={isLoading} className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white hover:from-yellow-500 hover:to-orange-600">
-            {isLoading ? 'Cadastrando...' : 'Cadastrar'}
-          </Button>
+          <div className="relative group">
+            <div className="absolute -inset-1 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-lg blur opacity-25 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
+            <Button
+              type="submit"
+              disabled={isLoading}
+              className="w-full text-white relative bg-[linear-gradient(90deg,#fbda25_0%,#f1ce00_25%,#e7c200_50%,#ddb600_75%,#d3ab00_100%)]"
+            >
+              {isLoading ? 'Cadastrando...' : 'Cadastrar'}
+            </Button>
+          </div>
           <div className="text-center text-sm">
             Já tem uma conta?{" "}
             <Link href="/login" className="underline">
