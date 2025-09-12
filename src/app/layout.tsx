@@ -15,7 +15,7 @@ export const metadata: Metadata = {
     template: "%s | LCI: Mural de Influência",
     default: "LCI: Mural de Influência",
   },
-  description: "Mural de Influência do projeto Lucrando com Influenciadores (LCI).",
+  description: "Gerencie, descubra e analise seus influenciadores em um só lugar. Otimize suas campanhas e impulsione seus resultados com o Mural de Influência LCI.",
 };
 
 export default function RootLayout({
