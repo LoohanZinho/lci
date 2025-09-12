@@ -15,13 +15,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { addInfluencer, NewInfluencer, Influencer, updateInfluencer, UpdatableInfluencerData, ProductPublication } from "@/lib/influencers";
 import { useAuth } from "@/hooks/use-auth";
 import { useState, FormEvent, useEffect, useRef } from "react";
-import { deleteProofImageByUrl, uploadProofImage } from "@/lib/storage";
+import { deleteProofImageByUrl } from "@/lib/storage";
 import { Progress } from "@/components/ui/progress";
 import { AlertCircle, Image as ImageIcon, X, UploadCloud, PlusCircle, History } from "lucide-react";
 import Image from 'next/image';
 import { getInfluencerClassification } from "@/lib/classification";
 import { Timestamp } from "firebase/firestore";
 import { Badge } from "./ui/badge";
+import { uploadFile } from "@/app/actions";
 
 interface InfluencerFormProps {
   influencer?: Influencer;
@@ -220,35 +221,31 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
             }
         }
         
-        // Handle new image uploads
+        // Handle new image uploads via Server Action
         if (imageFiles.length > 0) {
           const influencerIdForStorage = influencer?.id || Date.now().toString();
           const uploadedUrls: string[] = [];
-          let filesUploaded = 0;
           
-          setUploadProgress(0);
-          setUploadMessage(`Enviando 0 de ${imageFiles.length}...`);
+          setUploadProgress(0); // Indicate that upload is starting
       
-          await Promise.all(
-            imageFiles.map(async (file, index) => {
-              try {
-                const downloadURL = await uploadProofImage(
-                  influencerIdForStorage,
-                  file,
-                  (progress) => {
-                    const overallProgress = ((filesUploaded + progress / 100) / imageFiles.length) * 100;
-                    setUploadProgress(overallProgress);
-                  }
-                );
-                uploadedUrls.push(downloadURL);
-                filesUploaded++;
-                setUploadMessage(`Enviando ${filesUploaded} de ${imageFiles.length}...`);
-              } catch (uploadError: any) {
-                 console.error("Upload Error:", uploadError);
-                 throw new Error(`Falha no upload de "${file.name}". Causa: ${uploadError.message || 'Erro desconhecido'}`);
-              }
-            })
-          );
+          for (let i = 0; i < imageFiles.length; i++) {
+            const file = imageFiles[i];
+            setUploadMessage(`Enviando ${i + 1} de ${imageFiles.length}...`);
+            const uploadFormData = new FormData();
+            uploadFormData.append("file", file);
+            uploadFormData.append("influencerId", influencerIdForStorage);
+
+            const result = await uploadFile(uploadFormData);
+            
+            if (result.error) {
+              throw new Error(`Falha no upload de "${file.name}". Causa: ${result.error}`);
+            }
+            if (result.downloadURL) {
+              uploadedUrls.push(result.downloadURL);
+            }
+            // Update "progress" after each file. Not a real progress bar, but shows activity.
+            setUploadProgress(((i + 1) / imageFiles.length) * 100);
+          }
       
           finalImageUrls = [...finalImageUrls, ...uploadedUrls];
         }
