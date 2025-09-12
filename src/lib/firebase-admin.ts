@@ -56,7 +56,10 @@ try {
 } catch (error) {
     console.error("Falha ao exportar serviços do Admin SDK. O SDK foi inicializado corretamente?", error);
     // Isso pode acontecer se a inicialização falhou.
-    // As chamadas para essas variáveis falharão, mas pelo menos o app não quebra na importação.
+    // Para evitar que a aplicação quebre, definimos mocks vazios.
+    auth = {} as Auth;
+    db = {} as Firestore;
+    storage = {} as Storage;
 }
 
 export { auth, db, storage };
