@@ -95,19 +95,18 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
 
   useEffect(() => {
     if (influencer) {
-      const currentData: FormData = {
+      setFormData({
         name: influencer.name,
         instagram: influencer.instagram.startsWith('@') ? influencer.instagram.substring(1) : influencer.instagram,
         followers: formatFollowers(influencer.followers.toString()),
-        status: influencer.status,
+        status: influencer.status || "",
         niche: influencer.niche,
         notes: influencer.notes,
         isFumo: influencer.isFumo,
         proofImageUrls: influencer.proofImageUrls || [],
         products: influencer.products || [],
         lossReason: influencer.lossReason || "",
-      };
-      setFormData(currentData);
+      });
       setImagePreviews(influencer.proofImageUrls || []);
       setImageFiles([]);
       setUrlsToDelete([]);
@@ -448,3 +447,5 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
     </div>
   );
 }
+
+    
