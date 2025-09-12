@@ -1,3 +1,4 @@
+
 "use client";
 
 import {
@@ -44,55 +45,79 @@ function ImageViewer({ images, startIndex, onClose }: { images: string[], startI
     e.stopPropagation();
     setCurrentIndex(prevIndex => (prevIndex === images.length - 1 ? 0 : prevIndex + 1));
   };
+  
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'ArrowLeft') goToPrevious(e as any);
+    if (e.key === 'ArrowRight') goToNext(e as any);
+    if (e.key === 'Escape') onClose();
+  }
+
+  // Effect to add keydown listener
+  useState(() => {
+    document.addEventListener('keydown', handleKeyDown as any);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown as any);
+    }
+  });
+
 
   return (
     <div 
       className="fixed inset-0 z-[100] flex items-center justify-center bg-background/80 backdrop-blur-sm transition-opacity duration-300 animate-in fade-in" 
       onClick={onClose}
     >
+      <div 
+        className="relative flex items-center justify-center w-full h-full p-4 md:p-8"
+      >
+        {/* Image Container */}
+        <div 
+            className="relative w-full h-full max-w-4xl max-h-[85vh] transform transition-transform duration-300 animate-in zoom-in-95" 
+            onClick={(e) => e.stopPropagation()}
+        >
+            <Image
+            src={images[currentIndex]}
+            alt={`Prova ampliada ${currentIndex + 1}`}
+            fill
+            className="object-contain"
+            />
+        </div>
+      </div>
+
+       {/* Close Button */}
       <Button 
         variant="ghost" 
         size="icon" 
-        className="fixed top-4 right-4 text-white h-10 w-10 rounded-full bg-black/30 hover:bg-black/50 hover:text-white" 
+        className="absolute top-4 right-4 text-white h-10 w-10 rounded-full bg-black/30 hover:bg-black/50 hover:text-white" 
         onClick={onClose}
       >
         <X className="h-6 w-6" />
         <span className="sr-only">Fechar</span>
       </Button>
-      
-      <div 
-        className="relative w-full h-full max-w-4xl max-h-[85vh] transform transition-transform duration-300 animate-in zoom-in-95" 
-        onClick={(e) => e.stopPropagation()}
-      >
-        <Image
-          src={images[currentIndex]}
-          alt={`Prova ampliada ${currentIndex + 1}`}
-          fill
-          className="object-contain"
-        />
-      </div>
 
       {images.length > 1 && (
         <>
+          {/* Previous Button */}
           <Button 
             variant="ghost" 
             size="icon" 
-            className="fixed left-4 top-1/2 -translate-y-1/2 text-white h-12 w-12 rounded-full bg-black/30 hover:bg-black/50 hover:text-white" 
+            className="absolute left-4 top-1/2 -translate-y-1/2 text-white h-12 w-12 rounded-full bg-black/30 hover:bg-black/50 hover:text-white" 
             onClick={goToPrevious}
           >
             <ChevronLeft className="h-8 w-8" />
             <span className="sr-only">Anterior</span>
           </Button>
+          {/* Next Button */}
           <Button 
             variant="ghost" 
             size="icon" 
-            className="fixed right-4 top-1/2 -translate-y-1/2 text-white h-12 w-12 rounded-full bg-black/30 hover:bg-black/50 hover:text-white" 
+            className="absolute right-4 top-1/2 -translate-y-1/2 text-white h-12 w-12 rounded-full bg-black/30 hover:bg-black/50 hover:text-white" 
             onClick={goToNext}
           >
             <ChevronRight className="h-8 w-8" />
             <span className="sr-only">Próxima</span>
           </Button>
-          <div className="fixed bottom-4 left-1/2 -translate-x-1/2 text-white text-sm bg-black/50 px-3 py-1 rounded-full">
+          {/* Counter */}
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white text-sm bg-black/50 px-3 py-1 rounded-full">
             {currentIndex + 1} / {images.length}
           </div>
         </>
@@ -290,3 +315,5 @@ export function ViewInfluencerDialog({
      </>
   );
 }
+
+    
