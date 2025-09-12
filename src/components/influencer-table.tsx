@@ -35,9 +35,10 @@ const getInitials = (name: string) => {
 export function InfluencerTable({ influencers, loading }: InfluencerTableProps) {
   const [editingInfluencer, setEditingInfluencer] = useState<InfluencerWithUserData | null>(null);
   const [viewingInfluencer, setViewingInfluencer] = useState<InfluencerWithUserData | null>(null);
-  const [imageViewerOpen, setImageViewerOpen] = useState(false);
-  const [imageViewerStartIndex, setImageViewerStartIndex] = useState(0);
-  const [currentImageViewerImages, setCurrentImageViewerImages] = useState<string[]>([]);
+  
+  // State for the image viewer is now in the parent component
+  const [imageViewerState, setImageViewerState] = useState<{images: string[], startIndex: number} | null>(null);
+  
   const { user, isAdmin } = useAuth();
   
 
@@ -49,16 +50,12 @@ export function InfluencerTable({ influencers, loading }: InfluencerTableProps) 
     setViewingInfluencer(influencer);
   };
   
-  const handleOpenImageViewer = (influencer: InfluencerWithUserData, index: number) => {
-    if (influencer.proofImageUrls && influencer.proofImageUrls.length > 0) {
-      setCurrentImageViewerImages(influencer.proofImageUrls);
-      setImageViewerStartIndex(index);
-      setImageViewerOpen(true);
-    }
+  const handleOpenImageViewer = (images: string[], index: number) => {
+    setImageViewerState({ images, startIndex: index });
   };
 
   const handleCloseImageViewer = () => {
-    setImageViewerOpen(false);
+    setImageViewerState(null);
   };
 
   if (loading) {
@@ -175,14 +172,14 @@ export function InfluencerTable({ influencers, loading }: InfluencerTableProps) 
           influencer={viewingInfluencer}
           isOpen={!!viewingInfluencer}
           onClose={() => setViewingInfluencer(null)}
-          onOpenImageViewer={(index) => handleOpenImageViewer(viewingInfluencer, index)}
+          onOpenImageViewer={(images, index) => handleOpenImageViewer(images, index)}
         />
       )}
       
-      {imageViewerOpen && (
+      {imageViewerState && (
          <ImageViewer
-            images={currentImageViewerImages}
-            startIndex={imageViewerStartIndex}
+            images={imageViewerState.images}
+            startIndex={imageViewerState.startIndex}
             onClose={handleCloseImageViewer}
         />
       )}
