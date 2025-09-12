@@ -2,7 +2,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { uploadProofImage } from "@/lib/storage-server";
+import { deleteProofImage, uploadProofImage } from "@/lib/storage-server";
 import { Readable } from "stream";
 
 // --- AÇÃO DE BUSCA DE PERFIL DO INSTAGRAM ---
@@ -51,21 +51,24 @@ export async function getInstagramProfilePic(username: string): Promise<ProfileP
   }
 }
 
-// --- AÇÃO DE UPLOAD PARA TESTES ---
+// --- AÇÕES DE UPLOAD E DELETE DE PROVAS ---
 interface UploadResult {
     url?: string;
     error?: string;
 }
 
-export async function uploadTestImageAction(formData: FormData): Promise<UploadResult> {
+export async function uploadProofImageAction(formData: FormData): Promise<UploadResult> {
   const file = formData.get("file") as File | null;
+  const path = formData.get("path") as string | null;
 
   if (!file) {
     return { error: "Nenhum arquivo recebido." };
   }
+  if (!path) {
+    return { error: "Caminho de destino não especificado." };
+  }
 
   try {
-    // Convert File to Buffer
     const arrayBuffer = await file.arrayBuffer();
     const fileBuffer = Buffer.from(arrayBuffer);
 
@@ -73,7 +76,7 @@ export async function uploadTestImageAction(formData: FormData): Promise<UploadR
       fileBuffer: fileBuffer,
       fileName: file.name,
       contentType: file.type,
-      path: `test-uploads`,
+      path: path,
     });
 
     return { url };
@@ -81,4 +84,23 @@ export async function uploadTestImageAction(formData: FormData): Promise<UploadR
     console.error("❌ Erro no upload da imagem:", error);
     return { error: `Falha ao salvar o arquivo no Storage. Detalhes: ${error.message}` };
   }
+}
+
+interface DeleteResult {
+    success?: boolean;
+    error?: string;
+}
+
+export async function deleteProofImageAction(imageUrl: string): Promise<DeleteResult> {
+    if (!imageUrl) {
+        return { error: "URL da imagem não fornecida." };
+    }
+
+    try {
+        await deleteProofImage(imageUrl);
+        return { success: true };
+    } catch (error: any) {
+        console.error("❌ Erro ao deletar imagem do Storage:", error);
+        return { error: `Falha ao deletar a imagem. Detalhes: ${error.message}` };
+    }
 }

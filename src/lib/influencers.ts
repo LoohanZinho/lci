@@ -18,6 +18,7 @@ import {
   where,
 } from "firebase/firestore";
 import { db } from "./firebase";
+import { deleteProofImage } from "./storage-server";
 
 export type UpdatableInfluencerData = Partial<Omit<NewInfluencer, 'addedBy' | 'lastUpdate' | 'editors'>>
 
@@ -74,25 +75,18 @@ export interface InfluencerWithUserData extends Influencer {
 }
 
 
-export const addInfluencer = async (influencer: Omit<NewInfluencer, 'lastUpdate' | 'editors' | 'proofImageUrls'> & { editors?: string[], proofImageUrls?: string[] }, newId?: string): Promise<DocumentReference> => {
+export const addInfluencer = async (influencer: Omit<NewInfluencer, 'lastUpdate' | 'editors'>, newId: string): Promise<DocumentReference> => {
   try {
     const dataToAdd = {
       ...influencer,
-      proofImageUrls: [],
+      proofImageUrls: influencer.proofImageUrls || [],
       products: influencer.products || [],
       editors: [], // Start with an empty array of EditorInfo
       lastUpdate: serverTimestamp(),
     };
 
-    let docRef;
-    if (newId) {
-      // Use the provided ID to create the document
-      docRef = doc(db, "influencers", newId);
-      await setDoc(docRef, dataToAdd);
-    } else {
-      // Let Firestore generate a new ID
-      docRef = await addDoc(collection(db, "influencers"), dataToAdd);
-    }
+    const docRef = doc(db, "influencers", newId);
+    await setDoc(docRef, dataToAdd);
     
     console.log("Document written with ID: ", docRef.id);
     return docRef as DocumentReference;
@@ -120,7 +114,10 @@ const formatValue = (field: string, value: any): string => {
     if (value === undefined || value === null) return "Não definido";
     if (typeof value === 'boolean') return value ? "Sim" : "Não";
     if (field === 'followers') return new Intl.NumberFormat('pt-BR').format(value);
-    if (Array.isArray(value) && (field === 'proofImageUrls' || field === 'products')) return `${value.length} item(ns)`;
+    if (Array.isArray(value) && (field === 'proofImageUrls' || field === 'products')) {
+        if (value.length === 0) return 'Nenhum';
+        return `${value.length} item(ns)`;
+    }
     if (value instanceof Timestamp) return value.toDate().toLocaleString('pt-BR');
     if (typeof value === 'object' && value !== null) return JSON.stringify(value);
     return String(value);
@@ -141,12 +138,19 @@ export const updateInfluencer = async (id: string, userId: string, data: Updatab
         const oldValue = currentData[key as keyof Influencer];
         const newValue = data[key as keyof UpdatableInfluencerData];
 
+        // Special handling for arrays to provide a more meaningful diff
+        if (Array.isArray(oldValue) && Array.isArray(newValue)) {
+            if (JSON.stringify(oldValue.sort()) === JSON.stringify(newValue.sort())) {
+                return null;
+            }
+        }
+
         return {
             field: fieldLabels[key] || key,
             oldValue: formatValue(key, oldValue),
             newValue: formatValue(key, newValue),
         }
-    }).filter(change => change.oldValue !== change.newValue);
+    }).filter((change): change is ChangeDetail => change !== null && change.oldValue !== change.newValue);
 
 
     const newEditorInfo: EditorInfo = {
@@ -158,9 +162,13 @@ export const updateInfluencer = async (id: string, userId: string, data: Updatab
     const updateData: any = {
       ...data,
       lastUpdate: serverTimestamp(),
-      editors: arrayUnion(newEditorInfo),
     };
-
+    
+    // Only add editor info if there were actual changes.
+    if (changes.length > 0) {
+        updateData.editors = arrayUnion(newEditorInfo);
+    }
+    
     if (data.products) {
       updateData.products = data.products;
     }
@@ -272,7 +280,20 @@ export const getInfluencers = (
 
 export const deleteInfluencer = async (id: string) => {
   try {
-    await deleteDoc(doc(db, "influencers", id));
+    const docRef = doc(db, "influencers", id);
+    const docSnap = await getDoc(docRef);
+
+    if (docSnap.exists()) {
+      const influencer = docSnap.data() as Influencer;
+      // Delete associated images from storage
+      if (influencer.proofImageUrls && influencer.proofImageUrls.length > 0) {
+        const deletePromises = influencer.proofImageUrls.map(url => deleteProofImage(url));
+        await Promise.all(deletePromises);
+        console.log("Associated images deleted from Storage.");
+      }
+    }
+
+    await deleteDoc(docRef);
     console.log("Document successfully deleted!");
   } catch (error) {
     console.error("Error removing document: ", error);

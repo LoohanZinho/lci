@@ -3,6 +3,16 @@ import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
   /* config options here */
+  experimental: {
+    serverComponentsExternalPackages: ['@google-cloud/storage'],
+  },
+  webpack: (config, { isServer }) => {
+    // Fixes "Module not found: Can't resolve 'pg-hstore'"
+    if (isServer) {
+      config.externals.push('pg-hstore');
+    }
+    return config;
+  },
   serverActions: {
     bodySizeLimit: '10mb',
   },

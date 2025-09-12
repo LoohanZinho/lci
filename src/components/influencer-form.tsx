@@ -14,19 +14,20 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { addInfluencer, NewInfluencer, Influencer, updateInfluencer, UpdatableInfluencerData, ProductPublication } from "@/lib/influencers";
 import { useAuth } from "@/hooks/use-auth";
-import { useState, FormEvent, useEffect, useRef } from "react";
-import { AlertCircle, Trash2, History, PlusCircle } from "lucide-react";
+import { useState, FormEvent, useEffect, useRef, ChangeEvent } from "react";
+import { AlertCircle, Trash2, History, PlusCircle, UploadCloud, X, Image as ImageIcon } from "lucide-react";
 import { getInfluencerClassification } from "@/lib/classification";
 import { Timestamp } from "firebase/firestore";
 import { Badge } from "./ui/badge";
-
+import { deleteProofImageAction, uploadProofImageAction } from "@/app/actions";
+import { Progress } from "./ui/progress";
+import Image from "next/image";
 
 interface InfluencerFormProps {
   influencer?: Influencer;
   onFinished?: () => void;
 }
 
-// Interface for the form's state, allowing followers to be a string for display purposes.
 interface FormData {
   name: string;
   instagram: string;
@@ -37,8 +38,15 @@ interface FormData {
   isFumo: boolean;
   products: ProductPublication[];
   lossReason: string;
+  proofImageUrls: string[];
 }
 
+interface FileToUpload {
+  file: File;
+  progress: number;
+  error?: string;
+  url?: string;
+}
 
 const initialState: FormData = {
   name: "",
@@ -50,6 +58,7 @@ const initialState: FormData = {
   isFumo: false,
   products: [],
   lossReason: "",
+  proofImageUrls: [],
 };
 
 const formatFollowers = (value: string) => {
@@ -71,10 +80,13 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
   const [isLoading, setIsLoading] = useState(false);
   const { user } = useAuth();
   const statusRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
-  // Create a stable ID for the new influencer during the form session.
   const [formInstanceId] = useState(() => influencer?.id || Date.now().toString());
 
+  const [filesToUpload, setFilesToUpload] = useState<FileToUpload[]>([]);
+  const [imagesToDelete, setImagesToDelete] = useState<string[]>([]);
+  
   const isEditMode = !!influencer;
   
   const followerCount = parseInt(unformatFollowers(formData.followers), 10) || 0;
@@ -92,11 +104,31 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
         isFumo: influencer.isFumo,
         products: influencer.products || [],
         lossReason: influencer.lossReason || "",
+        proofImageUrls: influencer.proofImageUrls || [],
       });
     } else {
       setFormData(initialState);
     }
   }, [influencer]);
+
+  const handleImageSelection = (e: ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const newFiles = Array.from(e.target.files).map(file => ({
+        file,
+        progress: 0,
+      }));
+      setFilesToUpload(prev => [...prev, ...newFiles]);
+    }
+  };
+
+  const removeNewFile = (index: number) => {
+    setFilesToUpload(prev => prev.filter((_, i) => i !== index));
+  }
+
+  const removeExistingImage = (imageUrl: string) => {
+    setFormData(prev => ({...prev, proofImageUrls: prev.proofImageUrls.filter(url => url !== imageUrl)}));
+    setImagesToDelete(prev => [...prev, imageUrl]);
+  }
   
   const handleAddProduct = () => {
     if (currentProduct.trim()) {
@@ -159,6 +191,24 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
     setError(null);
     
     try {
+        // 1. Upload new images
+        const uploadPromises = filesToUpload.map(async (fileObj, index) => {
+            const formData = new FormData();
+            formData.append("file", fileObj.file);
+            formData.append("path", `proofs/${formInstanceId}`);
+            
+            const result = await uploadProofImageAction(formData);
+
+            if (result.error) {
+                throw new Error(`Erro no upload de ${fileObj.file.name}: ${result.error}`);
+            }
+            return result.url;
+        });
+
+        const newImageUrls = (await Promise.all(uploadPromises)).filter((url): url is string => !!url);
+        
+        const finalImageUrls = [...formData.proofImageUrls, ...newImageUrls];
+
         const influencerData = {
             name: formData.name,
             instagram: formData.instagram.startsWith('@') ? formData.instagram : `@${formData.instagram}`,
@@ -169,17 +219,24 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
             isFumo: formData.isFumo,
             products: formData.products,
             lossReason: formData.lossReason,
+            proofImageUrls: finalImageUrls,
         };
         
         if (isEditMode && influencer) {
              const dataToUpdate: UpdatableInfluencerData = { ...influencerData };
              await updateInfluencer(influencer.id, user.uid, dataToUpdate);
         } else {
-             const newInfluencerData: Omit<NewInfluencer, 'lastUpdate' | 'editors' | 'proofImageUrls'> = {
+             const newInfluencerData: Omit<NewInfluencer, 'lastUpdate' | 'editors'> = {
                 ...influencerData,
                 addedBy: user.uid,
              };
              await addInfluencer(newInfluencerData, formInstanceId);
+        }
+
+        // 3. Delete marked images
+        if (imagesToDelete.length > 0) {
+            const deletePromises = imagesToDelete.map(url => deleteProofImageAction(url));
+            await Promise.all(deletePromises); // We can do this in the background
         }
         
         if (onFinished) {
@@ -198,6 +255,7 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
     <div className="py-4 max-h-[70vh] overflow-y-auto px-1 pr-4">
       <form onSubmit={handleSubmit}>
         <div className="grid w-full items-center gap-4">
+          {/* --- Campos do Formulário --- */}
           <div className="flex flex-col space-y-1.5">
             <Label htmlFor="name">Nome do Influenciador</Label>
             <Input id="name" placeholder="Ex: Maria Souza" value={formData.name} onChange={handleChange} required disabled={isLoading} />
@@ -223,13 +281,7 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
            <div className="flex flex-col space-y-1.5">
             <Label htmlFor="product">Produto Divulgado (opcional)</Label>
             <div className="flex items-center gap-2">
-              <Input 
-                id="product" 
-                placeholder="Ex: Produto X" 
-                value={currentProduct} 
-                onChange={(e) => setCurrentProduct(e.target.value)} 
-                disabled={isLoading}
-              />
+              <Input id="product" placeholder="Ex: Produto X" value={currentProduct} onChange={(e) => setCurrentProduct(e.target.value)} disabled={isLoading} />
               <Button type="button" size="icon" onClick={handleAddProduct} disabled={isLoading || !currentProduct.trim()}>
                 <PlusCircle className="h-4 w-4" />
               </Button>
@@ -278,15 +330,49 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
             <Label htmlFor="notes">Observações/Situação (opcional)</Label>
             <Textarea id="notes" placeholder="Responde rápido, cobra valor fixo..." value={formData.notes} onChange={handleChange} disabled={isLoading} />
           </div>
-
+          {/* --- Seção de Upload --- */}
           <div className="flex flex-col space-y-1.5">
-             <Label>Ela te deu golpe? (Anexe as provas abaixo)</Label>
-             <div className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed rounded-md">
-                 <p className="text-sm text-muted-foreground">Uploads em breve</p>
+            <Label>Ela te deu golpe? (Anexe as provas abaixo)</Label>
+            <div className="flex flex-col items-center justify-center w-full p-4 border-2 border-dashed rounded-md space-y-4">
+              <Input type="file" ref={fileInputRef} onChange={handleImageSelection} multiple accept="image/*" className="hidden" />
+              <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()} disabled={isLoading}>
+                <UploadCloud className="mr-2 h-4 w-4" />
+                Selecionar Arquivos
+              </Button>
+              {(formData.proofImageUrls.length > 0 || filesToUpload.length > 0) ? (
+                <div className="w-full grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {/* Imagens existentes */}
+                  {formData.proofImageUrls.map(url => (
+                    <div key={url} className="relative group aspect-square rounded-md overflow-hidden border">
+                      <Image src={url} alt="Prova existente" fill className="object-cover" />
+                      <div className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                         <Button variant="destructive" size="icon" className="h-8 w-8" onClick={() => removeExistingImage(url)} disabled={isLoading}>
+                            <Trash2 className="h-4 w-4" />
+                         </Button>
+                      </div>
+                    </div>
+                  ))}
+                  {/* Novas imagens */}
+                  {filesToUpload.map((fileObj, index) => (
+                     <div key={index} className="relative group aspect-square rounded-md overflow-hidden border">
+                       <Image src={URL.createObjectURL(fileObj.file)} alt="Nova prova" fill className="object-cover" />
+                       <div className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                         <Button variant="destructive" size="icon" className="h-8 w-8" onClick={() => removeNewFile(index)} disabled={isLoading}>
+                            <X className="h-5 w-5" />
+                         </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center text-sm text-muted-foreground flex flex-col items-center">
+                    <ImageIcon className="h-8 w-8 text-muted-foreground/50 mb-2"/>
+                    Nenhuma imagem selecionada.
+                </div>
+              )}
             </div>
           </div>
-          
-           <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2">
              <input type="checkbox" id="isFumo" checked={formData.isFumo} onChange={handleChange} className="h-4 w-4" disabled={isLoading} />
             <Label htmlFor="isFumo" className="cursor-pointer">Marcar como "Fumo" (Não deu ROI)</Label>
           </div>
@@ -305,5 +391,3 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
     </div>
   );
 }
-
-    
