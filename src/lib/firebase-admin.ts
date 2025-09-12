@@ -33,13 +33,12 @@ if (!admin.apps.length) {
     } else {
       // Development environment: Use Application Default Credentials
       admin.initializeApp({
-        credential: admin.credential.applicationDefault(),
         storageBucket: firebaseConfig.storageBucket,
       });
-      console.log("Firebase Admin SDK inicializado com Application Default Credentials.");
+      console.log("Firebase Admin SDK inicializado com Application Default Credentials (dev).");
     }
   } catch (error: any) {
-    console.error("Erro ao inicializar o Firebase Admin SDK:", error);
+    console.error("Erro ao inicializar o Firebase Admin SDK:", error.message);
     // Em um ambiente de desenvolvimento sem credenciais, isso pode falhar.
     // A aplicação deve lidar com isso graciosamente.
   }
@@ -49,14 +48,15 @@ let auth: Auth;
 let db: Firestore;
 let storage: Storage;
 
+// Ensure services are exported, even if initialization failed, to prevent app crashes on import.
 try {
   auth = admin.auth();
   db = admin.firestore();
   storage = admin.storage();
 } catch (error) {
-    console.error("Falha ao exportar serviços do Admin SDK. O SDK foi inicializado corretamente?", error);
-    // Isso pode acontecer se a inicialização falhou.
-    // Para evitar que a aplicação quebre, definimos mocks vazios.
+    console.error("Falha ao obter serviços do Admin SDK. O SDK foi inicializado corretamente?", error);
+    // This can happen if initialization failed.
+    // To prevent the entire app from crashing on import, we define empty mocks.
     auth = {} as Auth;
     db = {} as Firestore;
     storage = {} as Storage;
