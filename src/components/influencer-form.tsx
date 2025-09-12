@@ -77,6 +77,7 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
   const [formData, setFormData] = useState<FormData>(initialState);
   const [currentProduct, setCurrentProduct] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { user } = useAuth();
   const statusRef = useRef<HTMLDivElement>(null);
@@ -112,22 +113,39 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
   }, [influencer]);
 
   const handleImageSelection = (e: ChangeEvent<HTMLInputElement>) => {
+    setUploadError(null);
     if (e.target.files) {
-      const newFiles = Array.from(e.target.files).map(file => ({
+      const currentImageCount = formData.proofImageUrls.length + filesToUpload.length;
+      const remainingSlots = 5 - currentImageCount;
+
+      if (remainingSlots <= 0) {
+        setUploadError("Você já atingiu o limite de 5 imagens.");
+        return;
+      }
+
+      const files = Array.from(e.target.files);
+      if(files.length > remainingSlots) {
+        setUploadError(`Você só pode adicionar mais ${remainingSlots} imagem(ns). As demais foram ignoradas.`);
+      }
+
+      const newFiles = files.slice(0, remainingSlots).map(file => ({
         file,
         progress: 0,
       }));
+
       setFilesToUpload(prev => [...prev, ...newFiles]);
     }
   };
 
   const removeNewFile = (index: number) => {
     setFilesToUpload(prev => prev.filter((_, i) => i !== index));
+    setUploadError(null);
   }
 
   const removeExistingImage = (imageUrl: string) => {
     setFormData(prev => ({...prev, proofImageUrls: prev.proofImageUrls.filter(url => url !== imageUrl)}));
     setImagesToDelete(prev => [...prev, imageUrl]);
+    setUploadError(null);
   }
   
   const handleAddProduct = () => {
@@ -189,6 +207,7 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
     
     setIsLoading(true);
     setError(null);
+    setUploadError(null);
     
     try {
         // 1. Upload new images
@@ -250,6 +269,9 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
         setIsLoading(false);
     }
   };
+
+  const totalImageCount = formData.proofImageUrls.length + filesToUpload.length;
+  const canUploadMore = totalImageCount < 5;
 
   return (
     <div className="py-4 max-h-[70vh] overflow-y-auto px-1 pr-4">
@@ -332,13 +354,16 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
           </div>
           {/* --- Seção de Upload --- */}
           <div className="flex flex-col space-y-1.5">
-            <Label>Ela te deu golpe? (Anexe as provas abaixo)</Label>
+            <Label>Ela te deu golpe? (Anexe as provas abaixo - Máx. 5)</Label>
             <div className="flex flex-col items-center justify-center w-full p-4 border-2 border-dashed rounded-md space-y-4">
               <Input type="file" ref={fileInputRef} onChange={handleImageSelection} multiple accept="image/*" className="hidden" />
-              <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()} disabled={isLoading}>
+              <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()} disabled={isLoading || !canUploadMore}>
                 <UploadCloud className="mr-2 h-4 w-4" />
-                Selecionar Arquivos
+                Selecionar Arquivos ({totalImageCount}/5)
               </Button>
+
+              {uploadError && <div className="text-sm text-destructive flex items-center gap-2"><AlertCircle className="h-4 w-4"/> {uploadError}</div>}
+              
               {(formData.proofImageUrls.length > 0 || filesToUpload.length > 0) ? (
                 <div className="w-full grid grid-cols-2 md:grid-cols-3 gap-3">
                   {/* Imagens existentes */}
