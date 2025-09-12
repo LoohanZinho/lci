@@ -15,7 +15,8 @@ import { InfluencerWithUserData } from "@/lib/influencers";
 import { Flame, Users } from "lucide-react";
 import { InfluencerActions } from "./influencer-actions";
 import { EditInfluencerDialog } from "./edit-influencer-dialog";
-import { ViewInfluencerDialog, ImageViewer } from "./view-influencer-dialog";
+import { ViewInfluencerDialog } from "./view-influencer-dialog";
+import { ImageViewer } from "./image-viewer";
 import { useAuth } from "@/hooks/use-auth";
 import { getInfluencerClassification, getClassificationBadgeClass } from "@/lib/classification";
 import { formatNumber } from "@/lib/utils";
@@ -34,11 +35,11 @@ const getInitials = (name: string) => {
 export function InfluencerTable({ influencers, loading }: InfluencerTableProps) {
   const [editingInfluencer, setEditingInfluencer] = useState<InfluencerWithUserData | null>(null);
   const [viewingInfluencer, setViewingInfluencer] = useState<InfluencerWithUserData | null>(null);
-  const { user, isAdmin } = useAuth();
-  
   const [imageViewerOpen, setImageViewerOpen] = useState(false);
   const [imageViewerStartIndex, setImageViewerStartIndex] = useState(0);
-
+  const [currentImageViewerImages, setCurrentImageViewerImages] = useState<string[]>([]);
+  const { user, isAdmin } = useAuth();
+  
 
   const handleEdit = (influencer: InfluencerWithUserData) => {
     setEditingInfluencer(influencer);
@@ -49,14 +50,15 @@ export function InfluencerTable({ influencers, loading }: InfluencerTableProps) 
   };
   
   const handleOpenImageViewer = (influencer: InfluencerWithUserData, index: number) => {
-    setViewingInfluencer(influencer); // Make sure the correct influencer data is available
-    setImageViewerStartIndex(index);
-    setImageViewerOpen(true);
+    if (influencer.proofImageUrls && influencer.proofImageUrls.length > 0) {
+      setCurrentImageViewerImages(influencer.proofImageUrls);
+      setImageViewerStartIndex(index);
+      setImageViewerOpen(true);
+    }
   };
 
   const handleCloseImageViewer = () => {
     setImageViewerOpen(false);
-    // We don't reset viewingInfluencer here in case the details dialog is still open
   };
 
   if (loading) {
@@ -177,9 +179,9 @@ export function InfluencerTable({ influencers, loading }: InfluencerTableProps) 
         />
       )}
       
-      {imageViewerOpen && viewingInfluencer && viewingInfluencer.proofImageUrls && (
+      {imageViewerOpen && (
          <ImageViewer
-            images={viewingInfluencer.proofImageUrls}
+            images={currentImageViewerImages}
             startIndex={imageViewerStartIndex}
             onClose={handleCloseImageViewer}
         />
