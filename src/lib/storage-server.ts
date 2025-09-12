@@ -2,7 +2,7 @@
 import { storage } from './firebase-admin';
 import { Readable } from 'stream';
 
-const BUCKET_NAME = storage.bucket().name;
+const BUCKET_NAME = "studio-324918385-59672.appspot.com";
 
 /**
  * Faz upload de um arquivo para o Firebase Storage usando um stream.
@@ -20,11 +20,12 @@ export const uploadProofImage = (
 ): Promise<string> => {
   return new Promise((resolve, reject) => {
     if (!BUCKET_NAME) {
-      reject(new Error("Firebase Storage bucket name não está configurado. O Admin SDK foi inicializado corretamente?"));
+      reject(new Error("O nome do bucket do Firebase Storage não está definido."));
       return;
     }
+    const bucket = storage.bucket(BUCKET_NAME);
     const filePath = `influencer-proofs/${influencerId}/${Date.now()}-${fileName}`;
-    const bucketFile = storage.bucket().file(filePath);
+    const bucketFile = bucket.file(filePath);
 
     const writeStream = bucketFile.createWriteStream({
       metadata: {
@@ -64,6 +65,8 @@ export const deleteProofImageByUrl = async (imageUrl: string): Promise<void> => 
       console.warn("URL da imagem ou nome do bucket não fornecido, pulando deleção.");
       return;
     }
+    
+    const bucket = storage.bucket(BUCKET_NAME);
 
     try {
         const decodedUrl = decodeURIComponent(imageUrl);
@@ -88,7 +91,7 @@ export const deleteProofImageByUrl = async (imageUrl: string): Promise<void> => 
            return;
         }
 
-        await storage.bucket().file(filePath).delete();
+        await bucket.file(filePath).delete();
         console.log(`Imagem deletada com sucesso: ${filePath}`);
 
     } catch (error: any) {
