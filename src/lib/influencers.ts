@@ -15,6 +15,7 @@ import {
   OrderByDirection,
   arrayUnion,
   setDoc,
+  where,
 } from "firebase/firestore";
 import { db } from "./firebase";
 import { deleteProofImageByUrl } from "./storage";
@@ -209,8 +210,6 @@ const fetchUsersData = async (uids: string[]): Promise<Record<string, UserData>>
   }
 };
 
-const { where } = require("firebase/firestore");
-
 export const getInfluencers = (
     callback: (influencers: InfluencerWithUserData[]) => void,
     sortBy: string = 'lastUpdate',
@@ -221,7 +220,7 @@ export const getInfluencers = (
     const unsubscribe = onSnapshot(q, async (querySnapshot) => {
       const influencers: Influencer[] = [];
       querySnapshot.forEach((doc) => {
-        influencers.push({ id: doc.id, ...doc.data(), status: doc.data().status || 'Desconhecido' } as Influencer);
+        influencers.push({ id: doc.id, ...doc.data() } as Influencer);
       });
       
       const uids = influencers.flatMap(i => [i.addedBy, ...(i.editors || []).map(e => e.userId)]).filter(Boolean);

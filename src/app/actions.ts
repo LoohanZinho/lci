@@ -29,17 +29,47 @@ export async function uploadFile(
     const bucket = storage.bucket();
     const fileName = `${Date.now()}.${file.name.split('.').pop()}`;
     const filePath = `influencer-proofs/${influencerId}/${fileName}`;
-    const fileBuffer = Buffer.from(await file.arrayBuffer());
-
+    
     const bucketFile = bucket.file(filePath);
 
-    await bucketFile.save(fileBuffer, {
-      metadata: {
-        contentType: file.type,
-      },
+    const writeStream = bucketFile.createWriteStream({
+        metadata: {
+            contentType: file.type,
+        },
     });
 
-    // O Admin SDK não retorna a URL de download diretamente de forma fácil.
+    // Converte o ReadableStream da Web (file.stream()) para o stream do Node.js
+    const fileStream = file.stream();
+    
+    // @ts-ignore - Tipos de stream podem ser incompatíveis, mas a lógica funciona
+    await new Promise((resolve, reject) => {
+        const readable = new ReadableStream({
+            start(controller) {
+                const reader = fileStream.getReader();
+                function push() {
+                    reader.read().then(({ done, value }) => {
+                        if (done) {
+                            controller.close();
+                            return;
+                        }
+                        controller.enqueue(value);
+                        push();
+                    }).catch(reject);
+                }
+                push();
+            }
+        });
+
+        // @ts-ignore
+        readable.pipe(writeStream)
+            .on('finish', resolve)
+            .on('error', (err: any) => {
+                 console.error("Falha no streaming para o GCS:", err);
+                 reject(new Error("Falha ao salvar o arquivo no servidor."));
+            });
+    });
+
+
     // Construímos a URL pública no formato padrão.
     const downloadURL = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodeURIComponent(filePath)}?alt=media`;
 
