@@ -220,7 +220,12 @@ export const getInfluencers = (
     const unsubscribe = onSnapshot(q, async (querySnapshot) => {
       const influencers: Influencer[] = [];
       querySnapshot.forEach((doc) => {
-        influencers.push({ id: doc.id, ...doc.data() } as Influencer);
+        const data = doc.data();
+        influencers.push({ 
+          id: doc.id, 
+          ...data,
+          status: data.status || "Desconhecido", // Garante que status tenha um valor
+        } as Influencer);
       });
       
       const uids = influencers.flatMap(i => [i.addedBy, ...(i.editors || []).map(e => e.userId)]).filter(Boolean);
@@ -228,7 +233,6 @@ export const getInfluencers = (
 
       const influencersWithUserData: InfluencerWithUserData[] = influencers.map(influencer => ({
         ...influencer,
-        status: influencer.status || "Desconhecido", // Garante que status nunca seja nulo
         addedByData: usersData[influencer.addedBy],
         editorsData: (influencer.editors || []).map(editorInfo => {
             const userData = usersData[editorInfo.userId];
