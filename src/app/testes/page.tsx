@@ -1,11 +1,13 @@
+
 "use client";
 
-import { useState, useEffect, useTransition } from "react";
+import { useState, useTransition, FormEvent } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { getInstagramProfilePic } from "@/app/actions";
 import Image from "next/image";
 import { UserCircle, Search, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export default function TestesPage() {
   const [username, setUsername] = useState("");
@@ -13,37 +15,32 @@ export default function TestesPage() {
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      if (username) {
-        startTransition(async () => {
-          setError(null);
-          setProfilePic(null);
-          const result = await getInstagramProfilePic(username);
-          if (result.profilePicUrl) {
-            setProfilePic(result.profilePicUrl);
-          } else {
-            setError(result.error || "Ocorreu um erro desconhecido.");
-            setProfilePic(null);
-          }
-        });
-      } else {
-        setProfilePic(null);
+  const handleFetchProfilePic = (e: FormEvent) => {
+    e.preventDefault();
+    if (username) {
+      startTransition(async () => {
         setError(null);
-      }
-    }, 500); // Adiciona um debounce de 500ms
-
-    return () => {
-      clearTimeout(handler);
-    };
-  }, [username]);
+        setProfilePic(null);
+        const result = await getInstagramProfilePic(username);
+        if (result.profilePicUrl) {
+          setProfilePic(result.profilePicUrl);
+        } else {
+          setError(result.error || "Ocorreu um erro desconhecido.");
+          setProfilePic(null);
+        }
+      });
+    } else {
+      setProfilePic(null);
+      setError("Por favor, insira um nome de usuário.");
+    }
+  };
 
   return (
     <div className="p-8">
       <h1 className="text-2xl font-bold mb-4">Página de Testes</h1>
       <p className="mb-6">Busque por um perfil do Instagram e veja a foto.</p>
       
-      <div className="max-w-sm space-y-4">
+      <form onSubmit={handleFetchProfilePic} className="max-w-sm space-y-4">
         <div>
             <Label htmlFor="instagram-test">Instagram</Label>
             <div className="relative mt-1">
@@ -58,6 +55,17 @@ export default function TestesPage() {
             </div>
         </div>
         
+        <Button type="submit" disabled={isPending || !username} className="w-full">
+            {isPending ? (
+                <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Puxando...
+                </>
+            ) : (
+                "Puxar foto de perfil"
+            )}
+        </Button>
+
         <div className="mt-4 flex items-center justify-center w-full h-48 bg-muted/50 rounded-lg border-2 border-dashed">
             {isPending && <Loader2 className="h-8 w-8 text-primary animate-spin" />}
 
@@ -85,7 +93,7 @@ export default function TestesPage() {
                 </div>
             )}
         </div>
-      </div>
+      </form>
     </div>
   );
 }
