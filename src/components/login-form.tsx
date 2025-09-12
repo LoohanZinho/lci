@@ -88,7 +88,7 @@ export function LoginForm() {
             <Button
               type="submit"
               disabled={isLoading}
-              className="w-full text-black relative bg-[linear-gradient(90deg,#fbda25_0%,#f1ce00_25%,#e7c200_50%,#ddb600_75%,#d3ab00_100%)] hover:bg-[linear-gradient(90deg,#fbda25_0%,#f1ce00_25%,#e7c200_50%,#ddb600_75%,#d3ab00_100%)]"
+              className="w-full text-black relative bg-[#fbda25] hover:bg-[#fbda25]"
             >
               {isLoading ? "Entrando..." : "Entrar"}
             </Button>
