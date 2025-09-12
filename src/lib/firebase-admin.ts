@@ -17,14 +17,27 @@ const firebaseConfig = {
   "messagingSenderId": "315068066482"
 };
 
+// Check if the environment variable for service account is available
+const hasServiceAccount = !!process.env.FIREBASE_SERVICE_ACCOUNT;
 
 if (!admin.apps.length) {
   try {
-    admin.initializeApp({
-      credential: admin.credential.applicationDefault(),
-      storageBucket: firebaseConfig.storageBucket,
-    });
-    console.log("Firebase Admin SDK inicializado com sucesso.");
+    if (hasServiceAccount) {
+      // Production environment: Use service account credentials from environment variable
+      const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT!);
+      admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount),
+        storageBucket: firebaseConfig.storageBucket,
+      });
+      console.log("Firebase Admin SDK inicializado com Service Account.");
+    } else {
+      // Development environment: Use Application Default Credentials
+      admin.initializeApp({
+        credential: admin.credential.applicationDefault(),
+        storageBucket: firebaseConfig.storageBucket,
+      });
+      console.log("Firebase Admin SDK inicializado com Application Default Credentials.");
+    }
   } catch (error: any) {
     console.error("Erro ao inicializar o Firebase Admin SDK:", error);
     // Em um ambiente de desenvolvimento sem credenciais, isso pode falhar.
