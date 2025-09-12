@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -85,6 +84,7 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const [uploadMessage, setUploadMessage] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const statusRef = useRef<HTMLDivElement>(null);
   
   // Create a stable ID for the new influencer during the form session.
   const [formInstanceId] = useState(() => influencer?.id || Date.now().toString());
@@ -220,6 +220,13 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+
+    if (!formData.status || formData.status === "Desconhecido") {
+      statusRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setError("Por favor, selecione um status válido.");
+      return;
+    }
+
     if (!user) {
       setError("Você precisa estar logado para realizar esta ação.");
       return;
@@ -331,10 +338,10 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
               </div>
             )}
           </div>
-          <div className="flex flex-col space-y-1.5">
+          <div ref={statusRef} className="flex flex-col space-y-1.5">
             <div className="flex items-center justify-between">
               <Label htmlFor="status">Status</Label>
-              {!formData.status && <span className="text-xs text-destructive">Obrigatório</span>}
+              {(!formData.status || formData.status === "Desconhecido") && <span className="text-xs text-destructive">Obrigatório</span>}
             </div>
             <Select name="status" value={formData.status} onValueChange={handleSelectChange} required disabled={isLoading}>
               <SelectTrigger id="status"><SelectValue placeholder="Selecione o status" /></SelectTrigger>
@@ -374,7 +381,7 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
            <Button type="button" variant="ghost" onClick={handleCancel} disabled={isLoading}>Cancelar</Button>
             <div className="relative group">
                 <div className="absolute -inset-0.5 bg-gradient-to-r from-[#fbda25] to-[#a98900] rounded-lg blur-sm opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
-                <Button type="submit" className="relative bg-gradient-to-r from-[#fbda25] to-[#d3ab00] text-black" disabled={isLoading || !formData.status}>
+                <Button type="submit" className="relative bg-gradient-to-r from-[#fbda25] to-[#d3ab00] text-black" disabled={isLoading}>
                     {isLoading ? (uploadMessage || (isEditMode ? 'Salvando...' : 'Adicionando...')) : (isEditMode ? 'Salvar Alterações' : 'Adicionar')}
                 </Button>
             </div>
@@ -383,3 +390,5 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
     </div>
   );
 }
+
+    
