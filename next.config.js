@@ -5,6 +5,9 @@ const nextConfig = {
     serverComponentsExternalPackages: ['@google-cloud/storage'],
   },
   webpack: (config, { isServer }) => {
+    // Enable WebAssembly
+    config.experiments = { ...config.experiments, asyncWebAssembly: true };
+
     // Fixes "Module not found: Can't resolve 'pg-hstore'"
     if (isServer) {
       config.externals.push('pg-hstore');
