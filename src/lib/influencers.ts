@@ -23,6 +23,11 @@ export interface EditorInfo {
   timestamp: Timestamp;
 }
 
+export interface ProductPublication {
+  name: string;
+  addedAt: Timestamp;
+}
+
 export interface NewInfluencer {
     name: string;
     instagram: string;
@@ -36,6 +41,7 @@ export interface NewInfluencer {
     addedBy: string;
     proofImageUrls: string[];
     editors: EditorInfo[];
+    products: ProductPublication[];
 }
 
 export interface Influencer extends Omit<NewInfluencer, 'lastUpdate'> {
@@ -65,6 +71,7 @@ export const addInfluencer = async (influencer: Omit<NewInfluencer, 'lastUpdate'
     const docRef = await addDoc(collection(db, "influencers"), {
       ...influencer,
       proofImageUrls: influencer.proofImageUrls || [],
+      products: influencer.products || [],
       editors: [], // Start with an empty array of EditorInfo
       lastUpdate: serverTimestamp(),
     });
@@ -85,11 +92,18 @@ export const updateInfluencer = async (id: string, userId: string, data: Updatab
         userId: userId,
         timestamp: Timestamp.now(),
     };
-    await updateDoc(docRef, {
+    
+    const updateData: any = {
       ...data,
-      editors: arrayUnion(newEditorInfo),
       lastUpdate: serverTimestamp(),
-    });
+      editors: arrayUnion(newEditorInfo),
+    };
+
+    if (data.products) {
+      updateData.products = data.products;
+    }
+
+    await updateDoc(docRef, updateData);
     console.log("Document successfully updated!");
   } catch (error) {
     console.error("Error updating document: ", error);

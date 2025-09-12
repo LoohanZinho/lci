@@ -2,7 +2,7 @@
   "storage": {
     "rules": "storage.rules"
   },
-  "hosting": {
+  "apphosting": {
     "source": ".",
     "frameworksBackend": {
       "region": "us-central1"

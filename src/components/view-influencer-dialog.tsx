@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { InfluencerWithUserData } from "@/lib/influencers";
 import { Badge } from "./ui/badge";
-import { Flame, UserCircle, Edit, ShieldAlert } from "lucide-react";
+import { Flame, UserCircle, Edit, ShieldAlert, Package, Calendar } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import Image from "next/image";
 import { getInfluencerClassification, getClassificationBadgeClass } from "@/lib/classification";
@@ -75,14 +75,37 @@ export function ViewInfluencerDialog({
                 <p className="whitespace-pre-wrap">{influencer.notes || 'Nenhuma observação.'}</p>
             } />
 
+             {influencer.products && influencer.products.length > 0 && (
+                <div className="py-3 border-b border-border/50">
+                    <span className="font-semibold text-muted-foreground mb-2 block">Histórico de Produtos</span>
+                    <div className="space-y-3">
+                        {influencer.products.map((product, index) => (
+                             <div key={index} className="flex items-start gap-3">
+                                <Package className="h-4 w-4 mt-0.5 text-muted-foreground" />
+                                <div className="flex-1">
+                                    <p className="font-medium">{product.name}</p>
+                                    <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                                        <Calendar className="h-3 w-3" />
+                                        {product.addedAt?.toDate().toLocaleString("pt-BR", { day: '2-digit', month: 'long', year: 'numeric' }) || 'Data não registrada'}
+                                    </p>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+             )}
+
              {influencer.proofImageUrls && influencer.proofImageUrls.length > 0 && (
                 <div className="py-3 border-b border-border/50">
                     <span className="font-semibold text-muted-foreground mb-2 block">Provas</span>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                         {influencer.proofImageUrls.map((url, index) => (
-                             <div key={index} className="relative w-full aspect-video rounded-md overflow-hidden">
+                             <a key={index} href={url} target="_blank" rel="noopener noreferrer" className="relative w-full aspect-video rounded-md overflow-hidden group">
                                 <Image src={url} alt={`Prova ${index + 1} para ${influencer.name}`} fill style={{ objectFit: 'contain' }} />
-                            </div>
+                                <div className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <span className="text-white text-xs font-bold">Ampliar</span>
+                                </div>
+                            </a>
                         ))}
                     </div>
                 </div>

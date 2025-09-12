@@ -12,14 +12,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { addInfluencer, NewInfluencer, Influencer, updateInfluencer, UpdatableInfluencerData } from "@/lib/influencers";
+import { addInfluencer, NewInfluencer, Influencer, updateInfluencer, UpdatableInfluencerData, ProductPublication } from "@/lib/influencers";
 import { useAuth } from "@/hooks/use-auth";
 import { useState, FormEvent, useEffect, useRef } from "react";
 import { deleteProofImageByUrl, uploadProofImage } from "@/lib/storage";
 import { Progress } from "@/components/ui/progress";
-import { AlertCircle, Image as ImageIcon, X, UploadCloud } from "lucide-react";
+import { AlertCircle, Image as ImageIcon, X, UploadCloud, PlusCircle, History } from "lucide-react";
 import Image from 'next/image';
 import { getInfluencerClassification } from "@/lib/classification";
+import { Timestamp } from "firebase/firestore";
+import { Badge } from "./ui/badge";
 
 interface InfluencerFormProps {
   influencer?: Influencer;
@@ -37,6 +39,7 @@ interface FormData {
   notes: string;
   isFumo: boolean;
   proofImageUrls: string[];
+  products: ProductPublication[];
 }
 
 
@@ -50,6 +53,7 @@ const initialState: FormData = {
   notes: "",
   isFumo: false,
   proofImageUrls: [],
+  products: [],
 };
 
 const formatFollowers = (value: string) => {
@@ -66,6 +70,7 @@ const unformatFollowers = (value: string) => {
 
 export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) {
   const [formData, setFormData] = useState<FormData>(initialState);
+  const [currentProduct, setCurrentProduct] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { user } = useAuth();
@@ -93,6 +98,7 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
         notes: influencer.notes,
         isFumo: influencer.isFumo,
         proofImageUrls: influencer.proofImageUrls || [],
+        products: influencer.products || [],
       };
       setFormData(currentData);
       setImagePreviews(influencer.proofImageUrls || []);
@@ -146,6 +152,26 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
     }
   };
   
+  const handleAddProduct = () => {
+    if (currentProduct.trim()) {
+      const newProduct: ProductPublication = {
+        name: currentProduct.trim(),
+        addedAt: Timestamp.now(),
+      };
+      setFormData(prev => ({
+        ...prev,
+        products: [...prev.products, newProduct],
+      }));
+      setCurrentProduct("");
+    }
+  };
+
+  const handleRemoveProduct = (indexToRemove: number) => {
+    setFormData(prev => ({
+      ...prev,
+      products: prev.products.filter((_, index) => index !== indexToRemove),
+    }));
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { id, value, type } = e.target;
@@ -210,17 +236,15 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
                   influencerIdForStorage,
                   file,
                   (progress) => {
-                    // This logic is simplified since uploadBytesResumable provides granular progress.
+                    const overallProgress = ((filesUploaded + progress / 100) / imageFiles.length) * 100;
+                    setUploadProgress(overallProgress);
                   }
                 );
                 uploadedUrls.push(downloadURL);
                 filesUploaded++;
-                const overallProgress = (filesUploaded / imageFiles.length) * 100;
-                setUploadProgress(overallProgress);
                 setUploadMessage(`Enviando ${filesUploaded} de ${imageFiles.length}...`);
               } catch (uploadError: any) {
                  console.error("Upload Error:", uploadError);
-                 // Stop further uploads on the first error.
                  throw new Error(`Falha no upload de "${file.name}". Causa: ${uploadError.message || 'Erro desconhecido'}`);
               }
             })
@@ -240,6 +264,7 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
             notes: formData.notes,
             isFumo: formData.isFumo,
             proofImageUrls: finalImageUrls,
+            products: formData.products,
         };
         
         if (isEditMode && influencer) {
@@ -293,6 +318,39 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
             <Label htmlFor="niche">Nicho/Segmento</Label>
             <Input id="niche" placeholder="Ex: Fitness, Moda" value={formData.niche} onChange={handleChange} disabled={isLoading} />
           </div>
+           <div className="flex flex-col space-y-1.5">
+            <Label htmlFor="product">Produto Divulgado (opcional)</Label>
+            <div className="flex items-center gap-2">
+              <Input 
+                id="product" 
+                placeholder="Ex: Produto X" 
+                value={currentProduct} 
+                onChange={(e) => setCurrentProduct(e.target.value)} 
+                disabled={isLoading}
+              />
+              <Button type="button" size="icon" onClick={handleAddProduct} disabled={isLoading || !currentProduct.trim()}>
+                <PlusCircle className="h-4 w-4" />
+              </Button>
+            </div>
+            {formData.products.length > 0 && (
+              <div className="mt-2 space-y-2 rounded-md border p-3">
+                 <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                    <History className="h-4 w-4" />
+                    <span>Histórico de Produtos</span>
+                 </div>
+                 <div className="flex flex-wrap gap-2">
+                  {formData.products.map((product, index) => (
+                    <Badge key={index} variant="secondary" className="flex items-center gap-1.5 pr-1">
+                      <span>{product.name}</span>
+                      <button type="button" onClick={() => handleRemoveProduct(index)} disabled={isLoading} className="rounded-full hover:bg-muted-foreground/20 p-0.5">
+                        <X className="h-3 w-3" />
+                      </button>
+                    </Badge>
+                  ))}
+                 </div>
+              </div>
+            )}
+          </div>
           <div className="flex flex-col space-y-1.5">
             <Label htmlFor="status">Status</Label>
             <Select value={formData.status} onValueChange={handleSelectChange} disabled={isLoading}>
@@ -341,7 +399,7 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
           {uploadProgress !== null && !error && (
             <div className="space-y-2">
                 <div className="flex justify-between items-center">
-                    <Label className="text-primary">{uploadMessage}</Label>
+                    <Label className="text-primary">{uploadMessage || 'Enviando...'}</Label>
                     <span className="text-sm font-medium text-primary">{Math.round(uploadProgress)}%</span>
                 </div>
                 <Progress value={uploadProgress} className="h-2" />
@@ -358,7 +416,7 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
         <div className="flex justify-end space-x-2 pt-6">
            <Button type="button" variant="ghost" onClick={handleCancel} disabled={isLoading}>Cancelar</Button>
           <Button type="submit" disabled={isLoading}>
-            {isLoading ? (uploadMessage ? 'Enviando...' : (isEditMode ? 'Salvando...' : 'Adicionando...')) : (isEditMode ? 'Salvar Alterações' : 'Adicionar')}
+            {isLoading ? (uploadProgress !== null ? 'Enviando...' : (isEditMode ? 'Salvando...' : 'Adicionando...')) : (isEditMode ? 'Salvar Alterações' : 'Adicionar')}
           </Button>
         </div>
       </form>
