@@ -39,7 +39,7 @@ export default function LoginPage() {
           )}
         </div>
         <p className="text-sm text-muted-foreground">
-          Lucrando com Influenciadores
+          Mural dos influenciadores
         </p>
       </div>
       <div className="w-full max-w-sm">
