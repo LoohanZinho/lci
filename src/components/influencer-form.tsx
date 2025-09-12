@@ -17,7 +17,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useState, FormEvent, useEffect, useRef } from "react";
 import { deleteProofImageByUrl } from "@/lib/storage";
 import { Progress } from "@/components/ui/progress";
-import { AlertCircle, Image as ImageIcon, X, UploadCloud, PlusCircle, History } from "lucide-react";
+import { AlertCircle, Image as ImageIcon, Trash2, UploadCloud, PlusCircle, History } from "lucide-react";
 import Image from 'next/image';
 import { getInfluencerClassification } from "@/lib/classification";
 import { Timestamp } from "firebase/firestore";
@@ -340,7 +340,7 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
                     <Badge key={index} variant="secondary" className="flex items-center gap-1.5 pr-1">
                       <span>{product.name}</span>
                       <button type="button" onClick={() => handleRemoveProduct(index)} disabled={isLoading} className="rounded-full hover:bg-muted-foreground/20 p-0.5">
-                        <X className="h-3 w-3" />
+                        <Trash2 className="h-3 w-3" />
                       </button>
                     </Badge>
                   ))}
@@ -375,11 +375,18 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
             <Label htmlFor="proofImage">Prova (Print, etc.)</Label>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {imagePreviews.map((preview, index) => (
-                    <div key={index} className="relative w-full aspect-square rounded-md overflow-hidden group">
+                    <div key={index} className="relative w-full aspect-square rounded-md overflow-hidden group border">
                         <Image src={preview} alt={`Pré-visualização ${index + 1}`} fill style={{ objectFit: 'cover' }} />
-                        <div className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                            <Button type="button" variant="destructive" size="icon" onClick={() => removeImage(index)} disabled={isLoading} className="h-8 w-8"><X className="h-4 w-4"/></Button>
-                        </div>
+                        <Button 
+                            type="button" 
+                            variant="destructive" 
+                            size="icon" 
+                            onClick={() => removeImage(index)} 
+                            disabled={isLoading} 
+                            className="absolute top-1 right-1 h-7 w-7 opacity-80 group-hover:opacity-100 transition-opacity"
+                        >
+                            <Trash2 className="h-4 w-4"/>
+                        </Button>
                     </div>
                 ))}
                 {imagePreviews.length < 10 && (
@@ -423,7 +430,3 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
     </div>
   );
 }
-
-    
-    
-    

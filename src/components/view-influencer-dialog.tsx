@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { EditorData, InfluencerWithUserData } from "@/lib/influencers";
 import { Badge } from "./ui/badge";
-import { Flame, UserCircle, Edit, ShieldAlert, Package, Calendar, Eye } from "lucide-react";
+import { Flame, UserCircle, Edit, ShieldAlert, Package, Calendar, Eye, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import Image from "next/image";
 import { getInfluencerClassification, getClassificationBadgeClass } from "@/lib/classification";
@@ -31,6 +31,45 @@ const DetailRow = ({ label, value }: { label: string, value: React.ReactNode }) 
 );
 
 
+function ImageViewer({ images, startIndex, onClose }: { images: string[], startIndex: number, onClose: () => void }) {
+  const [currentIndex, setCurrentIndex] = useState(startIndex);
+
+  const goToPrevious = () => {
+    setCurrentIndex(prevIndex => (prevIndex === 0 ? images.length - 1 : prevIndex - 1));
+  };
+
+  const goToNext = () => {
+    setCurrentIndex(prevIndex => (prevIndex === images.length - 1 ? 0 : prevIndex + 1));
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm" onClick={onClose}>
+      <div className="relative w-full h-full max-w-4xl max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
+        <Image
+          src={images[currentIndex]}
+          alt={`Prova ampliada ${currentIndex + 1}`}
+          fill
+          style={{ objectFit: 'contain' }}
+        />
+      </div>
+       <Button variant="ghost" size="icon" className="fixed top-4 right-4 text-white h-10 w-10" onClick={onClose}>
+        <X className="h-6 w-6" />
+      </Button>
+      {images.length > 1 && (
+        <>
+          <Button variant="ghost" size="icon" className="fixed left-4 top-1/2 -translate-y-1/2 text-white h-12 w-12" onClick={goToPrevious}>
+            <ChevronLeft className="h-8 w-8" />
+          </Button>
+          <Button variant="ghost" size="icon" className="fixed right-4 top-1/2 -translate-y-1/2 text-white h-12 w-12" onClick={goToNext}>
+            <ChevronRight className="h-8 w-8" />
+          </Button>
+        </>
+      )}
+    </div>
+  );
+}
+
+
 export function ViewInfluencerDialog({
   influencer,
   isOpen,
@@ -38,7 +77,13 @@ export function ViewInfluencerDialog({
 }: ViewInfluencerDialogProps) {
   const { user, isAdmin } = useAuth();
   const [selectedEdit, setSelectedEdit] = useState<EditorData | null>(null);
+  const [imageViewerOpen, setImageViewerOpen] = useState(false);
+  const [imageViewerStartIndex, setImageViewerStartIndex] = useState(0);
 
+  const openImageViewer = (index: number) => {
+    setImageViewerStartIndex(index);
+    setImageViewerOpen(true);
+  };
   
   const classification = getInfluencerClassification(influencer.followers);
 
@@ -110,12 +155,12 @@ export function ViewInfluencerDialog({
                     <span className="font-semibold text-muted-foreground mb-2 block">Provas</span>
                     <div className="grid grid-cols-2 gap-2">
                         {influencer.proofImageUrls.map((url, index) => (
-                             <a key={index} href={url} target="_blank" rel="noopener noreferrer" className="relative w-full aspect-square rounded-md overflow-hidden group">
+                             <button key={index} onClick={() => openImageViewer(index)} className="relative w-full aspect-square rounded-md overflow-hidden group border">
                                 <Image src={url} alt={`Prova ${index + 1} para ${influencer.name}`} fill style={{ objectFit: 'cover' }} />
                                 <div className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                  <span className="text-white text-xs font-bold">Ampliar</span>
+                                  <Eye className="h-6 w-6 text-white" />
                                 </div>
-                            </a>
+                            </button>
                         ))}
                     </div>
                 </div>
@@ -194,7 +239,13 @@ export function ViewInfluencerDialog({
         </div>
       </DialogContent>
     </Dialog>
-
+    {imageViewerOpen && (
+      <ImageViewer 
+        images={influencer.proofImageUrls} 
+        startIndex={imageViewerStartIndex} 
+        onClose={() => setImageViewerOpen(false)} 
+      />
+    )}
      {selectedEdit && (
         <ViewChangesDialog
             isOpen={!!selectedEdit}
@@ -205,5 +256,3 @@ export function ViewInfluencerDialog({
      </>
   );
 }
-
-    

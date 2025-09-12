@@ -63,7 +63,7 @@ export function InfluencerTable({ influencers, loading }: InfluencerTableProps) 
               <TableHead className="hidden md:table-cell">Status</TableHead>
               <TableHead className="text-center">Fumo</TableHead>
               <TableHead className="text-right hidden lg:table-cell">Última Edição</TableHead>
-              <TableHead className="w-[120px] text-right">Ações</TableHead>
+              <TableHead className="w-[100px] text-right">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
