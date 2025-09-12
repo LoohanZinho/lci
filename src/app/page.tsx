@@ -52,6 +52,7 @@ export default function HomePage() {
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
 
   const [sortBy, setSortBy] = useState<"lastUpdate" | "followers">("lastUpdate");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
@@ -59,6 +60,10 @@ export default function HomePage() {
   
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 50;
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     setLoading(true);
@@ -141,17 +146,21 @@ export default function HomePage() {
     setTheme(theme === "dark" ? "light" : "dark");
   };
 
+  const logoSrc = theme === 'dark' ? "https://i.imgur.com/DkRNtRL.png" : "https://i.imgur.com/uYwvJ7Q.png";
+
   return (
     <div className="flex flex-col min-h-screen">
       <header className="flex items-center justify-between p-4 border-b bg-background">
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center space-x-3 h-[36px]">
+          {mounted && (
             <Image
-                src={theme === 'dark' ? "https://i.imgur.com/DkRNtRL.png" : "https://i.imgur.com/uYwvJ7Q.png"}
+                src={logoSrc}
                 alt="LCI: Mural de Influência Logo"
                 width={120}
                 height={36}
                 priority
             />
+          )}
         </div>
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={toggleTheme}>
