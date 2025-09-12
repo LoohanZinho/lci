@@ -339,6 +339,7 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
                 <SelectItem value="Em negociação">Em negociação</SelectItem>
                 <SelectItem value="Fechado">Fechado</SelectItem>
                 <SelectItem value="Prejuízo">Prejuízo</SelectItem>
+                <SelectItem value="Golpista">Golpista</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -370,7 +371,7 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
                   {formData.proofImageUrls.map(url => (
                     <div key={url} className="relative group aspect-square rounded-md overflow-hidden border">
                       <Image src={url} alt="Prova existente" fill className="object-cover" />
-                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                          <Button variant="destructive" size="icon" className="absolute top-1 right-1 h-7 w-7" onClick={() => removeExistingImage(url)} disabled={isLoading}>
                             <Trash2 className="h-4 w-4" />
                          </Button>
@@ -381,7 +382,7 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
                   {filesToUpload.map((fileObj, index) => (
                      <div key={index} className="relative group aspect-square rounded-md overflow-hidden border">
                        <Image src={URL.createObjectURL(fileObj.file)} alt="Nova prova" fill className="object-cover" />
-                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
+                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                          <Button variant="destructive" size="icon" className="absolute top-1 right-1 h-7 w-7" onClick={() => removeNewFile(index)} disabled={isLoading}>
                             <X className="h-4 w-4" />
                          </Button>
@@ -416,3 +417,5 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
     </div>
   );
 }
+
+    

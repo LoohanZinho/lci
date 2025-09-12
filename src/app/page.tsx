@@ -1,3 +1,4 @@
+
 "use client";
 
 import { InfluencerForm } from "@/components/influencer-form";
@@ -300,6 +301,7 @@ export default function HomePage() {
                               <SelectItem value="Em negociação">Em negociação</SelectItem>
                               <SelectItem value="Fechado">Fechado</SelectItem>
                               <SelectItem value="Prejuízo">Prejuízo</SelectItem>
+                              <SelectItem value="Golpista">Golpista</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
@@ -357,3 +359,5 @@ export default function HomePage() {
     </div>
   );
 }
+
+    
