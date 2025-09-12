@@ -219,14 +219,36 @@ export const getInfluencers = (
   
     const unsubscribe = onSnapshot(q, async (querySnapshot) => {
       const influencers: Influencer[] = [];
-      querySnapshot.forEach((doc) => {
-        const data = doc.data();
+      const updatePromises: Promise<void>[] = [];
+
+      querySnapshot.forEach((document) => {
+        const data = document.data();
+        let status = data.status;
+
+        // 1. Detecta se o status está ausente
+        if (!status) {
+          status = "Desconhecido"; // 2. Define um valor padrão para a UI
+          
+          // 3. Agenda uma atualização em segundo plano no banco de dados
+          const docRef = doc(db, "influencers", document.id);
+          updatePromises.push(updateDoc(docRef, { status: "Desconhecido" }));
+        }
+
         influencers.push({ 
-          id: doc.id, 
+          id: document.id, 
           ...data,
-          status: data.status || "Desconhecido", // Garante que status tenha um valor
+          status: status, // Garante que o status correto seja usado
         } as Influencer);
       });
+
+      // Executa todas as atualizações de forma assíncrona
+      if (updatePromises.length > 0) {
+        Promise.all(updatePromises).then(() => {
+          console.log(`${updatePromises.length} influenciador(es) atualizado(s) com status padrão.`);
+        }).catch(err => {
+          console.error("Erro ao atualizar status de influenciadores:", err);
+        });
+      }
       
       const uids = influencers.flatMap(i => [i.addedBy, ...(i.editors || []).map(e => e.userId)]).filter(Boolean);
       const usersData = await fetchUsersData(uids);
