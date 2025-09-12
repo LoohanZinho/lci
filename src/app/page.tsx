@@ -202,7 +202,7 @@ export default function HomePage() {
               <h2 className="text-2xl font-bold">
                 {greeting}, <div className="relative inline-block">
                   <span className="relative z-10 text-transparent bg-clip-text bg-gradient-to-r from-[#fbda25] to-[#a98900]">{user.displayName || user.email}!</span>
-                  <div className="absolute inset-0 z-0 bg-gradient-to-r from-[#fbda25]/30 to-[#a98900]/30 blur-lg" />
+                  <div className="absolute inset-0 z-0 bg-gradient-to-r from-[#fbda25]/20 to-[#a98900]/20 blur-xl" />
                 </div>
               </h2>
               <p className="text-muted-foreground">
