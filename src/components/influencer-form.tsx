@@ -21,9 +21,7 @@ import Image from 'next/image';
 import { getInfluencerClassification } from "@/lib/classification";
 import { Timestamp } from "firebase/firestore";
 import { Badge } from "./ui/badge";
-import { deleteProofImageAction } from "@/app/actions";
-import { storage } from "@/lib/firebase";
-import { ref, uploadBytesResumable, getDownloadURL, deleteObject } from "firebase/storage";
+import { deleteProofImageAction, uploadProofImageAction } from "@/app/actions";
 
 
 interface InfluencerFormProps {
@@ -71,6 +69,11 @@ const unformatFollowers = (value: string) => {
     return value.replace(/\D/g, "");
 }
 
+type FileWithPreview = {
+  file: File;
+  preview: string;
+};
+
 export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) {
   const [formData, setFormData] = useState<FormData>(initialState);
   const [currentProduct, setCurrentProduct] = useState("");
@@ -85,7 +88,7 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
   // Create a stable ID for the new influencer during the form session.
   const [formInstanceId] = useState(() => influencer?.id || Date.now().toString());
   
-  const [filesToUpload, setFilesToUpload] = useState<File[]>([]);
+  const [filesToUpload, setFilesToUpload] = useState<FileWithPreview[]>([]);
 
   const isEditMode = !!influencer;
   
@@ -122,7 +125,12 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
       return;
     }
 
-    setFilesToUpload(prev => [...prev, ...newFiles]);
+    const newFilesWithPreview = newFiles.map(file => ({
+      file,
+      preview: URL.createObjectURL(file)
+    }));
+
+    setFilesToUpload(prev => [...prev, ...newFilesWithPreview]);
 
      // Limpa o input de arquivo para permitir a seleção do mesmo arquivo novamente
     if (fileInputRef.current) {
@@ -132,6 +140,8 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
 
 
   const removeNewFile = (indexToRemove: number) => {
+      const fileToRemove = filesToUpload[indexToRemove];
+      URL.revokeObjectURL(fileToRemove.preview); // Libera memória
       setFilesToUpload(prev => prev.filter((_, i) => i !== indexToRemove));
   }
 
@@ -144,7 +154,10 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
     setUploadMessage("Deletando imagem...");
 
     try {
-        await deleteProofImageAction(urlToRemove);
+        const result = await deleteProofImageAction(urlToRemove);
+        if (!result.success) {
+          throw new Error(result.error);
+        }
         
         setFormData(prev => ({
             ...prev,
@@ -198,6 +211,7 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
   }
 
   const handleCancel = () => {
+    filesToUpload.forEach(f => URL.revokeObjectURL(f.preview));
     if (onFinished) {
       onFinished();
     }
@@ -218,41 +232,26 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
     // Upload de novas imagens
     if (filesToUpload.length > 0) {
       setUploadMessage('Enviando imagens...');
-      const uploadPromises = filesToUpload.map((file, index) => {
-        return new Promise<string>((resolve, reject) => {
-          if (file.size > 10 * 1024 * 1024) { // 10MB limit
-            reject(new Error(`A imagem "${file.name}" excede o limite de 10MB.`));
-            return;
-          }
-          const filePath = `influencer-proofs/${formInstanceId}/${Date.now()}-${file.name}`;
-          const storageRef = ref(storage, filePath);
-          const uploadTask = uploadBytesResumable(storageRef, file);
+      
+      const uploadPromises = filesToUpload.map(async (fileWithPreview, index) => {
+        setUploadProgress((index / filesToUpload.length) * 100);
+        setUploadMessage(`Enviando ${index + 1} de ${filesToUpload.length}...`);
 
-          uploadTask.on('state_changed',
-            (snapshot) => {
-              const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-              setUploadProgress(progress);
-              setUploadMessage(`Enviando ${index + 1} de ${filesToUpload.length}: ${Math.round(progress)}%`);
-            },
-            (error) => {
-              console.error("Upload error", error);
-              reject(new Error(`Erro ao enviar ${file.name}: ${error.message}`));
-            },
-            async () => {
-              try {
-                const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-                resolve(downloadURL);
-              } catch (error: any) {
-                reject(new Error(`Erro ao obter URL para ${file.name}: ${error.message}`));
-              }
-            }
-          );
-        });
+        const uploadFormData = new global.FormData();
+        uploadFormData.append('file', fileWithPreview.file);
+        uploadFormData.append('influencerId', formInstanceId);
+
+        const result = await uploadProofImageAction(uploadFormData);
+        if (result.error || !result.url) {
+          throw new Error(result.error || `Falha no upload de ${fileWithPreview.file.name}`);
+        }
+        return result.url;
       });
 
       try {
         const newUrls = await Promise.all(uploadPromises);
         uploadedUrls.push(...newUrls);
+        setFilesToUpload([]); // Limpa a lista de arquivos a serem enviados
       } catch(uploadError: any) {
         setError(uploadError.message);
         setIsLoading(false);
@@ -408,9 +407,9 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
                         </Button>
                     </div>
                 ))}
-                {filesToUpload.map((file, index) => (
+                {filesToUpload.map((fileWithPreview, index) => (
                     <div key={index} className="relative w-full aspect-square rounded-md overflow-hidden group border">
-                        <Image src={URL.createObjectURL(file)} alt={`Nova imagem ${index + 1}`} fill style={{ objectFit: 'cover' }} />
+                        <Image src={fileWithPreview.preview} alt={`Nova imagem ${index + 1}`} fill style={{ objectFit: 'cover' }} />
                         <Button 
                             type="button" 
                             variant="destructive" 

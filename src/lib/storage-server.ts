@@ -19,6 +19,10 @@ export const uploadProofImage = (
   influencerId: string
 ): Promise<string> => {
   return new Promise((resolve, reject) => {
+    if (!BUCKET_NAME) {
+      reject(new Error("Firebase Storage bucket name não está configurado. O Admin SDK foi inicializado corretamente?"));
+      return;
+    }
     const filePath = `influencer-proofs/${influencerId}/${Date.now()}-${fileName}`;
     const bucketFile = storage.bucket().file(filePath);
 
@@ -36,14 +40,15 @@ export const uploadProofImage = (
       })
       .on('finish', async () => {
         try {
-          // Tornar o arquivo público para leitura
-          await bucketFile.makePublic();
-          // Obter a URL pública
-          const publicUrl = `https://storage.googleapis.com/${BUCKET_NAME}/${filePath}`;
-          resolve(publicUrl);
+          // A URL de download com token é mais segura que a pública
+          const [signedUrl] = await bucketFile.getSignedUrl({
+            action: 'read',
+            expires: '03-09-2491', // Uma data de expiração muito longa no futuro
+          });
+          resolve(signedUrl);
         } catch (error) {
-          console.error('Erro ao tornar o arquivo público:', error);
-          reject(new Error('Falha ao obter a URL pública do arquivo.'));
+          console.error('Erro ao gerar a URL assinada:', error);
+          reject(new Error('Falha ao obter a URL do arquivo.'));
         }
       });
   });
@@ -55,28 +60,34 @@ export const uploadProofImage = (
  * @param imageUrl - A URL completa da imagem a ser deletada.
  */
 export const deleteProofImageByUrl = async (imageUrl: string): Promise<void> => {
-    if (!imageUrl) return;
+    if (!imageUrl || !BUCKET_NAME) {
+      console.warn("URL da imagem ou nome do bucket não fornecido, pulando deleção.");
+      return;
+    }
 
     try {
-        // Extrai o caminho do objeto da URL do GCS
-        // Ex: https://storage.googleapis.com/BUCKET_NAME/path/to/object.jpg -> path/to/object.jpg
-        const urlPrefix = `https://storage.googleapis.com/${BUCKET_NAME}/`;
-        if (!imageUrl.startsWith(urlPrefix)) {
-            // Se não for uma URL pública do GCS, tenta extrair o caminho de uma URL com token
-            const decodedUrl = decodeURIComponent(imageUrl);
-            const pathRegex = new RegExp(`${BUCKET_NAME}\/o\/(.*?)\\?alt=media`);
-            const match = decodedUrl.match(pathRegex);
-            
-            if (match && match[1]) {
-                const filePath = match[1];
-                await storage.bucket().file(filePath).delete();
-                console.log(`Imagem (com token) deletada com sucesso: ${filePath}`);
-                return;
-            }
-            throw new Error("Formato de URL da imagem não reconhecido.");
-        }
+        const decodedUrl = decodeURIComponent(imageUrl);
+        // Extrai o caminho do objeto da URL, seja ela assinada ou pública
+        // Ex: .../o/influencer-proofs%2F... -> influencer-proofs/...
+        const pathRegex = new RegExp(`\/o\/(.*?)\\?`);
+        const match = decodedUrl.match(pathRegex);
         
-        const filePath = imageUrl.substring(urlPrefix.length);
+        let filePath = '';
+        if (match && match[1]) {
+            filePath = match[1];
+        } else {
+            // Tenta como URL pública
+            const publicUrlPrefix = `https://storage.googleapis.com/${BUCKET_NAME}/`;
+            if (decodedUrl.startsWith(publicUrlPrefix)) {
+                filePath = decodedUrl.substring(publicUrlPrefix.length);
+            }
+        }
+
+        if (!filePath) {
+           console.warn(`Não foi possível extrair o caminho do arquivo da URL: ${imageUrl}. Pulando a deleção.`);
+           return;
+        }
+
         await storage.bucket().file(filePath).delete();
         console.log(`Imagem deletada com sucesso: ${filePath}`);
 
@@ -89,4 +100,3 @@ export const deleteProofImageByUrl = async (imageUrl: string): Promise<void> => 
         }
     }
 };
-
