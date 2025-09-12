@@ -103,10 +103,10 @@ export function ViewInfluencerDialog({
              {influencer.proofImageUrls && influencer.proofImageUrls.length > 0 && (
                 <div className="py-3 border-b border-border/50">
                     <span className="font-semibold text-muted-foreground mb-2 block">Provas</span>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                    <div className="grid grid-cols-2 gap-3">
                         {influencer.proofImageUrls.map((url, index) => (
                              <a key={index} href={url} target="_blank" rel="noopener noreferrer" className="relative w-full aspect-video rounded-md overflow-hidden group">
-                                <Image src={url} alt={`Prova ${index + 1} para ${influencer.name}`} fill style={{ objectFit: 'contain' }} />
+                                <Image src={url} alt={`Prova ${index + 1} para ${influencer.name}`} fill style={{ objectFit: 'contain', backgroundColor: '#f0f0f0' }} />
                                 <div className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                                   <span className="text-white text-xs font-bold">Ampliar</span>
                                 </div>

@@ -381,7 +381,7 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
 
           <div className="flex flex-col space-y-1.5">
             <Label htmlFor="proofImage">Prova (Print, etc.)</Label>
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {imagePreviews.map((preview, index) => (
                     <div key={index} className="relative w-full aspect-square rounded-md overflow-hidden group">
                         <Image src={preview} alt={`Pré-visualização ${index + 1}`} fill style={{ objectFit: 'cover' }} />
@@ -431,5 +431,3 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
     </div>
   );
 }
-
-    

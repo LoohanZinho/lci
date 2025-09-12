@@ -9,7 +9,7 @@
     "lint": "next lint",
     "type-check": "tsc --noEmit",
     "deploy": "rm -rf .next && rm -rf node_modules/.cache && npm run type-check && npm run build && git push origin main",
-    "type-deploy": "npm run type-check && git push origin main"
+    "type": "npm run type-check && git push origin main"
   },
   "dependencies": {
     "@radix-ui/react-alert-dialog": "^1.1.1",
