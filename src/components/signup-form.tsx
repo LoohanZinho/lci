@@ -116,7 +116,9 @@ export function SignupForm() {
           </div>
         </CardContent>
         <CardFooter className="flex flex-col items-stretch gap-4">
-          <Button type="submit" disabled={isLoading}>{isLoading ? 'Cadastrando...' : 'Cadastrar'}</Button>
+          <Button type="submit" disabled={isLoading} className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white hover:from-yellow-500 hover:to-orange-600">
+            {isLoading ? 'Cadastrando...' : 'Cadastrar'}
+          </Button>
           <div className="text-center text-sm">
             Já tem uma conta?{" "}
             <Link href="/login" className="underline">
