@@ -96,7 +96,7 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
         name: influencer.name,
         instagram: influencer.instagram.startsWith('@') ? influencer.instagram.substring(1) : influencer.instagram,
         followers: formatFollowers(influencer.followers.toString()),
-        status: influencer.status || "Desconhecido",
+        status: influencer.status,
         niche: influencer.niche,
         notes: influencer.notes,
         isFumo: influencer.isFumo,
@@ -375,7 +375,7 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
           </div>
 
           <div className="flex flex-col space-y-1.5">
-            <Label htmlFor="proofImage">Prova (Print, etc.)</Label>
+            <Label htmlFor="proofImage">Ela te deu golpe? (Anexe as provas abaixo)</Label>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {imagePreviews.map((preview, index) => (
                     <div key={index} className="relative w-full aspect-square rounded-md overflow-hidden group border">
