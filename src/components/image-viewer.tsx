@@ -40,6 +40,7 @@ export function ImageViewer({ images, startIndex, onClose }: ImageViewerProps) {
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [images]);
 
 
