@@ -226,43 +226,10 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
     
     setIsLoading(true);
     setError(null);
+    
+    // Upload de imagens foi removido por enquanto.
+    const uploadedUrls: string[] = formData.proofImageUrls;
 
-    const uploadedUrls: string[] = [...formData.proofImageUrls];
-
-    // Upload de novas imagens
-    if (filesToUpload.length > 0) {
-      setUploadMessage('Enviando imagens...');
-      
-      const uploadPromises = filesToUpload.map(async (fileWithPreview, index) => {
-        setUploadProgress((index / filesToUpload.length) * 100);
-        setUploadMessage(`Enviando ${index + 1} de ${filesToUpload.length}...`);
-
-        const uploadFormData = new global.FormData();
-        uploadFormData.append('file', fileWithPreview.file);
-        uploadFormData.append('influencerId', formInstanceId);
-
-        const result = await uploadProofImageAction(uploadFormData);
-        if (result.error || !result.url) {
-          throw new Error(result.error || `Falha no upload de ${fileWithPreview.file.name}`);
-        }
-        return result.url;
-      });
-
-      try {
-        const newUrls = await Promise.all(uploadPromises);
-        uploadedUrls.push(...newUrls);
-        setFilesToUpload([]); // Limpa a lista de arquivos a serem enviados
-      } catch(uploadError: any) {
-        setError(uploadError.message);
-        setIsLoading(false);
-        setUploadProgress(null);
-        setUploadMessage('');
-        return;
-      }
-    }
-
-
-    setUploadProgress(null);
     setUploadMessage('Salvando dados do influenciador...');
 
     try {
@@ -390,63 +357,12 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
           </div>
 
           <div className="flex flex-col space-y-1.5">
-            <Label>Ela te deu golpe? (Anexe as provas abaixo)</Label>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {formData.proofImageUrls.map((url, index) => (
-                    <div key={url} className="relative w-full aspect-square rounded-md overflow-hidden group border">
-                        <Image src={url} alt={`Pré-visualização ${index + 1}`} fill style={{ objectFit: 'cover' }} />
-                        <Button 
-                            type="button" 
-                            variant="destructive" 
-                            size="icon" 
-                            onClick={() => removeExistingImage(index)} 
-                            disabled={isLoading} 
-                            className="absolute top-1 right-1 h-7 w-7 opacity-80 group-hover:opacity-100 transition-opacity"
-                        >
-                            <Trash2 className="h-4 w-4"/>
-                        </Button>
-                    </div>
-                ))}
-                {filesToUpload.map((fileWithPreview, index) => (
-                    <div key={index} className="relative w-full aspect-square rounded-md overflow-hidden group border">
-                        <Image src={fileWithPreview.preview} alt={`Nova imagem ${index + 1}`} fill style={{ objectFit: 'cover' }} />
-                        <Button 
-                            type="button" 
-                            variant="destructive" 
-                            size="icon" 
-                            onClick={() => removeNewFile(index)} 
-                            disabled={isLoading} 
-                            className="absolute top-1 right-1 h-7 w-7 opacity-80 group-hover:opacity-100 transition-opacity"
-                        >
-                            <Trash2 className="h-4 w-4"/>
-                        </Button>
-                    </div>
-                ))}
-                {(formData.proofImageUrls.length + filesToUpload.length) < 10 && (
-                    <div 
-                        className="flex flex-col items-center justify-center w-full aspect-square border-2 border-dashed rounded-md cursor-pointer hover:bg-muted/50 transition-colors"
-                        onClick={() => !isLoading && fileInputRef.current?.click()}
-                    >
-                        <UploadCloud className="h-8 w-8 text-muted-foreground mb-2"/>
-                        <p className="text-xs text-center text-muted-foreground">Adicionar ({(formData.proofImageUrls.length + filesToUpload.length)}/10)</p>
-                    </div>
-                )}
+             <Label>Ela te deu golpe? (Anexe as provas abaixo)</Label>
+             <div className="flex flex-col items-center justify-center w-full aspect-video border-2 border-dashed rounded-md">
+                 <p className="text-sm text-muted-foreground">Uploads em breve</p>
             </div>
-            <Input id="proofImage" type="file" accept="image/png, image/jpeg, image/gif" onChange={handleImageSelection} className="hidden" ref={fileInputRef} disabled={isLoading || (formData.proofImageUrls.length + filesToUpload.length) >= 10} multiple />
-            <p className="text-xs text-muted-foreground/80 mt-1">PNG, JPG, GIF até 10MB cada.</p>
           </div>
-
-          {uploadProgress !== null && !error && (
-            <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                    <Label className="text-primary">{uploadMessage || 'Enviando...'}</Label>
-                    <span className="text-sm font-medium text-primary">{Math.round(uploadProgress)}%</span>
-                </div>
-                <Progress value={uploadProgress} className="h-2" />
-            </div>
-          )}
-
-
+          
            <div className="flex items-center space-x-2">
              <input type="checkbox" id="isFumo" checked={formData.isFumo} onChange={handleChange} className="h-4 w-4" disabled={isLoading} />
             <Label htmlFor="isFumo" className="cursor-pointer">Marcar como "Fumo" (Não deu ROI)</Label>
