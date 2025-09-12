@@ -83,14 +83,16 @@ export function LoginForm() {
           </div>
         </CardContent>
         <CardFooter className="flex flex-col items-stretch gap-4">
-          <Button
+          <div className="relative group w-full">
+            <div className="absolute -inset-0.5 bg-gradient-to-r from-[#fbda25] to-[#a98900] rounded-lg blur-sm opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
+            <Button
               type="submit"
-              variant="gold"
+              className="relative w-full bg-gradient-to-r from-[#fbda25] to-[#a98900] text-black hover:bg-gradient-to-r hover:from-[#fbda25] hover:to-[#a98900]"
               disabled={isLoading}
-              className="w-full"
             >
               {isLoading ? "Entrando..." : "Entrar"}
             </Button>
+          </div>
           <div className="text-center text-sm">
             Não tem uma conta?{" "}
             <Link href="/signup" className="underline">

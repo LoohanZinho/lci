@@ -108,9 +108,12 @@ export default function ProfilePage() {
                             </div>
                             {error && <p className="text-sm text-destructive">{error}</p>}
                             {successMessage && <p className="text-sm text-green-600">{successMessage}</p>}
-                            <Button type="submit" variant="gold" className="w-full" disabled={isLoading}>
-                               {isLoading ? 'Salvando...' : 'Salvar Alterações'}
-                            </Button>
+                            <div className="relative group w-full">
+                                <div className="absolute -inset-0.5 bg-gradient-to-r from-[#fbda25] to-[#a98900] rounded-lg blur-sm opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
+                                <Button type="submit" className="relative w-full bg-gradient-to-r from-[#fbda25] to-[#a98900] text-black" disabled={isLoading}>
+                                    {isLoading ? 'Salvando...' : 'Salvar Alterações'}
+                                </Button>
+                            </div>
                         </form>
                          <div className="space-y-4">
                             <Button variant="destructive" className="w-full" onClick={() => router.push('/logout')}>

@@ -200,7 +200,10 @@ export default function HomePage() {
           <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4 mb-6">
             <div className="flex-1">
               <h2 className="text-2xl font-bold">
-                {greeting}, <span className="text-transparent bg-clip-text bg-gradient-to-r from-gold-start to-gold-end">{user.displayName || user.email}!</span>
+                {greeting}, <div className="relative inline-block">
+                  <span className="relative z-10 text-transparent bg-clip-text bg-gradient-to-r from-[#fbda25] to-[#a98900]">{user.displayName || user.email}!</span>
+                  <div className="absolute inset-0 z-0 bg-gradient-to-r from-[#fbda25]/30 to-[#a98900]/30 blur-lg" />
+                </div>
               </h2>
               <p className="text-muted-foreground">
                 Encontre, gerencie e adicione novos influenciadores ao seu mural.
@@ -301,10 +304,13 @@ export default function HomePage() {
                 <div className="w-full md:w-auto md:ml-auto">
                     <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
                       <DialogTrigger asChild>
-                        <Button variant="gold" className="shrink-0 w-full md:w-auto">
-                          <PlusCircle className="mr-2 h-4 w-4" />
-                          Nova Postagem
-                        </Button>
+                         <div className="relative group w-full md:w-auto">
+                            <div className="absolute -inset-0.5 bg-gradient-to-r from-[#fbda25] to-[#a98900] rounded-lg blur-sm opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
+                            <Button className="relative shrink-0 w-full md:w-auto bg-gradient-to-r from-[#fbda25] to-[#a98900] text-black">
+                                <PlusCircle className="mr-2 h-4 w-4" />
+                                Nova Postagem
+                            </Button>
+                        </div>
                       </DialogTrigger>
                       <DialogContent>
                         <DialogHeader>

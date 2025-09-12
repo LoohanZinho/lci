@@ -425,9 +425,12 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
         </div>
         <div className="flex justify-end space-x-2 pt-6">
            <Button type="button" variant="ghost" onClick={handleCancel} disabled={isLoading}>Cancelar</Button>
-          <Button type="submit" variant="gold" disabled={isLoading}>
-            {isLoading ? (uploadProgress !== null ? 'Enviando...' : (isEditMode ? 'Salvando...' : 'Adicionando...')) : (isEditMode ? 'Salvar Alterações' : 'Adicionar')}
-          </Button>
+            <div className="relative group">
+                <div className="absolute -inset-0.5 bg-gradient-to-r from-[#fbda25] to-[#a98900] rounded-lg blur-sm opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
+                <Button type="submit" className="relative bg-gradient-to-r from-[#fbda25] to-[#a98900] text-black" disabled={isLoading}>
+                    {isLoading ? (uploadProgress !== null ? 'Enviando...' : (isEditMode ? 'Salvando...' : 'Adicionando...')) : (isEditMode ? 'Salvar Alterações' : 'Adicionar')}
+                </Button>
+            </div>
         </div>
       </form>
     </div>
