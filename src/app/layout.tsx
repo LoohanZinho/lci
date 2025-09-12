@@ -12,10 +12,10 @@ const fontSans = FontSans({
 
 export const metadata: Metadata = {
   title: {
-    template: "%s | LCI: Mural de Influência",
-    default: "LCI: Mural de Influência",
+    template: "%s | Mural dos influenciadores",
+    default: "Mural dos influenciadores",
   },
-  description: "Gerencie, descubra e analise seus influenciadores em um só lugar. Otimize suas campanhas e impulsione seus resultados com o Mural de Influência LCI.",
+  description: "Gerencie, descubra e analise seus influenciadores em um só lugar. Otimize suas campanhas e impulsione seus resultados com o Mural de Influência.",
 };
 
 export default function RootLayout({
