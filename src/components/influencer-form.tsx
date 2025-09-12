@@ -96,7 +96,7 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
         name: influencer.name,
         instagram: influencer.instagram.startsWith('@') ? influencer.instagram.substring(1) : influencer.instagram,
         followers: formatFollowers(influencer.followers.toString()),
-        status: influencer.status || 'Desconhecido',
+        status: influencer.status, // Correctly load the existing status
         niche: influencer.niche,
         notes: influencer.notes,
         isFumo: influencer.isFumo,
@@ -436,5 +436,7 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
     </div>
   );
 }
+
+    
 
     

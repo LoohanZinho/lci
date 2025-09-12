@@ -222,7 +222,7 @@ export const getInfluencers = (
     const unsubscribe = onSnapshot(q, async (querySnapshot) => {
       const influencers: Influencer[] = [];
       querySnapshot.forEach((doc) => {
-        influencers.push({ id: doc.id, ...doc.data() } as Influencer);
+        influencers.push({ id: doc.id, ...doc.data(), status: doc.data().status || 'Desconhecido' } as Influencer);
       });
       
       const uids = influencers.flatMap(i => [i.addedBy, ...(i.editors || []).map(e => e.userId)]).filter(Boolean);
@@ -265,5 +265,7 @@ export const deleteInfluencer = async (id: string) => {
     throw error;
   }
 };
+
+    
 
     
