@@ -51,6 +51,10 @@ export function ImageViewer({ images, startIndex, onClose }: { images: string[],
     if (e.key === 'ArrowRight') goToNext(e as any);
     if (e.key === 'Escape') onClose();
   }
+  
+  const handleClose = () => {
+    onClose();
+  };
 
   useEffect(() => {
     document.addEventListener('keydown', handleKeyDown);
@@ -63,14 +67,14 @@ export function ImageViewer({ images, startIndex, onClose }: { images: string[],
   return (
     <div 
       className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm transition-opacity duration-300 animate-in fade-in" 
-      onClick={onClose}
+      onClick={handleClose}
     >
         {/* Close Button */}
         <Button 
             variant="ghost" 
             size="icon" 
             className="absolute top-4 right-4 text-white h-10 w-10 rounded-full bg-black/50 hover:bg-black/70 hover:text-white z-10" 
-            onClick={onClose}
+            onClick={handleClose}
         >
             <X className="h-6 w-6" />
             <span className="sr-only">Fechar</span>
@@ -192,22 +196,6 @@ export function ViewInfluencerDialog({
                                     </p>
                                 </div>
                             </div>
-                        ))}
-                    </div>
-                </div>
-             )}
-
-             {influencer.proofImageUrls && influencer.proofImageUrls.length > 0 && (
-                <div className="py-3 border-b border-border/50">
-                    <span className="font-semibold text-muted-foreground mb-2 block">Provas</span>
-                    <div className="grid grid-cols-2 gap-2">
-                        {influencer.proofImageUrls.map((url, index) => (
-                             <button key={index} onClick={() => onOpenImageViewer(index)} className="relative w-full aspect-square rounded-md overflow-hidden group border">
-                                <Image src={url} alt={`Prova ${index + 1} para ${influencer.name}`} fill style={{ objectFit: 'cover' }} />
-                                <div className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                  <Eye className="h-6 w-6 text-white" />
-                                </div>
-                            </button>
                         ))}
                     </div>
                 </div>
