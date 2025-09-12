@@ -275,10 +275,10 @@ export default function HomePage() {
                   </Select>
                 </div>
                 <div className="flex-1 basis-1/3 md:flex-initial">
-                  <Label htmlFor="sort-direction" className="text-xs text-muted-foreground">Direção</Label>
+                  <Label htmlFor="sort-direction" className="text-xs text-muted-foreground">Ordem</Label>
                   <Select value={sortDirection} onValueChange={(v) => setSortDirection(v as "asc" | "desc")}>
                     <SelectTrigger id="sort-direction" className="w-full">
-                      <SelectValue placeholder="Direção" />
+                      <SelectValue placeholder="Ordem" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="desc">Decrescente</SelectItem>
