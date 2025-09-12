@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 
 export default function ProfilePage() {
-  const { user, userProfile, logout, updateUserProfile } = useAuth();
+  const { user, userProfile, updateUserProfile } = useAuth();
   const router = useRouter();
   const { theme, setTheme } = useTheme();
   
@@ -113,7 +113,7 @@ export default function ProfilePage() {
                             </Button>
                         </form>
                          <div className="space-y-4">
-                            <Button variant="destructive" className="w-full" onClick={logout}>
+                            <Button variant="destructive" className="w-full" onClick={() => router.push('/logout')}>
                                 Sair da Conta
                             </Button>
                         </div>
@@ -124,3 +124,5 @@ export default function ProfilePage() {
     </div>
   );
 }
+
+    

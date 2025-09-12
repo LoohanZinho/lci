@@ -44,7 +44,7 @@ import Image from "next/image";
 
 
 export default function HomePage() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const [greeting, setGreeting] = useState("Olá");
   const [searchQuery, setSearchQuery] = useState("");
   const { theme, setTheme } = useTheme();
@@ -185,9 +185,11 @@ export default function HomePage() {
                   <span>Perfil</span>
                 </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={logout}>
-                <LogOut className="mr-2 h-4 w-4" />
-                <span>Sair</span>
+              <DropdownMenuItem asChild>
+                <Link href="/logout">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Sair</span>
+                </Link>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -344,5 +346,7 @@ export default function HomePage() {
     </div>
   );
 }
+
+    
 
     

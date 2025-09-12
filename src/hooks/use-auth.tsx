@@ -87,11 +87,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (loading) return;
-    const isAuthPage = pathname === "/login" || pathname === "/signup";
+    const isAuthPage = pathname === "/login" || pathname === "/signup" || pathname === '/logout';
 
     if (!user && !isAuthPage) {
       router.push("/login");
-    } else if (user && isAuthPage) {
+    } else if (user && (pathname === "/login" || pathname === "/signup")) {
       router.push("/");
     }
   }, [user, loading, pathname, router]);
@@ -157,7 +157,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider value={value}>
-      {loading ? <LoadingSpinner /> : children}
+      {loading && pathname !== '/logout' ? <LoadingSpinner /> : children}
     </AuthContext.Provider>
   );
 }
@@ -169,3 +169,5 @@ export function useAuth() {
   }
   return context;
 }
+
+    
