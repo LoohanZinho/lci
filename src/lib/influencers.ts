@@ -78,6 +78,7 @@ export const addInfluencer = async (influencer: Omit<NewInfluencer, 'lastUpdate'
   try {
     const dataToAdd = {
       ...influencer,
+      status: influencer.status || 'Desconhecido',
       proofImageUrls: influencer.proofImageUrls || [],
       products: influencer.products || [],
       editors: [], // Start with an empty array of EditorInfo
@@ -264,5 +265,3 @@ export const deleteInfluencer = async (id: string) => {
     throw error;
   }
 };
-
-    

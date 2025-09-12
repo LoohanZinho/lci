@@ -96,7 +96,7 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
         name: influencer.name,
         instagram: influencer.instagram.startsWith('@') ? influencer.instagram.substring(1) : influencer.instagram,
         followers: formatFollowers(influencer.followers.toString()),
-        status: influencer.status,
+        status: influencer.status || "Desconhecido",
         niche: influencer.niche,
         notes: influencer.notes,
         isFumo: influencer.isFumo,
@@ -353,7 +353,7 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
           </div>
           <div className="flex flex-col space-y-1.5">
             <Label htmlFor="status">Status</Label>
-            <Select value={formData.status} onValueChange={handleSelectChange} disabled={isLoading}>
+            <Select value={formData.status} onValueChange={handleSelectChange} disabled={isLoading} required>
               <SelectTrigger id="status"><SelectValue placeholder="Selecione o status" /></SelectTrigger>
               <SelectContent position="popper">
                 <SelectItem value="Desconhecido">Desconhecido (Ninguém fechou)</SelectItem>
