@@ -17,30 +17,19 @@ const firebaseConfig = {
   "messagingSenderId": "315068066482"
 };
 
-// Check if the environment variable for service account is available
-const hasServiceAccount = !!process.env.FIREBASE_SERVICE_ACCOUNT;
-
+// Check if the app is already initialized to prevent errors
 if (!admin.apps.length) {
   try {
-    if (hasServiceAccount) {
-      // Production environment: Use service account credentials from environment variable
-      const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT!);
-      admin.initializeApp({
-        credential: admin.credential.cert(serviceAccount),
-        storageBucket: firebaseConfig.storageBucket,
-      });
-      console.log("Firebase Admin SDK inicializado com Service Account.");
-    } else {
-      // Development environment: Use Application Default Credentials
-      admin.initializeApp({
-        storageBucket: firebaseConfig.storageBucket,
-      });
-      console.log("Firebase Admin SDK inicializado com Application Default Credentials (dev).");
-    }
+    // When deployed to App Hosting, GOOGLE_APPLICATION_CREDENTIALS is set automatically.
+    // Locally, you'd need to set this env var to point to your service account key file.
+    admin.initializeApp({
+      storageBucket: firebaseConfig.storageBucket,
+    });
+    console.log("Firebase Admin SDK inicializado com sucesso.");
   } catch (error: any) {
     console.error("Erro ao inicializar o Firebase Admin SDK:", error.message);
-    // Em um ambiente de desenvolvimento sem credenciais, isso pode falhar.
-    // A aplicação deve lidar com isso graciosamente.
+    // This will cause subsequent operations to fail, which is expected
+    // if the environment is not configured correctly.
   }
 }
 
@@ -48,7 +37,6 @@ let auth: Auth;
 let db: Firestore;
 let storage: Storage;
 
-// Ensure services are exported, even if initialization failed, to prevent app crashes on import.
 try {
   auth = admin.auth();
   db = admin.firestore();
