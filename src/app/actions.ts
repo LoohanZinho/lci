@@ -72,15 +72,18 @@ export async function getInstagramProfilePic(username: string): Promise<ProfileP
       headers: {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0 Safari/537.36",
       },
-      next: {
-        revalidate: 60 * 60 * 24 // Cache por 24 horas
-      }
+      // Desativando o cache para depuração
+      cache: 'no-store',
     });
 
     if (!response.ok) {
+       console.error(`Instagram API Error: Status ${response.status} ${response.statusText}`);
        if (response.status === 404) {
          return { error: "Perfil não encontrado." };
        }
+       // Tenta ler a resposta para mais detalhes, se houver
+       const errorBody = await response.text();
+       console.error("Instagram API Response Body:", errorBody);
        throw new Error(`Instagram API retornou status ${response.status}`);
     }
 
