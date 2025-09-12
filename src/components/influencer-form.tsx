@@ -97,7 +97,7 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
         name: influencer.name,
         instagram: influencer.instagram.startsWith('@') ? influencer.instagram.substring(1) : influencer.instagram,
         followers: formatFollowers(influencer.followers.toString()),
-        status: influencer.status || "Desconhecido",
+        status: influencer.status,
         niche: influencer.niche,
         notes: influencer.notes,
         isFumo: influencer.isFumo,
@@ -244,7 +244,7 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
             const result = await uploadFile(uploadFormData);
             
             if (result.error) {
-              throw new Error(`Falha no upload de "${file.name}". Causa: ${result.error}`);
+              throw new Error(`Falha no upload. Causa: ${result.error}`);
             }
             if (result.downloadURL) {
               uploadedUrls.push(result.downloadURL);
