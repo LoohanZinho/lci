@@ -11,7 +11,10 @@ const fontSans = FontSans({
 });
 
 export const metadata: Metadata = {
-  title: "LCI: Mural de Influência",
+  title: {
+    template: "%s | LCI: Mural de Influência",
+    default: "LCI: Mural de Influência",
+  },
   description: "Mural de Influência do projeto Lucrando com Influenciadores (LCI).",
 };
 
