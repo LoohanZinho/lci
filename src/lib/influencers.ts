@@ -18,9 +18,18 @@ import {
 import { db } from "./firebase";
 import { deleteProofImageByUrl } from "./storage";
 
+export type UpdatableInfluencerData = Partial<Omit<NewInfluencer, 'addedBy' | 'lastUpdate' | 'editors'>>
+
+export interface ChangeDetail {
+  field: string;
+  oldValue: any;
+  newValue: any;
+}
+
 export interface EditorInfo {
   userId: string;
   timestamp: Timestamp;
+  changes: ChangeDetail[];
 }
 
 export interface ProductPublication {
@@ -56,9 +65,7 @@ export interface UserData {
   isAnonymous: boolean;
 }
 
-export interface EditorData extends UserData {
-  timestamp: Timestamp;
-}
+export interface EditorData extends UserData, Omit<EditorInfo, 'userId'> {}
 
 
 export interface InfluencerWithUserData extends Influencer {
@@ -84,14 +91,58 @@ export const addInfluencer = async (influencer: Omit<NewInfluencer, 'lastUpdate'
   }
 };
 
-export type UpdatableInfluencerData = Partial<Omit<NewInfluencer, 'addedBy' | 'lastUpdate' | 'editors'>>
+
+const fieldLabels: { [key: string]: string } = {
+    name: "Nome",
+    instagram: "Instagram",
+    followers: "Seguidores",
+    status: "Status",
+    niche: "Nicho",
+    contact: "Contato",
+    notes: "Observações",
+    isFumo: '"Fumo"',
+    proofImageUrls: "Imagens de Prova",
+    products: "Produtos",
+    lossReason: "Motivo Prejuízo",
+};
+
+const formatValue = (field: string, value: any): string => {
+    if (value === undefined || value === null) return "Não definido";
+    if (typeof value === 'boolean') return value ? "Sim" : "Não";
+    if (field === 'followers') return new Intl.NumberFormat('pt-BR').format(value);
+    if (Array.isArray(value) && (field === 'proofImageUrls' || field === 'products')) return `${value.length} item(ns)`;
+    if (value instanceof Timestamp) return value.toDate().toLocaleString('pt-BR');
+    if (typeof value === 'object' && value !== null) return JSON.stringify(value);
+    return String(value);
+}
+
 
 export const updateInfluencer = async (id: string, userId: string, data: UpdatableInfluencerData) => {
   try {
     const docRef = doc(db, "influencers", id);
+    const docSnap = await getDoc(docRef);
+
+    if (!docSnap.exists()) {
+        throw new Error("Document not found!");
+    }
+    const currentData = docSnap.data() as Influencer;
+
+    const changes: ChangeDetail[] = Object.keys(data).map(key => {
+        const oldValue = currentData[key as keyof Influencer];
+        const newValue = data[key as keyof UpdatableInfluencerData];
+
+        return {
+            field: fieldLabels[key] || key,
+            oldValue: formatValue(key, oldValue),
+            newValue: formatValue(key, newValue),
+        }
+    }).filter(change => change.oldValue !== change.newValue);
+
+
     const newEditorInfo: EditorInfo = {
         userId: userId,
         timestamp: Timestamp.now(),
+        changes: changes,
     };
     
     const updateData: any = {
@@ -104,7 +155,6 @@ export const updateInfluencer = async (id: string, userId: string, data: Updatab
       updateData.products = data.products;
     }
     
-    // Explicitly handle setting lossReason to null or an empty string if status changes
     if (data.status !== 'Prejuízo') {
       updateData.lossReason = "";
     }
@@ -123,7 +173,6 @@ const fetchUsersData = async (uids: string[]): Promise<Record<string, UserData>>
   if (uids.length === 0) return {};
   const uniqueUids = [...new Set(uids)];
   
-  // Firestore 'in' query is limited to 30 elements. We need to batch the requests.
   const batches: Promise<any>[] = [];
   for (let i = 0; i < uniqueUids.length; i += 30) {
       const batchUids = uniqueUids.slice(i, i + 30);
@@ -150,7 +199,6 @@ const fetchUsersData = async (uids: string[]): Promise<Record<string, UserData>>
   }
 };
 
-// This is a temporary workaround until 'in' queries are fully supported in onSnapshot listeners for this use case.
 const { where } = require("firebase/firestore");
 
 export const getInfluencers = (
@@ -174,7 +222,8 @@ export const getInfluencers = (
         addedByData: usersData[influencer.addedBy],
         editorsData: (influencer.editors || []).map(editorInfo => {
             const userData = usersData[editorInfo.userId];
-            return userData ? { ...userData, timestamp: editorInfo.timestamp } : null;
+            const { userId, ...restOfEditorInfo } = editorInfo;
+            return userData ? { ...userData, ...restOfEditorInfo } : null;
         }).filter(Boolean) as EditorData[]
       }));
 
@@ -194,7 +243,6 @@ export const deleteInfluencer = async (id: string) => {
     }
     const influencerData = influencerDoc.data() as Influencer;
 
-    // Delete proof images from storage if they exist
     if (influencerData.proofImageUrls && influencerData.proofImageUrls.length > 0) {
       await Promise.all(influencerData.proofImageUrls.map(url => deleteProofImageByUrl(url)));
     }

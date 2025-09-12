@@ -7,12 +7,15 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { InfluencerWithUserData } from "@/lib/influencers";
+import { EditorData, InfluencerWithUserData } from "@/lib/influencers";
 import { Badge } from "./ui/badge";
-import { Flame, UserCircle, Edit, ShieldAlert, Package, Calendar } from "lucide-react";
+import { Flame, UserCircle, Edit, ShieldAlert, Package, Calendar, Eye } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import Image from "next/image";
 import { getInfluencerClassification, getClassificationBadgeClass } from "@/lib/classification";
+import { useState } from "react";
+import { ViewChangesDialog } from "./view-changes-dialog";
+import { Button } from "./ui/button";
 
 interface ViewInfluencerDialogProps {
   influencer: InfluencerWithUserData;
@@ -34,6 +37,8 @@ export function ViewInfluencerDialog({
   onClose,
 }: ViewInfluencerDialogProps) {
   const { user, isAdmin } = useAuth();
+  const [selectedEdit, setSelectedEdit] = useState<EditorData | null>(null);
+
   
   const classification = getInfluencerClassification(influencer.followers);
 
@@ -50,6 +55,7 @@ export function ViewInfluencerDialog({
   const posterIsAnonymous = influencer.addedByData?.isAnonymous;
 
   return (
+    <>
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-md max-h-[85vh] overflow-y-auto">
         <DialogHeader>
@@ -103,7 +109,7 @@ export function ViewInfluencerDialog({
              {influencer.proofImageUrls && influencer.proofImageUrls.length > 0 && (
                 <div className="py-3 border-b border-border/50">
                     <span className="font-semibold text-muted-foreground mb-2 block">Provas</span>
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className="grid grid-cols-2 gap-2">
                         {influencer.proofImageUrls.map((url, index) => (
                              <a key={index} href={url} target="_blank" rel="noopener noreferrer" className="relative w-full aspect-square rounded-md overflow-hidden group">
                                 <Image src={url} alt={`Prova ${index + 1} para ${influencer.name}`} fill style={{ objectFit: 'cover' }} />
@@ -144,16 +150,15 @@ export function ViewInfluencerDialog({
                       </div>
                   </div>
                   {influencer.editorsData && influencer.editorsData
-                    .filter(editor => !editor.isAnonymous || isAdmin)
                     .map((editor, index) => {
                       const editorName = (editor.isAnonymous && !isAdmin) ? "Anônimo" : editor.name;
 
                       return (
-                      <div key={index} className="flex items-start gap-3">
+                      <div key={index} className="flex items-start gap-4">
                           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-secondary text-secondary-foreground">
                             <Edit className="h-4 w-4" />
                           </div>
-                          <div>
+                          <div className="flex-1">
                               <p className="font-medium">
                                 Editado por {editorName}
                               </p>
@@ -172,6 +177,11 @@ export function ViewInfluencerDialog({
                                 em {editor.timestamp?.toDate().toLocaleString("pt-BR", { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) || 'N/A'}
                               </p>
                           </div>
+                          {editor.changes?.length > 0 && (
+                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setSelectedEdit(editor)}>
+                                <Eye className="h-4 w-4" />
+                            </Button>
+                          )}
                       </div>
                       )
                     })}
@@ -185,5 +195,14 @@ export function ViewInfluencerDialog({
         </div>
       </DialogContent>
     </Dialog>
+
+     {selectedEdit && (
+        <ViewChangesDialog
+            isOpen={!!selectedEdit}
+            onClose={() => setSelectedEdit(null)}
+            editor={selectedEdit}
+        />
+     )}
+     </>
   );
 }
