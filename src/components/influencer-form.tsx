@@ -144,8 +144,7 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
     setUploadMessage("Deletando imagem...");
 
     try {
-        const imageRef = ref(storage, urlToRemove);
-        await deleteObject(imageRef);
+        await deleteProofImageAction(urlToRemove);
         
         setFormData(prev => ({
             ...prev,
@@ -153,16 +152,8 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
         }));
 
     } catch (e: any) {
-        // Se a imagem não for encontrada no storage, apenas remove da lista.
-        if (e.code === 'storage/object-not-found') {
-             setFormData(prev => ({
-                ...prev,
-                proofImageUrls: prev.proofImageUrls.filter((_, i) => i !== indexToRemove)
-            }));
-        } else {
-            console.error("Erro ao deletar imagem", e);
-            setError(`Falha ao deletar imagem. ${e.message}`);
-        }
+        console.error("Erro ao deletar imagem", e);
+        setError(`Falha ao deletar imagem. ${e.message}`);
     } finally {
         setIsLoading(false);
         setUploadMessage("");
