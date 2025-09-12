@@ -11,9 +11,12 @@ export default function NotFound() {
         <p className="text-muted-foreground max-w-md">
           Oops! A página que você está procurando não existe ou foi movida para outro local.
         </p>
-        <Button asChild className="mt-4" variant="gold">
-          <Link href="/">Voltar para a Página Inicial</Link>
-        </Button>
+         <div className="relative group mt-4">
+            <div className="absolute -inset-0.5 bg-gradient-to-r from-[#fbda25] to-[#a98900] rounded-lg blur-sm opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
+            <Button asChild className="relative bg-gradient-to-r from-[#fbda25] to-[#d3ab00] text-black">
+                <Link href="/">Voltar para a Página Inicial</Link>
+            </Button>
+        </div>
       </div>
     </div>
   );
