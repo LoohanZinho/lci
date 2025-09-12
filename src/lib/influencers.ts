@@ -265,7 +265,3 @@ export const deleteInfluencer = async (id: string) => {
     throw error;
   }
 };
-
-    
-
-    
