@@ -86,7 +86,7 @@ export function LoginForm() {
           <Button
             type="submit"
             disabled={isLoading}
-            className="bg-gradient-to-r from-primary to-amber-400 text-primary-foreground hover:from-primary/90 hover:to-amber-400/90"
+            className="bg-gradient-to-r from-amber-400 to-primary text-primary-foreground hover:from-amber-400/90 hover:to-primary/90"
           >
             {isLoading ? "Entrando..." : "Entrar"}
           </Button>
