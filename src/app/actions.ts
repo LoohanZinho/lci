@@ -55,3 +55,46 @@ export async function uploadFile(
     return { error: error.message || "Ocorreu um erro desconhecido no servidor." };
   }
 }
+
+interface ProfilePicResult {
+  profilePicUrl?: string;
+  error?: string;
+}
+
+export async function getInstagramProfilePic(username: string): Promise<ProfilePicResult> {
+  if (!username) {
+    return { error: "Nome de usuário não fornecido." };
+  }
+  
+  try {
+    const url = `https://www.instagram.com/${username}/?__a=1&__d=dis`;
+    const response = await fetch(url, {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0 Safari/537.36",
+      },
+      next: {
+        revalidate: 60 * 60 * 24 // Cache por 24 horas
+      }
+    });
+
+    if (!response.ok) {
+       if (response.status === 404) {
+         return { error: "Perfil não encontrado." };
+       }
+       throw new Error(`Instagram API retornou status ${response.status}`);
+    }
+
+    const data = await response.json();
+    
+    const profilePicUrl = data?.graphql?.user?.profile_pic_url_hd || data?.graphql?.user?.profile_pic_url;
+
+    if (profilePicUrl) {
+      return { profilePicUrl };
+    } else {
+      return { error: "Não foi possível encontrar a foto de perfil na resposta." };
+    }
+  } catch (error: any) {
+    console.error("❌ Erro ao buscar perfil do Instagram:", error.message);
+    return { error: "Falha ao buscar perfil. O perfil pode ser privado ou não existir." };
+  }
+}

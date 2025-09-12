@@ -1,32 +1,90 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useTransition } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { getInstagramProfilePic } from "@/app/actions";
+import Image from "next/image";
+import { UserCircle, Search, Loader2 } from "lucide-react";
 
 export default function TestesPage() {
-  const [instagram, setInstagram] = useState("");
+  const [username, setUsername] = useState("");
+  const [profilePic, setProfilePic] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      if (username) {
+        startTransition(async () => {
+          setError(null);
+          setProfilePic(null);
+          const result = await getInstagramProfilePic(username);
+          if (result.profilePicUrl) {
+            setProfilePic(result.profilePicUrl);
+          } else {
+            setError(result.error || "Ocorreu um erro desconhecido.");
+            setProfilePic(null);
+          }
+        });
+      } else {
+        setProfilePic(null);
+        setError(null);
+      }
+    }, 500); // Adiciona um debounce de 500ms
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [username]);
 
   return (
     <div className="p-8">
       <h1 className="text-2xl font-bold mb-4">Página de Testes</h1>
-      <p className="mb-6">Esta página está pronta para seus testes.</p>
+      <p className="mb-6">Busque por um perfil do Instagram e veja a foto.</p>
       
-      <div className="max-w-sm space-y-2">
-        <Label htmlFor="instagram-test">Instagram</Label>
-        <div className="flex h-10 w-full items-center rounded-md border border-input bg-transparent px-3 text-sm ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
-            <span className="text-muted-foreground">@</span>
-            <Input 
-                id="instagram-test" 
-                placeholder="username" 
-                value={instagram} 
-                onChange={(e) => setInstagram(e.target.value.replace(/@/g, ''))} 
-                className="border-0 bg-transparent p-0 pl-1 focus-visible:ring-0 focus-visible:ring-offset-0" 
-            />
+      <div className="max-w-sm space-y-4">
+        <div>
+            <Label htmlFor="instagram-test">Instagram</Label>
+            <div className="relative mt-1">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">@</span>
+                <Input 
+                    id="instagram-test" 
+                    placeholder="username" 
+                    value={username} 
+                    onChange={(e) => setUsername(e.target.value.replace(/@/g, ''))} 
+                    className="pl-7" 
+                />
+            </div>
         </div>
-        <p className="text-sm text-muted-foreground">
-            Valor atual: @{instagram}
-        </p>
+        
+        <div className="mt-4 flex items-center justify-center w-full h-48 bg-muted/50 rounded-lg border-2 border-dashed">
+            {isPending && <Loader2 className="h-8 w-8 text-primary animate-spin" />}
+
+            {!isPending && error && (
+                <div className="text-center text-destructive px-4">
+                    <p className="font-semibold">Oops!</p>
+                    <p className="text-sm">{error}</p>
+                </div>
+            )}
+
+            {!isPending && profilePic && (
+                <Image
+                    src={profilePic}
+                    alt={`Foto de perfil de @${username}`}
+                    width={150}
+                    height={150}
+                    className="rounded-full object-cover border-4 border-background shadow-md"
+                />
+            )}
+            
+            {!isPending && !profilePic && !error && (
+                <div className="text-center text-muted-foreground">
+                    <Search className="h-10 w-10 mx-auto mb-2"/>
+                    <p>Digite um nome de usuário para buscar.</p>
+                </div>
+            )}
+        </div>
       </div>
     </div>
   );
