@@ -83,7 +83,11 @@ export function LoginForm() {
           </div>
         </CardContent>
         <CardFooter className="flex flex-col items-stretch gap-4">
-          <Button type="submit" disabled={isLoading}>
+          <Button
+            type="submit"
+            disabled={isLoading}
+            className="bg-gradient-to-r from-primary to-amber-400 text-primary-foreground hover:from-primary/90 hover:to-amber-400/90"
+          >
             {isLoading ? "Entrando..." : "Entrar"}
           </Button>
           <div className="text-center text-sm">
