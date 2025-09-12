@@ -3,7 +3,7 @@
 import { InfluencerForm } from "@/components/influencer-form";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
-import { PlusCircle, Sun, Moon, Search, User as UserIcon, LogOut, BarChart3 } from "lucide-react";
+import { PlusCircle, Sun, Moon, Search, User as UserIcon, LogOut } from "lucide-react";
 import { InfluencerTable } from "@/components/influencer-table";
 import {
   Dialog,
@@ -40,6 +40,7 @@ import {
 import Link from "next/link";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import Image from "next/image";
 
 
 export default function HomePage() {
@@ -144,12 +145,13 @@ export default function HomePage() {
     <div className="flex flex-col min-h-screen">
       <header className="flex items-center justify-between p-4 border-b bg-background">
         <div className="flex items-center space-x-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground">
-            <BarChart3 className="h-5 w-5" />
-          </div>
-          <h1 className="text-xl font-semibold">
-            <span className="font-light">LCI:</span> Mural de Influência
-          </h1>
+            <Image
+                src="https://i.imgur.com/DkRNtRL.png"
+                alt="LCI: Mural de Influência Logo"
+                width={150}
+                height={45}
+                priority
+            />
         </div>
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={toggleTheme}>
