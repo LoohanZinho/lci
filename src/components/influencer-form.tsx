@@ -370,8 +370,8 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
                   {formData.proofImageUrls.map(url => (
                     <div key={url} className="relative group aspect-square rounded-md overflow-hidden border">
                       <Image src={url} alt="Prova existente" fill className="object-cover" />
-                      <div className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                         <Button variant="destructive" size="icon" className="h-8 w-8" onClick={() => removeExistingImage(url)} disabled={isLoading}>
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
+                         <Button variant="destructive" size="icon" className="absolute top-1 right-1 h-7 w-7" onClick={() => removeExistingImage(url)} disabled={isLoading}>
                             <Trash2 className="h-4 w-4" />
                          </Button>
                       </div>
@@ -381,9 +381,9 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
                   {filesToUpload.map((fileObj, index) => (
                      <div key={index} className="relative group aspect-square rounded-md overflow-hidden border">
                        <Image src={URL.createObjectURL(fileObj.file)} alt="Nova prova" fill className="object-cover" />
-                       <div className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                         <Button variant="destructive" size="icon" className="h-8 w-8" onClick={() => removeNewFile(index)} disabled={isLoading}>
-                            <X className="h-5 w-5" />
+                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
+                         <Button variant="destructive" size="icon" className="absolute top-1 right-1 h-7 w-7" onClick={() => removeNewFile(index)} disabled={isLoading}>
+                            <X className="h-4 w-4" />
                          </Button>
                       </div>
                     </div>
