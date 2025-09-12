@@ -25,7 +25,7 @@ interface ViewInfluencerDialogProps {
   onOpenImageViewer: (images: string[], index: number) => void;
 }
 
-const DetailRow = ({ label, value }: { label: string, value: React.reactNode }) => (
+const DetailRow = ({ label, value }: { label: string, value: React.ReactNode }) => (
     <div className="grid grid-cols-3 items-start gap-4 py-3 border-b border-border/50">
         <span className="font-semibold text-muted-foreground">{label}</span>
         <div className="col-span-2 text-foreground">{value}</div>
