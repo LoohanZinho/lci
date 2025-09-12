@@ -36,7 +36,6 @@ interface FormData {
   followers: string;
   status: string;
   niche: string;
-  contact: string;
   notes: string;
   isFumo: boolean;
   proofImageUrls: string[];
@@ -51,7 +50,6 @@ const initialState: FormData = {
   followers: "",
   status: "Disponível",
   niche: "",
-  contact: "",
   notes: "",
   isFumo: false,
   proofImageUrls: [],
@@ -97,7 +95,6 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
         followers: formatFollowers(influencer.followers.toString()),
         status: influencer.status,
         niche: influencer.niche,
-        contact: influencer.contact,
         notes: influencer.notes,
         isFumo: influencer.isFumo,
         proofImageUrls: influencer.proofImageUrls || [],
@@ -260,7 +257,6 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
             followers: parseInt(unformatFollowers(formData.followers), 10),
             status: formData.status,
             niche: formData.niche,
-            contact: formData.contact,
             notes: formData.notes,
             isFumo: formData.isFumo,
             proofImageUrls: finalImageUrls,
@@ -371,10 +367,6 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
                 <Textarea id="lossReason" placeholder="Ex: Engajamento baixo, não converteu em vendas..." value={formData.lossReason} onChange={handleChange} disabled={isLoading} />
             </div>
           )}
-           <div className="flex flex-col space-y-1.5">
-            <Label htmlFor="contact">Contato Preferencial (opcional)</Label>
-            <Input id="contact" placeholder="Email ou WhatsApp" value={formData.contact} onChange={handleChange} disabled={isLoading} />
-          </div>
           <div className="flex flex-col space-y-1.5">
             <Label htmlFor="notes">Observações/Situação</Label>
             <Textarea id="notes" placeholder="Responde rápido, cobra valor fixo..." value={formData.notes} onChange={handleChange} disabled={isLoading} />
@@ -433,4 +425,5 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
   );
 }
 
+    
     

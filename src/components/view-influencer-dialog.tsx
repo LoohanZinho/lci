@@ -81,7 +81,6 @@ export function ViewInfluencerDialog({
                 <p className="whitespace-pre-wrap">{influencer.lossReason}</p>
               } />
             )}
-            <DetailRow label="Contato" value={influencer.contact || 'Não informado'} />
             <DetailRow label="Observações" value={
                 <p className="whitespace-pre-wrap">{influencer.notes || 'Nenhuma observação.'}</p>
             } />
@@ -206,3 +205,5 @@ export function ViewInfluencerDialog({
      </>
   );
 }
+
+    

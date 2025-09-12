@@ -43,7 +43,6 @@ export interface NewInfluencer {
     followers: number;
     status: string;
     niche: string;
-    contact: string;
     notes: string;
     isFumo: boolean;
     lastUpdate: Date;
@@ -98,7 +97,6 @@ const fieldLabels: { [key: string]: string } = {
     followers: "Seguidores",
     status: "Status",
     niche: "Nicho",
-    contact: "Contato",
     notes: "Observações",
     isFumo: '"Fumo"',
     proofImageUrls: "Imagens de Prova",
@@ -254,3 +252,5 @@ export const deleteInfluencer = async (id: string) => {
     throw error;
   }
 };
+
+    
