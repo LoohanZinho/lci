@@ -15,13 +15,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { addInfluencer, NewInfluencer, Influencer, updateInfluencer, UpdatableInfluencerData, ProductPublication } from "@/lib/influencers";
 import { useAuth } from "@/hooks/use-auth";
 import { useState, FormEvent, useEffect, useRef } from "react";
-import { Progress } from "@/components/ui/progress";
-import { AlertCircle, Trash2, UploadCloud, PlusCircle, History } from "lucide-react";
-import Image from 'next/image';
+import { AlertCircle, Trash2, History, PlusCircle } from "lucide-react";
 import { getInfluencerClassification } from "@/lib/classification";
 import { Timestamp } from "firebase/firestore";
 import { Badge } from "./ui/badge";
-import { deleteProofImageAction, uploadProofImageAction } from "@/app/actions";
 
 
 interface InfluencerFormProps {
@@ -38,7 +35,6 @@ interface FormData {
   niche: string;
   notes: string;
   isFumo: boolean;
-  proofImageUrls: string[];
   products: ProductPublication[];
   lossReason: string;
 }
@@ -52,7 +48,6 @@ const initialState: FormData = {
   niche: "",
   notes: "",
   isFumo: false,
-  proofImageUrls: [],
   products: [],
   lossReason: "",
 };
@@ -69,27 +64,16 @@ const unformatFollowers = (value: string) => {
     return value.replace(/\D/g, "");
 }
 
-type FileWithPreview = {
-  file: File;
-  preview: string;
-};
-
 export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) {
   const [formData, setFormData] = useState<FormData>(initialState);
   const [currentProduct, setCurrentProduct] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { user } = useAuth();
-
-  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
-  const [uploadMessage, setUploadMessage] = useState('');
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const statusRef = useRef<HTMLDivElement>(null);
   
   // Create a stable ID for the new influencer during the form session.
   const [formInstanceId] = useState(() => influencer?.id || Date.now().toString());
-  
-  const [filesToUpload, setFilesToUpload] = useState<FileWithPreview[]>([]);
 
   const isEditMode = !!influencer;
   
@@ -106,7 +90,6 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
         niche: influencer.niche,
         notes: influencer.notes,
         isFumo: influencer.isFumo,
-        proofImageUrls: influencer.proofImageUrls || [],
         products: influencer.products || [],
         lossReason: influencer.lossReason || "",
       });
@@ -114,65 +97,6 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
       setFormData(initialState);
     }
   }, [influencer]);
-
-  const handleImageSelection = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFiles = e.target.files;
-    if (!selectedFiles) return;
-    
-    const newFiles = Array.from(selectedFiles);
-
-    if (formData.proofImageUrls.length + filesToUpload.length + newFiles.length > 10) {
-      setError("Você pode adicionar no máximo 10 imagens.");
-      return;
-    }
-
-    const newFilesWithPreview = newFiles.map(file => ({
-      file,
-      preview: URL.createObjectURL(file)
-    }));
-
-    setFilesToUpload(prev => [...prev, ...newFilesWithPreview]);
-
-     // Limpa o input de arquivo para permitir a seleção do mesmo arquivo novamente
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
-  };
-
-
-  const removeNewFile = (indexToRemove: number) => {
-      const fileToRemove = filesToUpload[indexToRemove];
-      URL.revokeObjectURL(fileToRemove.preview); // Libera memória
-      setFilesToUpload(prev => prev.filter((_, i) => i !== indexToRemove));
-  }
-
-  const removeExistingImage = async (indexToRemove: number) => {
-    const urlToRemove = formData.proofImageUrls[indexToRemove];
-    if (!urlToRemove) return;
-
-    setIsLoading(true);
-    setError(null);
-    setUploadMessage("Deletando imagem...");
-
-    try {
-        const result = await deleteProofImageAction(urlToRemove);
-        if (!result.success) {
-          throw new Error(result.error);
-        }
-        
-        setFormData(prev => ({
-            ...prev,
-            proofImageUrls: prev.proofImageUrls.filter((_, i) => i !== indexToRemove)
-        }));
-
-    } catch (e: any) {
-        console.error("Erro ao deletar imagem", e);
-        setError(`Falha ao deletar imagem. ${e.message}`);
-    } finally {
-        setIsLoading(false);
-        setUploadMessage("");
-    }
-  };
   
   const handleAddProduct = () => {
     if (currentProduct.trim()) {
@@ -212,7 +136,6 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
   }
 
   const handleCancel = () => {
-    filesToUpload.forEach(f => URL.revokeObjectURL(f.preview));
     if (onFinished) {
       onFinished();
     }
@@ -235,11 +158,6 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
     setIsLoading(true);
     setError(null);
     
-    // Upload de imagens foi removido por enquanto.
-    const uploadedUrls: string[] = formData.proofImageUrls;
-
-    setUploadMessage('Salvando dados do influenciador...');
-
     try {
         const influencerData = {
             name: formData.name,
@@ -249,7 +167,6 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
             niche: formData.niche,
             notes: formData.notes,
             isFumo: formData.isFumo,
-            proofImageUrls: uploadedUrls,
             products: formData.products,
             lossReason: formData.lossReason,
         };
@@ -258,7 +175,7 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
              const dataToUpdate: UpdatableInfluencerData = { ...influencerData };
              await updateInfluencer(influencer.id, user.uid, dataToUpdate);
         } else {
-             const newInfluencerData: Omit<NewInfluencer, 'lastUpdate' | 'editors'> = {
+             const newInfluencerData: Omit<NewInfluencer, 'lastUpdate' | 'editors' | 'proofImageUrls'> = {
                 ...influencerData,
                 addedBy: user.uid,
              };
@@ -274,8 +191,6 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
       setError(err.message || `Falha ao ${isEditMode ? 'atualizar' : 'adicionar'} influenciador. Tente novamente.`);
     } finally {
         setIsLoading(false);
-        setUploadProgress(null);
-        setUploadMessage('');
     }
   };
 
@@ -382,7 +297,7 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
             <div className="relative group">
                 <div className="absolute -inset-0.5 bg-gradient-to-r from-[#fbda25] to-[#a98900] rounded-lg blur-sm opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
                 <Button type="submit" className="relative bg-gradient-to-r from-[#fbda25] to-[#d3ab00] text-black" disabled={isLoading}>
-                    {isLoading ? (uploadMessage || (isEditMode ? 'Salvando...' : 'Adicionando...')) : (isEditMode ? 'Salvar Alterações' : 'Adicionar')}
+                    {isLoading ? (isEditMode ? 'Salvando...' : 'Adicionando...') : (isEditMode ? 'Salvar Alterações' : 'Adicionar')}
                 </Button>
             </div>
         </div>
