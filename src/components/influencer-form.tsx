@@ -363,7 +363,10 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
             )}
           </div>
           <div className="flex flex-col space-y-1.5">
-            <Label htmlFor="status">Status</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="status">Status</Label>
+              {!formData.status && <span className="text-xs text-destructive">Obrigatório</span>}
+            </div>
             <Select name="status" value={formData.status} onValueChange={handleSelectChange} required disabled={isLoading}>
               <SelectTrigger id="status"><SelectValue placeholder="Selecione o status" /></SelectTrigger>
               <SelectContent position="popper">
