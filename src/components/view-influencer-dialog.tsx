@@ -7,7 +7,6 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
-  DialogPortal,
 } from "@/components/ui/dialog";
 import { EditorData, InfluencerWithUserData } from "@/lib/influencers";
 import { Badge } from "./ui/badge";
@@ -15,7 +14,7 @@ import { Flame, UserCircle, Edit, ShieldAlert, Package, Calendar, Eye, ChevronLe
 import { useAuth } from "@/hooks/use-auth";
 import Image from "next/image";
 import { getInfluencerClassification, getClassificationBadgeClass } from "@/lib/classification";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ViewChangesDialog } from "./view-changes-dialog";
 import { Button } from "./ui/button";
 
@@ -23,9 +22,10 @@ interface ViewInfluencerDialogProps {
   influencer: InfluencerWithUserData;
   isOpen: boolean;
   onClose: () => void;
+  onOpenImageViewer: (index: number) => void;
 }
 
-const DetailRow = ({ label, value }: { label: string, value: React.ReactNode }) => (
+const DetailRow = ({ label, value }: { label: string, value: React.reactNode }) => (
     <div className="grid grid-cols-3 items-start gap-4 py-3 border-b border-border/50">
         <span className="font-semibold text-muted-foreground">{label}</span>
         <div className="col-span-2 text-foreground">{value}</div>
@@ -33,7 +33,7 @@ const DetailRow = ({ label, value }: { label: string, value: React.ReactNode }) 
 );
 
 
-function ImageViewer({ images, startIndex, onClose }: { images: string[], startIndex: number, onClose: () => void }) {
+export function ImageViewer({ images, startIndex, onClose }: { images: string[], startIndex: number, onClose: () => void }) {
   const [currentIndex, setCurrentIndex] = useState(startIndex);
 
   const goToPrevious = (e: React.MouseEvent) => {
@@ -46,82 +46,75 @@ function ImageViewer({ images, startIndex, onClose }: { images: string[], startI
     setCurrentIndex(prevIndex => (prevIndex === images.length - 1 ? 0 : prevIndex + 1));
   };
   
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: KeyboardEvent) => {
     if (e.key === 'ArrowLeft') goToPrevious(e as any);
     if (e.key === 'ArrowRight') goToNext(e as any);
     if (e.key === 'Escape') onClose();
   }
 
-  // Effect to add keydown listener
-  useState(() => {
-    document.addEventListener('keydown', handleKeyDown as any);
+  useEffect(() => {
+    document.addEventListener('keydown', handleKeyDown);
     return () => {
-      document.removeEventListener('keydown', handleKeyDown as any);
+      document.removeEventListener('keydown', handleKeyDown);
     }
-  });
+  }, [images]); // Re-add listener if images change
 
 
   return (
     <div 
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-background/80 backdrop-blur-sm transition-opacity duration-300 animate-in fade-in" 
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm transition-opacity duration-300 animate-in fade-in" 
       onClick={onClose}
     >
-      <div 
-        className="relative flex items-center justify-center w-full h-full p-4 md:p-8"
-      >
-        {/* Image Container */}
-        <div 
-            className="relative w-full h-full max-w-4xl max-h-[85vh] transform transition-transform duration-300 animate-in zoom-in-95" 
-            onClick={(e) => e.stopPropagation()}
+        {/* Close Button */}
+        <Button 
+            variant="ghost" 
+            size="icon" 
+            className="absolute top-4 right-4 text-white h-10 w-10 rounded-full bg-black/50 hover:bg-black/70 hover:text-white z-10" 
+            onClick={onClose}
         >
+            <X className="h-6 w-6" />
+            <span className="sr-only">Fechar</span>
+        </Button>
+
+        {images.length > 1 && (
+            <>
+            {/* Previous Button */}
+            <Button 
+                variant="ghost" 
+                size="icon" 
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-white h-12 w-12 rounded-full bg-black/50 hover:bg-black/70 hover:text-white z-10" 
+                onClick={goToPrevious}
+            >
+                <ChevronLeft className="h-8 w-8" />
+                <span className="sr-only">Anterior</span>
+            </Button>
+            {/* Next Button */}
+            <Button 
+                variant="ghost" 
+                size="icon" 
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-white h-12 w-12 rounded-full bg-black/50 hover:bg-black/70 hover:text-white z-10" 
+                onClick={goToNext}
+            >
+                <ChevronRight className="h-8 w-8" />
+                <span className="sr-only">Próxima</span>
+            </Button>
+            </>
+        )}
+      
+        <div className="relative w-full h-full p-16" onClick={(e) => e.stopPropagation()}>
             <Image
-            src={images[currentIndex]}
-            alt={`Prova ampliada ${currentIndex + 1}`}
-            fill
-            className="object-contain"
+                src={images[currentIndex]}
+                alt={`Prova ampliada ${currentIndex + 1}`}
+                fill
+                className="object-contain"
             />
         </div>
-      </div>
 
-       {/* Close Button */}
-      <Button 
-        variant="ghost" 
-        size="icon" 
-        className="absolute top-4 right-4 text-white h-10 w-10 rounded-full bg-black/30 hover:bg-black/50 hover:text-white" 
-        onClick={onClose}
-      >
-        <X className="h-6 w-6" />
-        <span className="sr-only">Fechar</span>
-      </Button>
-
-      {images.length > 1 && (
-        <>
-          {/* Previous Button */}
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="absolute left-4 top-1/2 -translate-y-1/2 text-white h-12 w-12 rounded-full bg-black/30 hover:bg-black/50 hover:text-white" 
-            onClick={goToPrevious}
-          >
-            <ChevronLeft className="h-8 w-8" />
-            <span className="sr-only">Anterior</span>
-          </Button>
-          {/* Next Button */}
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="absolute right-4 top-1/2 -translate-y-1/2 text-white h-12 w-12 rounded-full bg-black/30 hover:bg-black/50 hover:text-white" 
-            onClick={goToNext}
-          >
-            <ChevronRight className="h-8 w-8" />
-            <span className="sr-only">Próxima</span>
-          </Button>
-          {/* Counter */}
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white text-sm bg-black/50 px-3 py-1 rounded-full">
-            {currentIndex + 1} / {images.length}
-          </div>
-        </>
-      )}
+        {images.length > 1 && (
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white text-sm bg-black/50 px-3 py-1 rounded-full z-10">
+                {currentIndex + 1} / {images.length}
+            </div>
+        )}
     </div>
   );
 }
@@ -131,16 +124,10 @@ export function ViewInfluencerDialog({
   influencer,
   isOpen,
   onClose,
+  onOpenImageViewer,
 }: ViewInfluencerDialogProps) {
   const { user, isAdmin } = useAuth();
   const [selectedEdit, setSelectedEdit] = useState<EditorData | null>(null);
-  const [imageViewerOpen, setImageViewerOpen] = useState(false);
-  const [imageViewerStartIndex, setImageViewerStartIndex] = useState(0);
-
-  const openImageViewer = (index: number) => {
-    setImageViewerStartIndex(index);
-    setImageViewerOpen(true);
-  };
   
   const classification = getInfluencerClassification(influencer.followers);
 
@@ -212,7 +199,7 @@ export function ViewInfluencerDialog({
                     <span className="font-semibold text-muted-foreground mb-2 block">Provas</span>
                     <div className="grid grid-cols-2 gap-2">
                         {influencer.proofImageUrls.map((url, index) => (
-                             <button key={index} onClick={() => openImageViewer(index)} className="relative w-full aspect-square rounded-md overflow-hidden group border">
+                             <button key={index} onClick={() => onOpenImageViewer(index)} className="relative w-full aspect-square rounded-md overflow-hidden group border">
                                 <Image src={url} alt={`Prova ${index + 1} para ${influencer.name}`} fill style={{ objectFit: 'cover' }} />
                                 <div className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                                   <Eye className="h-6 w-6 text-white" />
@@ -295,15 +282,6 @@ export function ViewInfluencerDialog({
             </div>
         </div>
       </DialogContent>
-      {imageViewerOpen && (
-        <DialogPortal>
-            <ImageViewer 
-                images={influencer.proofImageUrls} 
-                startIndex={imageViewerStartIndex} 
-                onClose={() => setImageViewerOpen(false)} 
-            />
-        </DialogPortal>
-    )}
      {selectedEdit && (
         <ViewChangesDialog
             isOpen={!!selectedEdit}
