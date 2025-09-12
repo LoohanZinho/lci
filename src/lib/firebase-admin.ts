@@ -9,7 +9,7 @@ import type { Storage } from 'firebase-admin/storage';
 const firebaseConfig = {
   "projectId": "studio-324918385-59672",
   "appId": "1:315068066482:web:f17a0ae92d4a0b1100f7ab",
-  "storageBucket": "studio-324918385-59672.appspot.com",
+  "storageBucket": "studio-324918385-59672.firebasestorage.app",
   "apiKey": "AIzaSyA9sRKoMAT9ySFBoqF83j01XILP8cQIXtc",
   "authDomain": "studio-324918385-59672.firebaseapp.com",
   "measurementId": "",
