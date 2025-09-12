@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -358,7 +359,7 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
 
           <div className="flex flex-col space-y-1.5">
              <Label>Ela te deu golpe? (Anexe as provas abaixo)</Label>
-             <div className="flex flex-col items-center justify-center w-full aspect-video border-2 border-dashed rounded-md">
+             <div className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed rounded-md">
                  <p className="text-sm text-muted-foreground">Uploads em breve</p>
             </div>
           </div>
