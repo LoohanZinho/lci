@@ -180,6 +180,23 @@ export function ViewInfluencerDialog({
             <DetailRow label="Observações" value={
                 <p className="whitespace-pre-wrap">{influencer.notes || 'Nenhuma observação.'}</p>
             } />
+            
+             {influencer.proofImageUrls && influencer.proofImageUrls.length > 0 && (
+                 <div className="py-3 border-b border-border/50">
+                    <span className="font-semibold text-muted-foreground mb-2 block">Provas Anexadas</span>
+                    <div className="grid grid-cols-3 gap-2">
+                        {influencer.proofImageUrls.map((url, index) => (
+                            <button key={index} className="relative aspect-square rounded-md overflow-hidden group" onClick={() => onOpenImageViewer(index)}>
+                                <Image src={url} alt={`Prova ${index+1}`} fill className="object-cover" />
+                                <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <Eye className="h-6 w-6 text-white" />
+                                </div>
+                            </button>
+                        ))}
+                    </div>
+                </div>
+             )}
+
 
              {influencer.products && influencer.products.length > 0 && (
                 <div className="py-3 border-b border-border/50">
