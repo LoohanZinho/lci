@@ -92,6 +92,8 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
   
   const followerCount = parseInt(unformatFollowers(formData.followers), 10) || 0;
   const classification = getInfluencerClassification(followerCount);
+  
+  const IMAGE_LIMIT = 10;
 
   useEffect(() => {
     if (influencer) {
@@ -116,10 +118,10 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
     setUploadError(null);
     if (e.target.files) {
       const currentImageCount = formData.proofImageUrls.length + filesToUpload.length;
-      const remainingSlots = 5 - currentImageCount;
+      const remainingSlots = IMAGE_LIMIT - currentImageCount;
 
       if (remainingSlots <= 0) {
-        setUploadError("Você já atingiu o limite de 5 imagens.");
+        setUploadError(`Você já atingiu o limite de ${IMAGE_LIMIT} imagens.`);
         return;
       }
 
@@ -271,7 +273,7 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
   };
 
   const totalImageCount = formData.proofImageUrls.length + filesToUpload.length;
-  const canUploadMore = totalImageCount < 5;
+  const canUploadMore = totalImageCount < IMAGE_LIMIT;
 
   return (
     <div className="py-4 max-h-[70vh] overflow-y-auto px-1 pr-4">
@@ -355,12 +357,12 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
           </div>
           {/* --- Seção de Upload --- */}
           <div className="flex flex-col space-y-1.5">
-            <Label>Ela te deu golpe? (Anexe as provas abaixo - Máx. 5)</Label>
+            <Label>Ela te deu golpe? (Anexe as provas abaixo - Máx. {IMAGE_LIMIT})</Label>
             <div className="flex flex-col items-center justify-center w-full p-4 border-2 border-dashed rounded-md space-y-4">
               <Input type="file" ref={fileInputRef} onChange={handleImageSelection} multiple accept="image/*" className="hidden" />
               <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()} disabled={isLoading || !canUploadMore}>
                 <UploadCloud className="mr-2 h-4 w-4" />
-                Selecionar Arquivos ({totalImageCount}/5)
+                Selecionar Arquivos ({totalImageCount}/{IMAGE_LIMIT})
               </Button>
 
               {uploadError && <div className="text-sm text-destructive flex items-center gap-2"><AlertCircle className="h-4 w-4"/> {uploadError}</div>}
