@@ -261,65 +261,69 @@ export default function HomePage() {
                 </Popover>
               </div>
 
-            <div className="flex flex-wrap md:flex-nowrap items-end gap-2 w-full">
-              <div className="flex-1 basis-1/3 md:flex-initial">
-                  <Label htmlFor="sort-by" className="text-xs text-muted-foreground">Ordenar por</Label>
-                  <Select value={sortBy} onValueChange={(v) => setSortBy(v as "lastUpdate" | "followers")}>
-                    <SelectTrigger id="sort-by" className="w-full">
-                      <SelectValue placeholder="Ordenar por" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="lastUpdate">Última Edição</SelectItem>
-                      <SelectItem value="followers">Seguidores</SelectItem>
-                    </SelectContent>
-                  </Select>
+            <div className="flex flex-col md:flex-row items-end gap-4 w-full">
+              <div className="w-full md:flex-1 md:order-1 overflow-x-auto">
+                <div className="flex flex-row md:flex-wrap gap-2 pb-2 md:pb-0">
+                    <div className="shrink-0 basis-auto md:flex-1 md:basis-1/3">
+                      <Label htmlFor="sort-by" className="text-xs text-muted-foreground">Ordenar por</Label>
+                      <Select value={sortBy} onValueChange={(v) => setSortBy(v as "lastUpdate" | "followers")}>
+                        <SelectTrigger id="sort-by" className="w-full min-w-[150px]">
+                          <SelectValue placeholder="Ordenar por" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="lastUpdate">Última Edição</SelectItem>
+                          <SelectItem value="followers">Seguidores</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="shrink-0 basis-auto md:flex-1 md:basis-1/3">
+                      <Label htmlFor="sort-direction" className="text-xs text-muted-foreground">Ordem</Label>
+                      <Select value={sortDirection} onValueChange={(v) => setSortDirection(v as "asc" | "desc")}>
+                        <SelectTrigger id="sort-direction" className="w-full min-w-[150px]">
+                          <SelectValue placeholder="Ordem" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="desc">Decrescente</SelectItem>
+                          <SelectItem value="asc">Crescente</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="shrink-0 basis-auto md:flex-1 md:basis-full">
+                      <Label htmlFor="status-filter" className="text-xs text-muted-foreground">Filtrar por Status</Label>
+                      <Select value={statusFilter} onValueChange={setStatusFilter}>
+                        <SelectTrigger id="status-filter" className="w-full min-w-[180px]">
+                          <SelectValue placeholder="Status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Todos</SelectItem>
+                          <SelectItem value="Desconhecido">Desconhecido (Ninguém fechou)</SelectItem>
+                          <SelectItem value="Em negociação">Em negociação</SelectItem>
+                          <SelectItem value="Fechado">Fechado</SelectItem>
+                          <SelectItem value="Prejuízo">Prejuízo</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                 </div>
-                <div className="flex-1 basis-1/3 md:flex-initial">
-                  <Label htmlFor="sort-direction" className="text-xs text-muted-foreground">Ordem</Label>
-                  <Select value={sortDirection} onValueChange={(v) => setSortDirection(v as "asc" | "desc")}>
-                    <SelectTrigger id="sort-direction" className="w-full">
-                      <SelectValue placeholder="Ordem" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="desc">Decrescente</SelectItem>
-                      <SelectItem value="asc">Crescente</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="flex-1 basis-full md:flex-initial">
-                  <Label htmlFor="status-filter" className="text-xs text-muted-foreground">Filtrar por Status</Label>
-                  <Select value={statusFilter} onValueChange={setStatusFilter}>
-                    <SelectTrigger id="status-filter" className="w-full">
-                      <SelectValue placeholder="Status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todos</SelectItem>
-                      <SelectItem value="Desconhecido">Desconhecido (Ninguém fechou)</SelectItem>
-                      <SelectItem value="Em negociação">Em negociação</SelectItem>
-                      <SelectItem value="Fechado">Fechado</SelectItem>
-                      <SelectItem value="Prejuízo">Prejuízo</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="w-full md:w-auto md:ml-auto">
-                    <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-                      <DialogTrigger asChild>
-                         <div className="relative group w-full md:w-auto">
-                            <div className="absolute -inset-0.5 bg-gradient-to-r from-[#fbda25] to-[#a98900] rounded-lg blur-sm opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
-                            <Button className="relative shrink-0 w-full md:w-auto bg-gradient-to-r from-[#fbda25] to-[#a98900] text-black">
-                                <PlusCircle className="mr-2 h-4 w-4" />
-                                Nova Postagem
-                            </Button>
-                        </div>
-                      </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>Adicionar Novo Influenciador</DialogTitle>
-                        </DialogHeader>
-                        <InfluencerForm onFinished={() => setIsFormOpen(false)} />
-                      </DialogContent>
-                    </Dialog>
-                </div>
+              </div>
+              <div className="w-full md:w-auto md:order-2">
+                  <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+                    <DialogTrigger asChild>
+                       <div className="relative group w-full md:w-auto">
+                          <div className="absolute -inset-0.5 bg-gradient-to-r from-[#fbda25] to-[#a98900] rounded-lg blur-sm opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
+                          <Button className="relative shrink-0 w-full md:w-auto bg-gradient-to-r from-[#fbda25] to-[#a98900] text-black">
+                              <PlusCircle className="mr-2 h-4 w-4" />
+                              Nova Postagem
+                          </Button>
+                      </div>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Adicionar Novo Influenciador</DialogTitle>
+                      </DialogHeader>
+                      <InfluencerForm onFinished={() => setIsFormOpen(false)} />
+                    </DialogContent>
+                  </Dialog>
+              </div>
             </div>
           </div>
 
