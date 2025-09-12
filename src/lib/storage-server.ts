@@ -9,8 +9,7 @@ interface UploadParams {
 }
 
 export async function uploadProofImage({ fileBuffer, fileName, contentType, path }: UploadParams): Promise<string> {
-    const bucketName = "studio-324918385-59672.appspot.com";
-    const bucket = storage.bucket(bucketName);
+    const bucket = storage.bucket();
     
     const uniqueFileName = `${Date.now()}-${fileName}`;
     const filePath = `${path}/${uniqueFileName}`;
