@@ -217,7 +217,7 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
         // Handle image deletions in edit mode
         if (isEditMode) {
             const originalUrls = influencer?.proofImageUrls || [];
-            const urlsToDelete = originalUrls.filter(url => !imagePreviews.includes(url));
+            const urlsToDelete = originalUrls.filter(url => !imagePreviews.includes(url)).filter(Boolean); // Filter out any falsy values
             if (urlsToDelete.length > 0) {
                  setUploadMessage(`Removendo ${urlsToDelete.length} imagem(ns)...`);
                  await Promise.all(urlsToDelete.map(url => deleteProofImageByUrl(url)));
@@ -436,6 +436,8 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
     </div>
   );
 }
+
+    
 
     
 
