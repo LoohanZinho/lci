@@ -81,6 +81,9 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const [uploadMessage, setUploadMessage] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Create a stable ID for the new influencer during the form session.
+  const [formInstanceId] = useState(() => Date.now().toString());
 
   const isEditMode = !!influencer;
   
@@ -223,7 +226,7 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
         
         // Handle new image uploads via Server Action
         if (imageFiles.length > 0) {
-          const influencerIdForStorage = influencer?.id || Date.now().toString();
+          const influencerIdForStorage = influencer?.id || formInstanceId;
           const uploadedUrls: string[] = [];
           
           setUploadProgress(0); // Indicate that upload is starting
@@ -272,7 +275,7 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
                 ...influencerData,
                 addedBy: user.uid,
              };
-             await addInfluencer(newInfluencerData);
+             await addInfluencer(newInfluencerData, isEditMode ? undefined : formInstanceId);
         }
         
         if (onFinished) {
@@ -430,3 +433,5 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
     </div>
   );
 }
+
+    

@@ -14,6 +14,7 @@ import {
   DocumentReference,
   OrderByDirection,
   arrayUnion,
+  setDoc,
 } from "firebase/firestore";
 import { db } from "./firebase";
 import { deleteProofImageByUrl } from "./storage";
@@ -73,17 +74,28 @@ export interface InfluencerWithUserData extends Influencer {
 }
 
 
-export const addInfluencer = async (influencer: Omit<NewInfluencer, 'lastUpdate' | 'editors'> & { editors?: string[] }): Promise<DocumentReference> => {
+export const addInfluencer = async (influencer: Omit<NewInfluencer, 'lastUpdate' | 'editors'> & { editors?: string[] }, newId?: string): Promise<DocumentReference> => {
   try {
-    const docRef = await addDoc(collection(db, "influencers"), {
+    const dataToAdd = {
       ...influencer,
       proofImageUrls: influencer.proofImageUrls || [],
       products: influencer.products || [],
       editors: [], // Start with an empty array of EditorInfo
       lastUpdate: serverTimestamp(),
-    });
+    };
+
+    let docRef;
+    if (newId) {
+      // Use the provided ID to create the document
+      docRef = doc(db, "influencers", newId);
+      await setDoc(docRef, dataToAdd);
+    } else {
+      // Let Firestore generate a new ID
+      docRef = await addDoc(collection(db, "influencers"), dataToAdd);
+    }
+    
     console.log("Document written with ID: ", docRef.id);
-    return docRef;
+    return docRef as DocumentReference;
   } catch (e) {
     console.error("Error adding document: ", e);
     throw e;
