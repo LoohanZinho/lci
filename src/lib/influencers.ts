@@ -18,7 +18,6 @@ import {
   where,
 } from "firebase/firestore";
 import { db } from "./firebase";
-import { deleteProofImageAction } from "@/app/actions";
 
 export type UpdatableInfluencerData = Partial<Omit<NewInfluencer, 'addedBy' | 'lastUpdate' | 'editors'>>
 
@@ -75,11 +74,11 @@ export interface InfluencerWithUserData extends Influencer {
 }
 
 
-export const addInfluencer = async (influencer: Omit<NewInfluencer, 'lastUpdate' | 'editors'> & { editors?: string[] }, newId?: string): Promise<DocumentReference> => {
+export const addInfluencer = async (influencer: Omit<NewInfluencer, 'lastUpdate' | 'editors' | 'proofImageUrls'> & { editors?: string[], proofImageUrls?: string[] }, newId?: string): Promise<DocumentReference> => {
   try {
     const dataToAdd = {
       ...influencer,
-      proofImageUrls: influencer.proofImageUrls || [],
+      proofImageUrls: [],
       products: influencer.products || [],
       editors: [], // Start with an empty array of EditorInfo
       lastUpdate: serverTimestamp(),
@@ -273,16 +272,6 @@ export const getInfluencers = (
 
 export const deleteInfluencer = async (id: string) => {
   try {
-    const influencerDoc = await getDoc(doc(db, "influencers", id));
-    if (!influencerDoc.exists()) {
-      throw new Error("Influencer not found");
-    }
-    const influencerData = influencerDoc.data() as Influencer;
-
-    if (influencerData.proofImageUrls && influencerData.proofImageUrls.length > 0) {
-      await Promise.all(influencerData.proofImageUrls.map(url => deleteProofImageAction(url)));
-    }
-    
     await deleteDoc(doc(db, "influencers", id));
     console.log("Document successfully deleted!");
   } catch (error) {

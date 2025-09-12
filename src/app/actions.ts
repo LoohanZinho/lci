@@ -2,51 +2,6 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { deleteProofImageByUrl, uploadProofImage } from "@/lib/storage-server";
-import { Readable } from 'stream';
-
-// --- AÇÕES DE UPLOAD E DELEÇÃO DE IMAGENS ---
-
-export async function uploadProofImageAction(formData: FormData): Promise<{ url?: string; error?: string }> {
-    const file = formData.get('file') as File | null;
-    const influencerId = formData.get('influencerId') as string | null;
-
-    if (!file) {
-        return { error: 'Nenhum arquivo encontrado no formulário.' };
-    }
-    if (!influencerId) {
-        return { error: 'ID do influenciador não fornecido.' };
-    }
-
-    try {
-        const arrayBuffer = await file.arrayBuffer();
-        const fileStream = new Readable();
-        fileStream.push(Buffer.from(arrayBuffer));
-        fileStream.push(null); // Sinaliza o fim do stream
-
-        const downloadURL = await uploadProofImage(fileStream, file.name, file.type, influencerId);
-        
-        return { url: downloadURL };
-    } catch (error: any) {
-        console.error("❌ Erro ao fazer upload via Server Action:", error);
-        return { error: `Falha ao fazer upload do arquivo. ${error.message}` };
-    }
-}
-
-
-export async function deleteProofImageAction(imageUrl: string): Promise<{ success: boolean, error?: string }> {
-    if (!imageUrl) {
-        return { success: false, error: "URL da imagem não fornecida." };
-    }
-    try {
-        await deleteProofImageByUrl(imageUrl);
-        return { success: true };
-    } catch (error: any) {
-        console.error("❌ Erro ao deletar imagem via Server Action:", error);
-        return { success: false, error: "Falha ao deletar a imagem. " + error.message };
-    }
-}
-
 
 // --- AÇÃO DE BUSCA DE PERFIL DO INSTAGRAM ---
 
