@@ -48,7 +48,7 @@ const initialState: FormData = {
   name: "",
   instagram: "",
   followers: "",
-  status: "Desconhecido",
+  status: "", // Default to empty to force selection
   niche: "",
   notes: "",
   isFumo: false,
