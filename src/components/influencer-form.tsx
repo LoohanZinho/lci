@@ -78,6 +78,7 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
 
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [urlsToDelete, setUrlsToDelete] = useState<string[]>([]);
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const [uploadMessage, setUploadMessage] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -96,7 +97,7 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
         name: influencer.name,
         instagram: influencer.instagram.startsWith('@') ? influencer.instagram.substring(1) : influencer.instagram,
         followers: formatFollowers(influencer.followers.toString()),
-        status: influencer.status,
+        status: influencer.status || "Desconhecido",
         niche: influencer.niche,
         notes: influencer.notes,
         isFumo: influencer.isFumo,
@@ -107,10 +108,12 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
       setFormData(currentData);
       setImagePreviews(influencer.proofImageUrls || []);
       setImageFiles([]);
+      setUrlsToDelete([]);
     } else {
       setFormData(initialState);
       setImagePreviews([]);
       setImageFiles([]);
+      setUrlsToDelete([]);
     }
   }, [influencer]);
 
@@ -144,15 +147,18 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
   const removeImage = (indexToRemove: number) => {
     const urlToRemove = imagePreviews[indexToRemove];
   
+    // If the URL is from Firebase storage (not a local blob), mark it for deletion on submit.
+    if (urlToRemove && !urlToRemove.startsWith('blob:')) {
+      setUrlsToDelete(prev => [...prev, urlToRemove]);
+    }
+  
     // Filter out the preview
     setImagePreviews(prev => prev.filter((_, i) => i !== indexToRemove));
   
-    // Check if the removed preview was from a new file (blob URL)
-    if (urlToRemove.startsWith('blob:')) {
-      const fileIndexToRemove = imageFiles.findIndex(file => URL.createObjectURL(file) === urlToRemove);
-      if (fileIndexToRemove > -1) {
-        setImageFiles(prev => prev.filter((_, i) => i !== fileIndexToRemove));
-      }
+    // If it was a newly added file (blob), find and remove it from the imageFiles state
+    const fileIndexToRemove = imageFiles.findIndex(file => URL.createObjectURL(file) === urlToRemove);
+    if (fileIndexToRemove > -1) {
+      setImageFiles(prev => prev.filter((_, i) => i !== fileIndexToRemove));
     }
   };
   
@@ -212,17 +218,14 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
     setUploadMessage('');
 
     try {
-        let finalImageUrls: string[] = isEditMode ? imagePreviews.filter(p => !p.startsWith('blob:')) : [];
-
-        // Handle image deletions in edit mode
-        if (isEditMode) {
-            const originalUrls = influencer?.proofImageUrls || [];
-            const urlsToDelete = originalUrls.filter(url => !imagePreviews.includes(url)).filter(Boolean); // Filter out any falsy values
-            if (urlsToDelete.length > 0) {
-                 setUploadMessage(`Removendo ${urlsToDelete.length} imagem(ns)...`);
-                 await Promise.all(urlsToDelete.map(url => deleteProofImageByUrl(url)));
-            }
+        // Handle image deletions
+        if (urlsToDelete.length > 0) {
+             setUploadMessage(`Removendo ${urlsToDelete.length} imagem(ns)...`);
+             await Promise.all(urlsToDelete.map(url => deleteProofImageByUrl(url)));
         }
+
+        // Filter out blob previews to get the list of currently saved URLs
+        let finalImageUrls: string[] = imagePreviews.filter(p => !p.startsWith('blob:'));
         
         // Handle new image uploads via Server Action
         if (imageFiles.length > 0) {
@@ -353,7 +356,7 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
           </div>
           <div className="flex flex-col space-y-1.5">
             <Label htmlFor="status">Status</Label>
-            <Select name="status" value={formData.status} onValueChange={handleSelectChange} disabled={isLoading} required>
+            <Select name="status" value={formData.status} onValueChange={handleSelectChange} required disabled={isLoading}>
               <SelectTrigger id="status"><SelectValue placeholder="Selecione o status" /></SelectTrigger>
               <SelectContent position="popper">
                 <SelectItem value="Desconhecido">Desconhecido (Ninguém fechou)</SelectItem>
@@ -436,11 +439,5 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
     </div>
   );
 }
-
-    
-
-    
-
-    
 
     
