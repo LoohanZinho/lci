@@ -43,8 +43,8 @@ export function ConfirmationDialog({
         <AlertDialogFooter>
           <AlertDialogCancel onClick={onClose} disabled={isLoading}>{cancelText}</AlertDialogCancel>
           <AlertDialogAction asChild>
-             <Button onClick={onConfirm} disabled={isLoading} variant="destructive">
-                {isLoading ? "Excluindo..." : confirmText}
+             <Button onClick={onConfirm} disabled={isLoading}>
+                {isLoading ? "Processando..." : confirmText}
             </Button>
           </AlertDialogAction>
         </AlertDialogFooter>

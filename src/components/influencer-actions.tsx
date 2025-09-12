@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Edit, Trash2, Eye } from "lucide-react";
 import { deleteInfluencer, InfluencerWithUserData } from "@/lib/influencers";
 import { useState } from "react";
-import { ConfirmationDialog } from "./confirmation-dialog";
+import { DeleteInfluencerDialog } from "./delete-influencer-dialog";
 
 interface InfluencerActionsProps {
   influencer: InfluencerWithUserData;
@@ -21,10 +21,11 @@ export function InfluencerActions({ influencer, onEdit, onView }: InfluencerActi
     setIsDeleting(true);
     try {
       await deleteInfluencer(influencer.id);
-      setIsConfirmingDelete(false);
+      setIsConfirmingDelete(false); // Close dialog on success
     } catch (error) {
       console.error("Failed to delete influencer", error);
-      alert("Falha ao excluir o influenciador.");
+      // Let the dialog handle showing the error
+      throw error;
     } finally {
       setIsDeleting(false);
     }
@@ -52,13 +53,11 @@ export function InfluencerActions({ influencer, onEdit, onView }: InfluencerActi
           <span className="sr-only">Excluir</span>
         </Button>
       </div>
-      <ConfirmationDialog
+      <DeleteInfluencerDialog
         isOpen={isConfirmingDelete}
         onClose={() => setIsConfirmingDelete(false)}
         onConfirm={handleDelete}
-        title="Confirmar Exclusão"
-        description={`Tem certeza que deseja excluir "${influencer.name}"? Esta ação não pode ser desfeita.`}
-        confirmText="Excluir"
+        influencerName={influencer.name}
         isLoading={isDeleting}
       />
     </>
