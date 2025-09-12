@@ -146,7 +146,10 @@ export function ViewInfluencerDialog({
   return (
     <>
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-md max-h-[85vh] overflow-y-auto">
+      <DialogContent 
+        className="sm:max-w-md max-h-[85vh] overflow-y-auto"
+        onPointerDownOutside={(e) => e.preventDefault()}
+      >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl">
             {influencer.name}
@@ -293,5 +296,3 @@ export function ViewInfluencerDialog({
      </>
   );
 }
-
-    
