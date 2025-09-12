@@ -56,6 +56,10 @@ const config = {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
         },
+        gold: {
+          start: '#fbda25',
+          end: '#a98900'
+        }
       },
       borderRadius: {
         lg: 'var(--radius)',

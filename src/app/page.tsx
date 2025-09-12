@@ -200,7 +200,7 @@ export default function HomePage() {
           <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4 mb-6">
             <div className="flex-1">
               <h2 className="text-2xl font-bold">
-                {greeting}, <span className="text-primary">{user.displayName || user.email}!</span>
+                {greeting}, <span className="text-transparent bg-clip-text bg-gradient-to-r from-gold-start to-gold-end">{user.displayName || user.email}!</span>
               </h2>
               <p className="text-muted-foreground">
                 Encontre, gerencie e adicione novos influenciadores ao seu mural.
@@ -301,7 +301,7 @@ export default function HomePage() {
                 <div className="w-full md:w-auto md:ml-auto">
                     <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
                       <DialogTrigger asChild>
-                        <Button className="shrink-0 w-full md:w-auto">
+                        <Button variant="gold" className="shrink-0 w-full md:w-auto">
                           <PlusCircle className="mr-2 h-4 w-4" />
                           Nova Postagem
                         </Button>
@@ -346,7 +346,3 @@ export default function HomePage() {
     </div>
   );
 }
-
-    
-
-    

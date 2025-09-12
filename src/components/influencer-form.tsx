@@ -83,7 +83,7 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   // Create a stable ID for the new influencer during the form session.
-  const [formInstanceId] = useState(() => Date.now().toString());
+  const [formInstanceId] = useState(() => influencer?.id || Date.now().toString());
 
   const isEditMode = !!influencer;
   
@@ -226,7 +226,7 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
         
         // Handle new image uploads via Server Action
         if (imageFiles.length > 0) {
-          const influencerIdForStorage = influencer?.id || formInstanceId;
+          const influencerIdForStorage = formInstanceId;
           const uploadedUrls: string[] = [];
           
           setUploadProgress(0); // Indicate that upload is starting
@@ -275,7 +275,7 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
                 ...influencerData,
                 addedBy: user.uid,
              };
-             await addInfluencer(newInfluencerData, isEditMode ? undefined : formInstanceId);
+             await addInfluencer(newInfluencerData, formInstanceId);
         }
         
         if (onFinished) {
@@ -425,7 +425,7 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
         </div>
         <div className="flex justify-end space-x-2 pt-6">
            <Button type="button" variant="ghost" onClick={handleCancel} disabled={isLoading}>Cancelar</Button>
-          <Button type="submit" disabled={isLoading}>
+          <Button type="submit" variant="gold" disabled={isLoading}>
             {isLoading ? (uploadProgress !== null ? 'Enviando...' : (isEditMode ? 'Salvando...' : 'Adicionando...')) : (isEditMode ? 'Salvar Alterações' : 'Adicionar')}
           </Button>
         </div>
@@ -433,5 +433,3 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
     </div>
   );
 }
-
-    

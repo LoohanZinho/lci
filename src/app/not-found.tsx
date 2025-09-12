@@ -11,7 +11,7 @@ export default function NotFound() {
         <p className="text-muted-foreground max-w-md">
           Oops! A página que você está procurando não existe ou foi movida para outro local.
         </p>
-        <Button asChild className="mt-4">
+        <Button asChild className="mt-4" variant="gold">
           <Link href="/">Voltar para a Página Inicial</Link>
         </Button>
       </div>

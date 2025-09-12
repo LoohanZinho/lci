@@ -108,7 +108,7 @@ export default function ProfilePage() {
                             </div>
                             {error && <p className="text-sm text-destructive">{error}</p>}
                             {successMessage && <p className="text-sm text-green-600">{successMessage}</p>}
-                            <Button type="submit" className="w-full" disabled={isLoading}>
+                            <Button type="submit" variant="gold" className="w-full" disabled={isLoading}>
                                {isLoading ? 'Salvando...' : 'Salvar Alterações'}
                             </Button>
                         </form>
@@ -124,5 +124,3 @@ export default function ProfilePage() {
     </div>
   );
 }
-
-    

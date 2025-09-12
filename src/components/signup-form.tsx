@@ -116,16 +116,14 @@ export function SignupForm() {
           </div>
         </CardContent>
         <CardFooter className="flex flex-col items-stretch gap-4">
-          <div className="relative group">
-            <div className="absolute -inset-1 bg-gradient-to-r from-yellow-400 to-yellow-600 rounded-lg blur opacity-25 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
-            <Button
-              type="submit"
-              disabled={isLoading}
-              className="w-full text-black relative bg-gradient-to-r from-[#fbda25] to-[#a98900] hover:bg-gradient-to-r hover:from-[#fbda25] hover:to-[#a98900]"
-            >
-              {isLoading ? 'Cadastrando...' : 'Cadastrar'}
-            </Button>
-          </div>
+          <Button
+            type="submit"
+            variant="gold"
+            disabled={isLoading}
+            className="w-full"
+          >
+            {isLoading ? 'Cadastrando...' : 'Cadastrar'}
+          </Button>
           <div className="text-center text-sm">
             Já tem uma conta?{" "}
             <Link href="/login" className="underline">
