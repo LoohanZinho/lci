@@ -6,7 +6,8 @@ import type { Storage } from 'firebase-admin/storage';
 
 const firebaseConfig = {
   "projectId": "studio-324918385-59672",
-  "storageBucket": "studio-324918385-59672.appspot.com",
+  // O nome do bucket foi corrigido para o formato mais novo, conforme o console do Firebase.
+  "storageBucket": "studio-324918385-59672.firebasestorage.app",
 };
 
 let auth: Auth;
