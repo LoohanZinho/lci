@@ -96,7 +96,7 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
         name: influencer.name,
         instagram: influencer.instagram.startsWith('@') ? influencer.instagram.substring(1) : influencer.instagram,
         followers: formatFollowers(influencer.followers.toString()),
-        status: influencer.status, // Correctly load the existing status
+        status: influencer.status,
         niche: influencer.niche,
         notes: influencer.notes,
         isFumo: influencer.isFumo,
@@ -353,7 +353,7 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
           </div>
           <div className="flex flex-col space-y-1.5">
             <Label htmlFor="status">Status</Label>
-            <Select value={formData.status} onValueChange={handleSelectChange} disabled={isLoading} required>
+            <Select name="status" value={formData.status} onValueChange={handleSelectChange} disabled={isLoading} required>
               <SelectTrigger id="status"><SelectValue placeholder="Selecione o status" /></SelectTrigger>
               <SelectContent position="popper">
                 <SelectItem value="Desconhecido">Desconhecido (Ninguém fechou)</SelectItem>
@@ -375,7 +375,7 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
           </div>
 
           <div className="flex flex-col space-y-1.5">
-            <Label htmlFor="proofImage">Ela te deu golpe? (Anexe as provas abaixo)</Label>
+            <Label>Ela te deu golpe? (Anexe as provas abaixo)</Label>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {imagePreviews.map((preview, index) => (
                     <div key={index} className="relative w-full aspect-square rounded-md overflow-hidden group border">
@@ -427,7 +427,7 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
            <Button type="button" variant="ghost" onClick={handleCancel} disabled={isLoading}>Cancelar</Button>
             <div className="relative group">
                 <div className="absolute -inset-0.5 bg-gradient-to-r from-[#fbda25] to-[#a98900] rounded-lg blur-sm opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
-                <Button type="submit" className="relative bg-gradient-to-r from-[#fbda25] to-[#a98900] text-black" disabled={isLoading}>
+                <Button type="submit" className="relative bg-gradient-to-r from-[#fbda25] to-[#d3ab00] text-black" disabled={isLoading}>
                     {isLoading ? (uploadProgress !== null ? 'Enviando...' : (isEditMode ? 'Salvando...' : 'Adicionando...')) : (isEditMode ? 'Salvar Alterações' : 'Adicionar')}
                 </Button>
             </div>
@@ -436,6 +436,8 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
     </div>
   );
 }
+
+    
 
     
 
