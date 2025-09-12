@@ -6,77 +6,118 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AlertCircle, CheckCircle, UploadCloud } from "lucide-react";
 import Image from "next/image";
-import { uploadTestImageAction } from "@/app/actions";
+import { storage } from "@/lib/firebase"; // Client-side firebase config
+import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
+import { Progress } from "@/components/ui/progress";
+
 
 type UploadStatus = "idle" | "uploading" | "success" | "error";
+
+interface UploadProgress {
+  fileName: string;
+  progress: number;
+  error?: string;
+  url?: string;
+}
 
 export default function TestesPage() {
   const [files, setFiles] = useState<File[]>([]);
   const [status, setStatus] = useState<UploadStatus>("idle");
-  const [message, setMessage] = useState<string>("");
+  const [uploadProgress, setUploadProgress] = useState<UploadProgress[]>([]);
+  const [overallMessage, setOverallMessage] = useState("");
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      setFiles(Array.from(e.target.files));
+      const selectedFiles = Array.from(e.target.files);
+      setFiles(selectedFiles);
       setStatus("idle");
-      setMessage("");
+      setOverallMessage("");
+      setUploadProgress(selectedFiles.map(file => ({ fileName: file.name, progress: 0 })));
     }
   };
 
   const handleUpload = async () => {
     if (files.length === 0) {
       setStatus("error");
-      setMessage("Por favor, selecione pelo menos um arquivo.");
+      setOverallMessage("Por favor, selecione pelo menos um arquivo.");
       return;
     }
 
     setStatus("uploading");
-    setMessage(`Iniciando upload de ${files.length} arquivo(s)...`);
+    setOverallMessage(`Iniciando upload de ${files.length} arquivo(s)...`);
+    
+    const uploadPromises = files.map((file, index) => {
+      return new Promise((resolve, reject) => {
+        const storageRef = ref(storage, `test-uploads/${Date.now()}-${file.name}`);
+        const uploadTask = uploadBytesResumable(storageRef, file);
+
+        uploadTask.on('state_changed',
+          (snapshot) => {
+            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+            setUploadProgress(prev => {
+                const newProgress = [...prev];
+                newProgress[index] = { ...newProgress[index], progress: progress };
+                return newProgress;
+            });
+          },
+          (error) => {
+            console.error(`Upload Error for ${file.name}:`, error);
+            const fullErrorMessage = `[${error.code}] ${error.message}`;
+            setUploadProgress(prev => {
+                const newProgress = [...prev];
+                newProgress[index] = { ...newProgress[index], error: fullErrorMessage };
+                return newProgress;
+            });
+            reject(new Error(fullErrorMessage));
+          },
+          async () => {
+            try {
+              const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+              setUploadProgress(prev => {
+                const newProgress = [...prev];
+                newProgress[index] = { ...newProgress[index], url: downloadURL, progress: 100 };
+                return newProgress;
+              });
+              resolve(downloadURL);
+            } catch (error: any) {
+               const fullErrorMessage = `Erro ao obter URL: [${error.code}] ${error.message}`;
+               setUploadProgress(prev => {
+                const newProgress = [...prev];
+                newProgress[index] = { ...newProgress[index], error: fullErrorMessage };
+                return newProgress;
+              });
+              reject(new Error(fullErrorMessage));
+            }
+          }
+        );
+      });
+    });
 
     try {
-      const uploadPromises = files.map(async (file) => {
-        const arrayBuffer = await file.arrayBuffer();
-        const buffer = new Uint8Array(arrayBuffer);
-        
-        const result = await uploadTestImageAction({
-          buffer: Buffer.from(buffer),
-          fileName: file.name,
-          contentType: file.type,
-        });
-
-        if (result.error) {
-          throw new Error(`Erro no arquivo ${file.name}: ${result.error}`);
-        }
-        return result.url;
-      });
-
-      const urls = await Promise.all(uploadPromises);
-
-      setStatus("success");
-      setMessage(`Upload concluído com sucesso! ${urls.length} arquivo(s) enviado(s).`);
-      console.log("URLs dos arquivos:", urls);
-      setFiles([]);
+        await Promise.all(uploadPromises);
+        setStatus("success");
+        setOverallMessage("Todos os uploads foram concluídos com sucesso!");
+        setFiles([]);
     } catch (error: any) {
-      setStatus("error");
-      setMessage(`Falha no upload: ${error.message}`);
-      console.error(error);
+        setStatus("error");
+        setOverallMessage(`Ocorreram erros durante o upload. Verifique os detalhes abaixo.`);
     }
   };
 
   return (
     <div className="p-8 max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold mb-4">Teste de Upload para o Firebase Storage</h1>
+      <h1 className="text-2xl font-bold mb-4">Teste de Upload (Client-Side)</h1>
       <p className="mb-6 text-muted-foreground">
-        Selecione um ou mais arquivos de imagem e clique em "Fazer Upload" para enviá-los.
+        Selecione um ou mais arquivos e clique em "Fazer Upload" para enviá-los diretamente do seu navegador para o Firebase Storage.
       </p>
 
       <div className="space-y-6">
         <div className="space-y-2">
-          <Label htmlFor="file-upload">Seletor de Imagens</Label>
-          <Input 
-            id="file-upload" 
-            type="file" 
-            multiple 
+          <Label htmlFor="file-upload">Seletor de Arquivos</Label>
+          <Input
+            id="file-upload"
+            type="file"
+            multiple
             onChange={handleFileChange}
             className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
           />
@@ -84,7 +125,7 @@ export default function TestesPage() {
 
         {files.length > 0 && (
           <div>
-            <h3 className="font-semibold mb-2">Imagens Selecionadas:</h3>
+            <h3 className="font-semibold mb-2">Arquivos Selecionados:</h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 rounded-lg border p-4">
               {files.map((file, index) => (
                 <div key={index} className="relative aspect-square">
@@ -119,17 +160,39 @@ export default function TestesPage() {
           </Button>
         </div>
 
-        {status !== "idle" && message && (
-          <div className={`flex items-center gap-3 p-3 rounded-md text-sm ${
-              status === "success" ? "bg-green-100 text-green-800" : ""
-            } ${status === "error" ? "bg-red-100 text-red-800" : ""
-            } ${status === "uploading" ? "bg-blue-100 text-blue-800" : ""}`
-          }>
-            {status === 'success' && <CheckCircle className="h-5 w-5" />}
-            {status === 'error' && <AlertCircle className="h-5 w-5" />}
-            <p>{message}</p>
-          </div>
+        {status !== "idle" && (
+            <div className="space-y-4">
+                {overallMessage && (
+                     <div className={`flex items-center gap-3 p-3 rounded-md text-sm ${
+                        status === "success" ? "bg-green-100 text-green-800" : ""
+                        } ${status === "error" ? "bg-red-100 text-red-800" : ""
+                        } ${status === "uploading" ? "bg-blue-100 text-blue-800" : ""}`
+                    }>
+                        {status === 'success' && <CheckCircle className="h-5 w-5" />}
+                        {status === 'error' && <AlertCircle className="h-5 w-5" />}
+                        <p>{overallMessage}</p>
+                    </div>
+                )}
+                <div className="space-y-2">
+                    {uploadProgress.map((item, index) => (
+                        <div key={index} className="p-2 border rounded-md">
+                            <p className="text-sm font-medium truncate">{item.fileName}</p>
+                            <Progress value={item.progress} className="my-2" />
+                            {item.error && (
+                                <div className="flex items-start gap-2 text-sm text-destructive bg-red-50 p-2 rounded">
+                                    <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+                                    <p className="break-all">{item.error}</p>
+                                </div>
+                            )}
+                             {item.url && (
+                                <p className="text-xs text-green-600 break-all">Sucesso! URL: {item.url}</p>
+                            )}
+                        </div>
+                    ))}
+                </div>
+            </div>
         )}
+
       </div>
     </div>
   );

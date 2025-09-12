@@ -2,7 +2,6 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { uploadProofImage } from "@/lib/storage-server";
 
 // --- AÇÃO DE BUSCA DE PERFIL DO INSTAGRAM ---
 
@@ -47,32 +46,5 @@ export async function getInstagramProfilePic(username: string): Promise<ProfileP
   } catch (error: any) {
     console.error("❌ Erro ao buscar perfil do Instagram:", error.message);
     return { error: "Falha ao buscar perfil. O perfil pode ser privado ou não existir." };
-  }
-}
-
-// --- AÇÃO DE UPLOAD PARA TESTES ---
-interface UploadActionResult {
-  url?: string;
-  error?: string;
-}
-
-interface UploadTestImagePayload {
-  buffer: Buffer;
-  fileName: string;
-  contentType: string;
-}
-
-export async function uploadTestImageAction(payload: UploadTestImagePayload): Promise<UploadActionResult> {
-  try {
-    const downloadUrl = await uploadProofImage({
-      fileBuffer: payload.buffer,
-      fileName: payload.fileName,
-      contentType: payload.contentType,
-      path: `test-uploads`,
-    });
-    return { url: downloadUrl };
-  } catch (error: any) {
-    console.error("❌ Erro no upload da imagem de teste:", error);
-    return { error: "Falha ao salvar o arquivo no Storage." };
   }
 }
