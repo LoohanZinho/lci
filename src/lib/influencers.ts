@@ -42,6 +42,7 @@ export interface NewInfluencer {
     proofImageUrls: string[];
     editors: EditorInfo[];
     products: ProductPublication[];
+    lossReason?: string;
 }
 
 export interface Influencer extends Omit<NewInfluencer, 'lastUpdate'> {
@@ -102,6 +103,12 @@ export const updateInfluencer = async (id: string, userId: string, data: Updatab
     if (data.products) {
       updateData.products = data.products;
     }
+    
+    // Explicitly handle setting lossReason to null or an empty string if status changes
+    if (data.status !== 'Prejuízo') {
+      updateData.lossReason = "";
+    }
+
 
     await updateDoc(docRef, updateData);
     console.log("Document successfully updated!");

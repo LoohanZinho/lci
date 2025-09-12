@@ -70,6 +70,11 @@ export function ViewInfluencerDialog({
             <DetailRow label="Seguidores" value={influencer.followers.toLocaleString('pt-BR')} />
             <DetailRow label="Nicho" value={influencer.niche || 'Não informado'} />
             <DetailRow label="Status" value={influencer.status} />
+            {influencer.status === 'Prejuízo' && influencer.lossReason && (
+              <DetailRow label="Motivo Prejuízo" value={
+                <p className="whitespace-pre-wrap">{influencer.lossReason}</p>
+              } />
+            )}
             <DetailRow label="Contato" value={influencer.contact || 'Não informado'} />
             <DetailRow label="Observações" value={
                 <p className="whitespace-pre-wrap">{influencer.notes || 'Nenhuma observação.'}</p>

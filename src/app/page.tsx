@@ -281,6 +281,7 @@ export default function HomePage() {
                       <SelectItem value="Disponível">Disponível</SelectItem>
                       <SelectItem value="Em negociação">Em negociação</SelectItem>
                       <SelectItem value="Fechado">Fechado</SelectItem>
+                      <SelectItem value="Prejuízo">Prejuízo</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

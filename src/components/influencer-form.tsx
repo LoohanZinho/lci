@@ -41,6 +41,7 @@ interface FormData {
   isFumo: boolean;
   proofImageUrls: string[];
   products: ProductPublication[];
+  lossReason: string;
 }
 
 
@@ -55,6 +56,7 @@ const initialState: FormData = {
   isFumo: false,
   proofImageUrls: [],
   products: [],
+  lossReason: "",
 };
 
 const formatFollowers = (value: string) => {
@@ -100,6 +102,7 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
         isFumo: influencer.isFumo,
         proofImageUrls: influencer.proofImageUrls || [],
         products: influencer.products || [],
+        lossReason: influencer.lossReason || "",
       };
       setFormData(currentData);
       setImagePreviews(influencer.proofImageUrls || []);
@@ -262,6 +265,7 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
             isFumo: formData.isFumo,
             proofImageUrls: finalImageUrls,
             products: formData.products,
+            lossReason: formData.lossReason,
         };
         
         if (isEditMode && influencer) {
@@ -356,9 +360,16 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
                 <SelectItem value="Disponível">Disponível</SelectItem>
                 <SelectItem value="Em negociação">Em negociação</SelectItem>
                 <SelectItem value="Fechado">Fechado</SelectItem>
+                <SelectItem value="Prejuízo">Prejuízo</SelectItem>
               </SelectContent>
             </Select>
           </div>
+          {formData.status === 'Prejuízo' && (
+             <div className="flex flex-col space-y-1.5">
+                <Label htmlFor="lossReason">Diga mais sobre essa publi (opcional)</Label>
+                <Textarea id="lossReason" placeholder="Ex: Engajamento baixo, não converteu em vendas..." value={formData.lossReason} onChange={handleChange} disabled={isLoading} />
+            </div>
+          )}
            <div className="flex flex-col space-y-1.5">
             <Label htmlFor="contact">Contato Preferencial (opcional)</Label>
             <Input id="contact" placeholder="Email ou WhatsApp" value={formData.contact} onChange={handleChange} disabled={isLoading} />
