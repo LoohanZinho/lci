@@ -53,7 +53,7 @@ function ImageViewer({ images, startIndex, onClose }: { images: string[], startI
       <Button 
         variant="ghost" 
         size="icon" 
-        className="fixed top-4 right-4 text-white h-10 w-10 rounded-full bg-black/30 hover:bg-black/50 hover:text-white z-[101]" 
+        className="fixed top-4 right-4 text-white h-10 w-10 rounded-full bg-black/30 hover:bg-black/50 hover:text-white" 
         onClick={onClose}
       >
         <X className="h-6 w-6" />
@@ -77,7 +77,7 @@ function ImageViewer({ images, startIndex, onClose }: { images: string[], startI
           <Button 
             variant="ghost" 
             size="icon" 
-            className="fixed left-4 top-1/2 -translate-y-1/2 text-white h-12 w-12 rounded-full bg-black/30 hover:bg-black/50 hover:text-white z-[101]" 
+            className="fixed left-4 top-1/2 -translate-y-1/2 text-white h-12 w-12 rounded-full bg-black/30 hover:bg-black/50 hover:text-white" 
             onClick={goToPrevious}
           >
             <ChevronLeft className="h-8 w-8" />
@@ -86,13 +86,13 @@ function ImageViewer({ images, startIndex, onClose }: { images: string[], startI
           <Button 
             variant="ghost" 
             size="icon" 
-            className="fixed right-4 top-1/2 -translate-y-1/2 text-white h-12 w-12 rounded-full bg-black/30 hover:bg-black/50 hover:text-white z-[101]" 
+            className="fixed right-4 top-1/2 -translate-y-1/2 text-white h-12 w-12 rounded-full bg-black/30 hover:bg-black/50 hover:text-white" 
             onClick={goToNext}
           >
             <ChevronRight className="h-8 w-8" />
             <span className="sr-only">Próxima</span>
           </Button>
-          <div className="fixed bottom-4 left-1/2 -translate-x-1/2 text-white text-sm bg-black/50 px-3 py-1 rounded-full z-[101]">
+          <div className="fixed bottom-4 left-1/2 -translate-x-1/2 text-white text-sm bg-black/50 px-3 py-1 rounded-full">
             {currentIndex + 1} / {images.length}
           </div>
         </>
