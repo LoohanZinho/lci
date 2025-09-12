@@ -4,6 +4,10 @@
 import { revalidatePath } from "next/cache";
 import { deleteProofImage, uploadProofImage } from "@/lib/storage-server";
 import { Readable } from "stream";
+import { db } from "@/lib/firebase";
+import { doc, getDoc, deleteDoc } from "firebase/firestore";
+import type { Influencer } from "@/lib/influencers";
+
 
 // --- AÇÃO DE BUSCA DE PERFIL DO INSTAGRAM ---
 
@@ -78,7 +82,8 @@ export async function uploadProofImageAction(formData: FormData): Promise<Upload
       contentType: file.type,
       path: path,
     });
-
+    
+    revalidatePath("/");
     return { url };
   } catch (error: any) {
     console.error("❌ Erro no upload da imagem:", error);
@@ -98,9 +103,41 @@ export async function deleteProofImageAction(imageUrl: string): Promise<DeleteRe
 
     try {
         await deleteProofImage(imageUrl);
+        revalidatePath("/");
         return { success: true };
     } catch (error: any) {
         console.error("❌ Erro ao deletar imagem do Storage:", error);
         return { error: `Falha ao deletar a imagem. Detalhes: ${error.message}` };
     }
 }
+
+
+export async function deleteInfluencerAction(id: string): Promise<DeleteResult> {
+  if (!id) {
+    return { error: "ID do influenciador não fornecido." };
+  }
+
+  try {
+    const docRef = doc(db, "influencers", id);
+    const docSnap = await getDoc(docRef);
+
+    if (docSnap.exists()) {
+      const influencer = docSnap.data() as Influencer;
+      // Delete associated images from storage
+      if (influencer.proofImageUrls && influencer.proofImageUrls.length > 0) {
+        const deletePromises = influencer.proofImageUrls.map(url => deleteProofImage(url));
+        await Promise.all(deletePromises);
+        console.log("Associated images deleted from Storage.");
+      }
+    }
+
+    await deleteDoc(docRef);
+    console.log("Document successfully deleted!");
+    
+    revalidatePath("/");
+    return { success: true };
+  } catch (error: any) {
+    console.error("Error removing document: ", error);
+    return { error: `Falha ao excluir o influenciador. Detalhes: ${error.message}` };
+  }
+};

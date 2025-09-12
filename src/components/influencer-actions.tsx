@@ -1,10 +1,12 @@
+
 "use client";
 
 import { Button } from "@/components/ui/button";
 import { Edit, Trash2, Eye } from "lucide-react";
-import { deleteInfluencer, InfluencerWithUserData } from "@/lib/influencers";
+import { InfluencerWithUserData } from "@/lib/influencers";
 import { useState } from "react";
 import { DeleteInfluencerDialog } from "./delete-influencer-dialog";
+import { deleteInfluencerAction } from "@/app/actions";
 
 interface InfluencerActionsProps {
   influencer: InfluencerWithUserData;
@@ -20,7 +22,10 @@ export function InfluencerActions({ influencer, onEdit, onView }: InfluencerActi
   const handleDelete = async () => {
     setIsDeleting(true);
     try {
-      await deleteInfluencer(influencer.id);
+      const result = await deleteInfluencerAction(influencer.id);
+      if (result.error) {
+        throw new Error(result.error);
+      }
       setIsConfirmingDelete(false); // Close dialog on success
     } catch (error) {
       console.error("Failed to delete influencer", error);

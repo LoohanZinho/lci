@@ -18,7 +18,6 @@ import {
   where,
 } from "firebase/firestore";
 import { db } from "./firebase";
-import { deleteProofImage } from "./storage-server";
 
 export type UpdatableInfluencerData = Partial<Omit<NewInfluencer, 'addedBy' | 'lastUpdate' | 'editors'>>
 
@@ -277,26 +276,3 @@ export const getInfluencers = (
   
     return unsubscribe;
   };
-
-export const deleteInfluencer = async (id: string) => {
-  try {
-    const docRef = doc(db, "influencers", id);
-    const docSnap = await getDoc(docRef);
-
-    if (docSnap.exists()) {
-      const influencer = docSnap.data() as Influencer;
-      // Delete associated images from storage
-      if (influencer.proofImageUrls && influencer.proofImageUrls.length > 0) {
-        const deletePromises = influencer.proofImageUrls.map(url => deleteProofImage(url));
-        await Promise.all(deletePromises);
-        console.log("Associated images deleted from Storage.");
-      }
-    }
-
-    await deleteDoc(docRef);
-    console.log("Document successfully deleted!");
-  } catch (error) {
-    console.error("Error removing document: ", error);
-    throw error;
-  }
-};
