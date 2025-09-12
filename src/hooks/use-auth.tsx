@@ -20,7 +20,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { LoadingSpinner } from "@/components/loading-spinner";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 
-const ADMIN_EMAILS = ["lohansantosborges@gmail.com", "natanrabelo934@gmail.com"];
+const ADMIN_EMAILS = ["lohansantosborges@gmail.com", "natanrabelo934@gmail.com", "guinunessilva89@gmail.com"];
 
 interface UserProfile {
   name: string;
@@ -169,5 +169,3 @@ export function useAuth() {
   }
   return context;
 }
-
-    
