@@ -5,11 +5,13 @@ import { useAuth } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import { useTheme } from "next-themes";
 
 export default function LoginPage() {
   const { user } = useAuth();
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
+  const { theme } = useTheme();
 
   useEffect(() => {
     setMounted(true);
@@ -21,8 +23,7 @@ export default function LoginPage() {
     }
   }, [user, router]);
 
-  // Always use the light-text logo for better contrast and consistency
-  const logoSrc = "https://i.imgur.com/DkRNtRL.png";
+  const logoSrc = theme === 'dark' ? "https://i.imgur.com/DkRNtRL.png" : "https://i.imgur.com/uYwvJ7Q.png";
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4">

@@ -3,12 +3,19 @@
 import { SignupForm } from "@/components/signup-form";
 import { useAuth } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
+import { useTheme } from "next-themes";
 
 export default function SignupPage() {
   const { user } = useAuth();
   const router = useRouter();
+  const [mounted, setMounted] = useState(false);
+  const { theme } = useTheme();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (user) {
@@ -16,20 +23,21 @@ export default function SignupPage() {
     }
   }, [user, router]);
   
-  // Always use the light-text logo for better contrast and consistency
-  const logoSrc = "https://i.imgur.com/DkRNtRL.png";
+  const logoSrc = theme === 'dark' ? "https://i.imgur.com/DkRNtRL.png" : "https://i.imgur.com/uYwvJ7Q.png";
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4">
       <div className="text-center mb-8">
         <div className="flex items-center justify-center space-x-3 mb-4 h-[76px]">
-          <Image
-              src={logoSrc}
-              alt="LCI: Mural de Influência Logo"
-              width={250}
-              height={76}
-              priority
-          />
+          {mounted && (
+            <Image
+                src={logoSrc}
+                alt="LCI: Mural de Influência Logo"
+                width={250}
+                height={76}
+                priority
+            />
+          )}
         </div>
         <p className="text-sm text-muted-foreground">
           Mural dos influenciadores
