@@ -101,23 +101,36 @@ export default function HomePage() {
   const filteredInfluencers = useMemo(() => {
     let tempInfluencers = influencers;
 
-    // Filter by status first
-    if (statusFilter !== "all") {
-        tempInfluencers = tempInfluencers.filter(
-            (influencer) => influencer.status === statusFilter
-        );
+    // 1. Filter by status
+    if (statusFilter === "all") {
+      // By default, hide 'Contrato fechado' from the main wall
+      tempInfluencers = tempInfluencers.filter(
+        (influencer) => influencer.status !== "Contrato fechado"
+      );
+    } else {
+      // If a specific status is selected, filter by it
+      tempInfluencers = tempInfluencers.filter(
+        (influencer) => influencer.status === statusFilter
+      );
     }
     
-    // Then filter by search query
+    // 2. Filter by search query
     if (searchQuery) {
         const lowercasedQuery = searchQuery.toLowerCase();
-        tempInfluencers = tempInfluencers.filter(
-          (influencer) =>
-            influencer.name.toLowerCase().includes(lowercasedQuery) ||
-            influencer.instagram.toLowerCase().includes(lowercasedQuery) ||
-            (influencer.notes &&
-              influencer.notes.toLowerCase().includes(lowercasedQuery))
-        );
+        tempInfluencers = tempInfluencers.filter((influencer) => {
+            const nameMatch = influencer.name.toLowerCase().includes(lowercasedQuery);
+            
+            // If status is 'Contrato fechado', only search by name is allowed
+            if (influencer.status === "Contrato fechado") {
+                return nameMatch;
+            }
+
+            // For other statuses, search by name, instagram, or notes
+            const instagramMatch = influencer.instagram.toLowerCase().includes(lowercasedQuery);
+            const notesMatch = influencer.notes && influencer.notes.toLowerCase().includes(lowercasedQuery);
+            
+            return nameMatch || instagramMatch || notesMatch;
+        });
     }
 
     return tempInfluencers;
@@ -361,3 +374,5 @@ export default function HomePage() {
     </div>
   );
 }
+
+    
