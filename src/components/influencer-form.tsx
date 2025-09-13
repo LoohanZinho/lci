@@ -223,10 +223,12 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
         const newImageUrls = (await Promise.all(uploadPromises)).filter((url): url is string => !!url);
         
         const finalImageUrls = [...formData.proofImageUrls, ...newImageUrls];
+        
+        const finalInstagramHandle = formData.instagram.startsWith('@') ? formData.instagram : `@${formData.instagram}`;
 
         const influencerData: UpdatableInfluencerData = {
             name: formData.name,
-            instagram: formData.instagram.startsWith('@') ? formData.instagram : `@${formData.instagram}`,
+            instagram: finalInstagramHandle,
             followers: parseInt(unformatFollowers(formData.followers), 10),
             status: formData.status,
             niche: formData.niche,

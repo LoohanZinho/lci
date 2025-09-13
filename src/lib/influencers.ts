@@ -76,8 +76,18 @@ export interface InfluencerWithUserData extends Influencer {
 
 export const addInfluencer = async (influencer: Omit<NewInfluencer, 'lastUpdate' | 'editors'>, newId: string): Promise<DocumentReference> => {
   try {
+    // Check for duplicates
+    const influencersRef = collection(db, "influencers");
+    const q = query(influencersRef, where("instagram", "==", influencer.instagram.toLowerCase()));
+    const querySnapshot = await getDocs(q);
+
+    if (!querySnapshot.empty) {
+      throw new Error("Já existe um influenciador com este @ do Instagram.");
+    }
+    
     const dataToAdd = {
       ...influencer,
+      instagram: influencer.instagram.toLowerCase(),
       proofImageUrls: influencer.proofImageUrls || [],
       products: influencer.products || [],
       editors: [], // Start with an empty array of EditorInfo
@@ -132,6 +142,11 @@ export const updateInfluencer = async (id: string, userId: string, data: Updatab
         throw new Error("Document not found!");
     }
     const currentData = docSnap.data() as Influencer;
+
+    // Normalize instagram handle if it's being updated
+    if (data.instagram) {
+      data.instagram = data.instagram.toLowerCase();
+    }
 
     const changes: ChangeDetail[] = Object.keys(data).map(key => {
         const oldValue = currentData[key as keyof Influencer];
