@@ -18,18 +18,6 @@ import { useTheme } from "next-themes";
 import { Input } from "@/components/ui/input";
 import { getInfluencers, InfluencerWithUserData } from "@/lib/influencers";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -41,6 +29,7 @@ import Link from "next/link";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import Image from "next/image";
+import { InfluencerSearch } from "@/components/influencer-search";
 
 
 export default function HomePage() {
@@ -49,7 +38,6 @@ export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState("");
   const { theme, setTheme } = useTheme();
   const [influencers, setInfluencers] = useState<InfluencerWithUserData[]>([]);
-  const [popoverOpen, setPopoverOpen] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
@@ -94,7 +82,6 @@ export default function HomePage() {
   
   const handleSelectSuggestion = (suggestion: string) => {
     setSearchQuery(suggestion);
-    setPopoverOpen(false);
   };
   
   const filteredInfluencers = useMemo(() => {
@@ -166,6 +153,16 @@ export default function HomePage() {
 
   const logoSrc = theme === 'dark' ? "https://i.imgur.com/DkRNtRL.png" : "https://i.imgur.com/uYwvJ7Q.png";
 
+  const searchableInfluencers = useMemo(() => {
+      return influencers.filter(influencer => {
+           if (influencer.status === "Contrato fechado") {
+                const isOwner = user?.uid === influencer.addedBy;
+                return isOwner || isAdmin;
+            }
+            return true;
+      })
+  }, [influencers, user, isAdmin]);
+
   return (
     <div className="flex flex-col min-h-screen">
       <header className="flex items-center justify-between p-4 border-b bg-background">
@@ -230,72 +227,12 @@ export default function HomePage() {
           </div>
           <div className="flex flex-col gap-4 mb-4">
             <div className="w-full">
-              <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
-                <PopoverTrigger asChild>
-                  <div className="relative w-full">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      type="search"
-                      placeholder="Buscar por nome, @, ou nota..."
-                      className="pl-9 w-full"
-                      value={searchQuery}
-                      onChange={(e) => {
-                        setSearchQuery(e.target.value);
-                        if (e.target.value.length > 0) {
-                          setPopoverOpen(true);
-                        } else {
-                          setPopoverOpen(false);
-                        }
-                      }}
-                      onBlur={() => {
-                        // Delay closing to allow for click on suggestion
-                        setTimeout(() => setPopoverOpen(false), 150);
-                      }}
-                      onFocus={() => {
-                        if (searchQuery.length > 0) {
-                          setPopoverOpen(true);
-                        }
-                      }}
-                    />
-                  </div>
-                </PopoverTrigger>
-                <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
-                  <Command>
-                    <CommandList>
-                      <CommandEmpty>Nenhum resultado.</CommandEmpty>
-                      <CommandGroup heading="Sugestões">
-                        {influencers
-                          .filter(
-                            (i) => {
-                                const isVisible = !(i.status === "Contrato fechado" && user?.uid !== i.addedBy && !isAdmin);
-                                if (!isVisible) return false;
-
-                                const lowercasedQuery = searchQuery.toLowerCase();
-                                const nameMatch = i.name.toLowerCase().includes(lowercasedQuery);
-                                
-                                if (i.status === "Contrato fechado") {
-                                    return nameMatch;
-                                }
-                                
-                                const instagramMatch = i.instagram.toLowerCase().includes(lowercasedQuery);
-                                return nameMatch || instagramMatch;
-                            }
-                          )
-                          .slice(0, 5)
-                          .map((influencer) => (
-                            <CommandItem
-                              key={influencer.id}
-                              onSelect={() => handleSelectSuggestion(influencer.name)}
-                              value={influencer.name}
-                            >
-                              {influencer.name} ({influencer.instagram})
-                            </CommandItem>
-                          ))}
-                      </CommandGroup>
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
+              <InfluencerSearch
+                influencers={searchableInfluencers}
+                onSelect={handleSelectSuggestion}
+                searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery}
+              />
             </div>
 
             <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 w-full">
