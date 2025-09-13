@@ -23,7 +23,7 @@ export function InfluencerActions({ influencer, onEdit, onView }: InfluencerActi
     setIsDeleting(true);
     try {
       const result = await deleteInfluencerAction(influencer.id);
-      if (result.error) {
+      if (result && result.error) {
         throw new Error(result.error);
       }
       setIsConfirmingDelete(false); // Close dialog on success
