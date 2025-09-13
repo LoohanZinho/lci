@@ -49,7 +49,7 @@ export function LoginForm() {
       <CardHeader>
         <CardTitle>Acessar Plataforma</CardTitle>
         <CardDescription>
-          Faça login para continuar no mural de influenciadores.
+          Faça login para continuar no Mural de influenciadores.
         </CardDescription>
       </CardHeader>
       <form onSubmit={handleSubmit}>
