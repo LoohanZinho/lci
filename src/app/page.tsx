@@ -29,7 +29,6 @@ import Link from "next/link";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import Image from "next/image";
-import { InfluencerSearch } from "@/components/influencer-search";
 
 
 export default function HomePage() {
@@ -79,10 +78,6 @@ export default function HomePage() {
     };
     setGreeting(getGreeting());
   }, []);
-  
-  const handleSelectSuggestion = (suggestion: string) => {
-    setSearchQuery(suggestion);
-  };
   
   const filteredInfluencers = useMemo(() => {
     let tempInfluencers = influencers;
@@ -153,16 +148,6 @@ export default function HomePage() {
 
   const logoSrc = theme === 'dark' ? "https://i.imgur.com/DkRNtRL.png" : "https://i.imgur.com/uYwvJ7Q.png";
 
-  const searchableInfluencers = useMemo(() => {
-      return influencers.filter(influencer => {
-           if (influencer.status === "Contrato fechado") {
-                const isOwner = user?.uid === influencer.addedBy;
-                return isOwner || isAdmin;
-            }
-            return true;
-      })
-  }, [influencers, user, isAdmin]);
-
   return (
     <div className="flex flex-col min-h-screen">
       <header className="flex items-center justify-between p-4 border-b bg-background">
@@ -227,12 +212,16 @@ export default function HomePage() {
           </div>
           <div className="flex flex-col gap-4 mb-4">
             <div className="w-full">
-              <InfluencerSearch
-                influencers={searchableInfluencers}
-                onSelect={handleSelectSuggestion}
-                searchQuery={searchQuery}
-                setSearchQuery={setSearchQuery}
-              />
+               <div className="relative w-full">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                        type="text"
+                        placeholder="Buscar por nome, @, ou nota..."
+                        className="pl-9 w-full"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                </div>
             </div>
 
             <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 w-full">
