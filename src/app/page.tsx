@@ -26,7 +26,6 @@ import {
   Command,
   CommandEmpty,
   CommandGroup,
-  CommandInput,
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
@@ -45,7 +44,7 @@ import Image from "next/image";
 
 
 export default function HomePage() {
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const [greeting, setGreeting] = useState("Olá");
   const [searchQuery, setSearchQuery] = useState("");
   const { theme, setTheme } = useTheme();
@@ -101,20 +100,24 @@ export default function HomePage() {
   const filteredInfluencers = useMemo(() => {
     let tempInfluencers = influencers;
 
-    // 1. Filter by status
-    if (statusFilter === "all") {
-      // By default, hide 'Contrato fechado' from the main wall
-      tempInfluencers = tempInfluencers.filter(
-        (influencer) => influencer.status !== "Contrato fechado"
-      );
-    } else {
-      // If a specific status is selected, filter by it
-      tempInfluencers = tempInfluencers.filter(
-        (influencer) => influencer.status === statusFilter
-      );
-    }
-    
-    // 2. Filter by search query
+    // Filter based on status and special "Contrato fechado" logic
+    tempInfluencers = tempInfluencers.filter(influencer => {
+      // Rule: "Contrato fechado" is only visible to the user who added it or admins.
+      if (influencer.status === "Contrato fechado") {
+        const isOwner = user?.uid === influencer.addedBy;
+        return isOwner || isAdmin;
+      }
+
+      // Rule: Default view hides "Contrato fechado".
+      if (statusFilter === "all") {
+        return true; // Already handled above, keep others
+      }
+      
+      // Rule: Filter by selected status.
+      return influencer.status === statusFilter;
+    });
+
+    // Then, filter by search query
     if (searchQuery) {
         const lowercasedQuery = searchQuery.toLowerCase();
         tempInfluencers = tempInfluencers.filter((influencer) => {
@@ -134,7 +137,7 @@ export default function HomePage() {
     }
 
     return tempInfluencers;
-  }, [influencers, searchQuery, statusFilter]);
+  }, [influencers, searchQuery, statusFilter, user, isAdmin]);
 
   const totalPages = Math.ceil(filteredInfluencers.length / itemsPerPage);
 
@@ -249,12 +252,10 @@ export default function HomePage() {
                   </PopoverTrigger>
                   <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
                     <Command>
-                      <CommandInput placeholder="Digite para buscar..." />
                       <CommandList>
                         <CommandEmpty>Nenhum resultado.</CommandEmpty>
-                        <CommandGroup>
-                          {influencers
-                            .filter(i => i.status !== 'Contrato fechado')
+                        <CommandGroup heading="Sugestões">
+                          {filteredInfluencers
                             .filter(
                               (i) =>
                                 i.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
