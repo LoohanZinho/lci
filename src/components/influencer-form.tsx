@@ -41,6 +41,11 @@ interface FormData {
   proofImageUrls: string[];
 }
 
+interface FileToUpload {
+  file: File;
+  progress: number;
+}
+
 const formatFollowers = (value: string) => {
     if (!value) return "";
     const cleanedValue = value.replace(/\D/g, "");
@@ -85,7 +90,7 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
     };
   };
 
-  const [formData, setFormData] = useState<FormData>(getInitialState);
+  const [formData, setFormData] = useState<FormData>(getInitialState());
   const [currentProduct, setCurrentProduct] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
