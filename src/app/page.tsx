@@ -200,10 +200,7 @@ export default function HomePage() {
           <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4 mb-6">
             <div className="flex-1">
               <h2 className="text-2xl font-bold">
-                {greeting}, <div className="relative inline-block">
-                  <span className="relative z-10 text-transparent bg-clip-text bg-gradient-to-r from-[#fbda25] to-[#a98900]">{user.displayName || user.email}</span>
-                  <div className="absolute inset-0 z-0 bg-gradient-to-r from-[#fbda25]/20 to-[#a98900]/20 blur-xl" />
-                </div>
+                {greeting}, <span className="text-primary">{user.displayName || user.email}</span>
               </h2>
               <p className="text-muted-foreground">
                 Encontre, gerencie e adicione novos influenciadores ao seu mural.
