@@ -23,7 +23,7 @@ interface DeleteInfluencerDialogProps {
   isLoading?: boolean;
 }
 
-const CORRECT_PASSWORD = "admin123";
+const CORRECT_PASSWORD = "admin#123";
 
 export function DeleteInfluencerDialog({
   isOpen,
