@@ -7,6 +7,7 @@ import { Readable } from "stream";
 import { db } from "@/lib/firebase";
 import { doc, getDoc, deleteDoc } from "firebase/firestore";
 import type { Influencer } from "@/lib/influencers";
+import { deleteInfluencer } from "@/lib/influencers-server";
 
 
 // --- AÇÃO DE BUSCA DE PERFIL DO INSTAGRAM ---
@@ -118,21 +119,7 @@ export async function deleteInfluencerAction(id: string): Promise<DeleteResult> 
   }
 
   try {
-    const docRef = doc(db, "influencers", id);
-    const docSnap = await getDoc(docRef);
-
-    if (docSnap.exists()) {
-      const influencer = docSnap.data() as Influencer;
-      // Delete associated images from storage
-      if (influencer.proofImageUrls && influencer.proofImageUrls.length > 0) {
-        const deletePromises = influencer.proofImageUrls.map(url => deleteProofImage(url));
-        await Promise.all(deletePromises);
-        console.log("Associated images deleted from Storage.");
-      }
-    }
-
-    await deleteDoc(docRef);
-    console.log("Document successfully deleted!");
+    await deleteInfluencer(id);
     
     revalidatePath("/");
     return { success: true };
