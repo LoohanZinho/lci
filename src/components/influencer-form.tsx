@@ -79,7 +79,7 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
   const [error, setError] = useState<string | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const statusRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
@@ -286,9 +286,9 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
           </div>
           <div className="flex flex-col space-y-1.5">
             <Label htmlFor="instagram">Instagram</Label>
-            <div className="flex h-10 w-full items-center rounded-md border border-input bg-transparent px-3 text-sm ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
+            <div className="flex h-10 w-full items-center rounded-md border border-input bg-transparent px-3 text-sm ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 has-[input:disabled]:opacity-70 has-[input:disabled]:cursor-not-allowed">
               <span className="text-muted-foreground">@</span>
-              <Input id="instagram" placeholder="username" value={formData.instagram.replace(/@/g, '')} onChange={(e) => setFormData(prev => ({ ...prev, instagram: e.target.value.replace(/@/g, '')}))} required className="border-0 bg-transparent p-0 pl-1 focus-visible:ring-0 focus-visible:ring-offset-0" disabled={isLoading} />
+              <Input id="instagram" placeholder="username" value={formData.instagram.replace(/@/g, '')} onChange={(e) => setFormData(prev => ({ ...prev, instagram: e.target.value.replace(/@/g, '')}))} required className="border-0 bg-transparent p-0 pl-1 focus-visible:ring-0 focus-visible:ring-offset-0" disabled={isLoading || (isEditMode && !isAdmin)} />
             </div>
           </div>
           <div className="flex flex-col space-y-1.5">
