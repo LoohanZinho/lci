@@ -230,53 +230,73 @@ export default function HomePage() {
           </div>
           <div className="flex flex-col gap-4 mb-4">
             <div className="w-full">
-                <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
-                  <PopoverTrigger asChild>
-                    <div className="relative w-full">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        type="search"
-                        placeholder="Buscar por nome, @, ou nota..."
-                        className="pl-9 w-full"
-                        value={searchQuery}
-                        onChange={(e) => {
-                          setSearchQuery(e.target.value);
-                          if (e.target.value.length > 0) {
-                            setPopoverOpen(true);
-                          } else {
-                            setPopoverOpen(false);
-                          }
-                        }}
-                      />
-                    </div>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
-                    <Command>
-                      <CommandList>
-                        <CommandEmpty>Nenhum resultado.</CommandEmpty>
-                        <CommandGroup heading="Sugestões">
-                          {filteredInfluencers
-                            .filter(
-                              (i) =>
-                                i.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                                i.instagram.toLowerCase().includes(searchQuery.toLowerCase())
-                            )
-                            .slice(0, 5)
-                            .map((influencer) => (
-                              <CommandItem
-                                key={influencer.id}
-                                onSelect={() => handleSelectSuggestion(influencer.name)}
-                                value={influencer.name}
-                              >
-                                {influencer.name} ({influencer.instagram})
-                              </CommandItem>
-                            ))}
-                        </CommandGroup>
-                      </CommandList>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
-              </div>
+              <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
+                <PopoverTrigger asChild>
+                  <div className="relative w-full">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      type="search"
+                      placeholder="Buscar por nome, @, ou nota..."
+                      className="pl-9 w-full"
+                      value={searchQuery}
+                      onChange={(e) => {
+                        setSearchQuery(e.target.value);
+                        if (e.target.value.length > 0) {
+                          setPopoverOpen(true);
+                        } else {
+                          setPopoverOpen(false);
+                        }
+                      }}
+                      onBlur={() => {
+                        // Delay closing to allow for click on suggestion
+                        setTimeout(() => setPopoverOpen(false), 150);
+                      }}
+                      onFocus={() => {
+                        if (searchQuery.length > 0) {
+                          setPopoverOpen(true);
+                        }
+                      }}
+                    />
+                  </div>
+                </PopoverTrigger>
+                <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                  <Command>
+                    <CommandList>
+                      <CommandEmpty>Nenhum resultado.</CommandEmpty>
+                      <CommandGroup heading="Sugestões">
+                        {influencers
+                          .filter(
+                            (i) => {
+                                const isVisible = !(i.status === "Contrato fechado" && user?.uid !== i.addedBy && !isAdmin);
+                                if (!isVisible) return false;
+
+                                const lowercasedQuery = searchQuery.toLowerCase();
+                                const nameMatch = i.name.toLowerCase().includes(lowercasedQuery);
+                                
+                                if (i.status === "Contrato fechado") {
+                                    return nameMatch;
+                                }
+                                
+                                const instagramMatch = i.instagram.toLowerCase().includes(lowercasedQuery);
+                                return nameMatch || instagramMatch;
+                            }
+                          )
+                          .slice(0, 5)
+                          .map((influencer) => (
+                            <CommandItem
+                              key={influencer.id}
+                              onSelect={() => handleSelectSuggestion(influencer.name)}
+                              value={influencer.name}
+                            >
+                              {influencer.name} ({influencer.instagram})
+                            </CommandItem>
+                          ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+            </div>
 
             <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 w-full">
                 <div className="overflow-x-auto pb-2 md:pb-0">
