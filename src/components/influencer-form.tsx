@@ -52,7 +52,7 @@ const initialState: FormData = {
   name: "",
   instagram: "",
   followers: "",
-  status: "Desconhecido",
+  status: "",
   niche: "",
   notes: "",
   isFumo: false,
@@ -101,7 +101,7 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
         name: influencer.name,
         instagram: influencer.instagram.startsWith('@') ? influencer.instagram.substring(1) : influencer.instagram,
         followers: formatFollowers(influencer.followers.toString()),
-        status: influencer.status || "Desconhecido",
+        status: influencer.status || "",
         niche: influencer.niche,
         notes: influencer.notes,
         isFumo: influencer.isFumo,
@@ -195,14 +195,22 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    setError(null);
 
     if (!user) {
       setError("Você precisa estar logado para realizar esta ação.");
       return;
     }
+
+    if (!formData.status) {
+      setError("Por favor, selecione um status.");
+      if (statusRef.current) {
+        statusRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      return;
+    }
     
     setIsLoading(true);
-    setError(null);
     setUploadError(null);
     
     try {
