@@ -41,26 +41,6 @@ interface FormData {
   proofImageUrls: string[];
 }
 
-interface FileToUpload {
-  file: File;
-  progress: number;
-  error?: string;
-  url?: string;
-}
-
-const initialState: FormData = {
-  name: "",
-  instagram: "",
-  followers: "",
-  status: "",
-  niche: "",
-  notes: "",
-  isFumo: false,
-  products: [],
-  lossReason: "",
-  proofImageUrls: [],
-};
-
 const formatFollowers = (value: string) => {
     if (!value) return "";
     const cleanedValue = value.replace(/\D/g, "");
@@ -74,7 +54,38 @@ const unformatFollowers = (value: string) => {
 }
 
 export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) {
-  const [formData, setFormData] = useState<FormData>(initialState);
+  const isEditMode = !!influencer;
+  
+  const getInitialState = (): FormData => {
+    if (isEditMode && influencer) {
+      return {
+        name: influencer.name,
+        instagram: influencer.instagram.startsWith('@') ? influencer.instagram.substring(1) : influencer.instagram,
+        followers: formatFollowers(influencer.followers.toString()),
+        status: influencer.status,
+        niche: influencer.niche,
+        notes: influencer.notes,
+        isFumo: influencer.isFumo,
+        products: influencer.products || [],
+        lossReason: influencer.lossReason || "",
+        proofImageUrls: influencer.proofImageUrls || [],
+      };
+    }
+    return {
+      name: "",
+      instagram: "",
+      followers: "",
+      status: "",
+      niche: "",
+      notes: "",
+      isFumo: false,
+      products: [],
+      lossReason: "",
+      proofImageUrls: [],
+    };
+  };
+
+  const [formData, setFormData] = useState<FormData>(getInitialState);
   const [currentProduct, setCurrentProduct] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -88,30 +99,14 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
   const [filesToUpload, setFilesToUpload] = useState<FileToUpload[]>([]);
   const [imagesToDelete, setImagesToDelete] = useState<string[]>([]);
   
-  const isEditMode = !!influencer;
-  
   const followerCount = parseInt(unformatFollowers(formData.followers), 10) || 0;
   const classification = getInfluencerClassification(followerCount);
   
   const IMAGE_LIMIT = 10;
 
   useEffect(() => {
-    if (influencer) {
-      setFormData({
-        name: influencer.name,
-        instagram: influencer.instagram.startsWith('@') ? influencer.instagram.substring(1) : influencer.instagram,
-        followers: formatFollowers(influencer.followers.toString()),
-        status: influencer.status || "",
-        niche: influencer.niche,
-        notes: influencer.notes,
-        isFumo: influencer.isFumo,
-        products: influencer.products || [],
-        lossReason: influencer.lossReason || "",
-        proofImageUrls: influencer.proofImageUrls || [],
-      });
-    } else {
-      setFormData(initialState);
-    }
+    setFormData(getInitialState());
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [influencer]);
 
   const handleImageSelection = (e: ChangeEvent<HTMLInputElement>) => {
