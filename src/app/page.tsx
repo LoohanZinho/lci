@@ -254,6 +254,7 @@ export default function HomePage() {
                         <CommandEmpty>Nenhum resultado.</CommandEmpty>
                         <CommandGroup>
                           {influencers
+                            .filter(i => i.status !== 'Contrato fechado')
                             .filter(
                               (i) =>
                                 i.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
