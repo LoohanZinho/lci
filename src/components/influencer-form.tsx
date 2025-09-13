@@ -224,16 +224,16 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
         
         const finalImageUrls = [...formData.proofImageUrls, ...newImageUrls];
 
-        const influencerData = {
+        const influencerData: UpdatableInfluencerData = {
             name: formData.name,
             instagram: formData.instagram.startsWith('@') ? formData.instagram : `@${formData.instagram}`,
             followers: parseInt(unformatFollowers(formData.followers), 10),
-            status: "Desconhecido", // Force status
+            status: formData.status,
             niche: formData.niche,
             notes: formData.notes,
             isFumo: formData.isFumo,
             products: formData.products,
-            lossReason: "", // Force empty
+            lossReason: formData.lossReason,
             proofImageUrls: finalImageUrls,
         };
         
@@ -242,7 +242,7 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
              await updateInfluencer(influencer.id, user.uid, dataToUpdate);
         } else {
              const newInfluencerData: Omit<NewInfluencer, 'lastUpdate' | 'editors'> = {
-                ...influencerData,
+                ...(influencerData as NewInfluencer), // Cast here as it has all required fields
                 addedBy: user.uid,
              };
              await addInfluencer(newInfluencerData, formInstanceId);
@@ -292,6 +292,28 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
               {followerCount > 0 && <span className="text-sm text-muted-foreground bg-secondary px-3 py-2 rounded-md">{classification}</span>}
             </div>
           </div>
+          <div className="flex flex-col space-y-1.5" ref={statusRef}>
+            <Label htmlFor="status">Status</Label>
+            <Select value={formData.status} onValueChange={handleSelectChange} disabled={isLoading}>
+              <SelectTrigger id="status">
+                <SelectValue placeholder="Selecione o status" />
+              </SelectTrigger>
+              <SelectContent>
+                  <SelectItem value="Publicidade Agendada">Publicidade Agendada</SelectItem>
+                  <SelectItem value="Contrato fechado">Contrato fechado</SelectItem>
+                  <SelectItem value="Deu prejuízo">Deu prejuízo</SelectItem>
+                  <SelectItem value="Deixou de dar lucro">Deixou de dar lucro</SelectItem>
+                  <SelectItem value="Golpista">Golpista</SelectItem>
+                  <SelectItem value="Desconhecido">Desconhecido (Ninguém fechou)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          {formData.status === 'Deu prejuízo' && (
+            <div className="flex flex-col space-y-1.5">
+              <Label htmlFor="lossReason">Diga mais sobre o prejuízo</Label>
+              <Textarea id="lossReason" placeholder="Ex: Não converteu, alcance baixo, etc." value={formData.lossReason} onChange={handleChange} disabled={isLoading} />
+            </div>
+          )}
           <div className="flex flex-col space-y-1.5">
             <Label htmlFor="niche">Nicho/Segmento (opcional)</Label>
             <Input id="niche" placeholder="Ex: Fitness, Moda" value={formData.niche} onChange={handleChange} disabled={isLoading} />
@@ -391,3 +413,5 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
     </div>
   );
 }
+
+    

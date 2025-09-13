@@ -51,7 +51,7 @@ export interface NewInfluencer {
     proofImageUrls: string[];
     editors: EditorInfo[];
     products: ProductPublication[];
-    lossReason?: string;
+    lossReason: string;
 }
 
 export interface Influencer extends Omit<NewInfluencer, 'lastUpdate'> {
@@ -172,7 +172,7 @@ export const updateInfluencer = async (id: string, userId: string, data: Updatab
       updateData.products = data.products;
     }
     
-    if (data.status !== 'Prejuízo') {
+    if (data.status !== 'Deu prejuízo') {
       updateData.lossReason = "";
     }
 
@@ -276,3 +276,5 @@ export const getInfluencers = (
   
     return unsubscribe;
   };
+
+    
