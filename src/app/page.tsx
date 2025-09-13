@@ -57,6 +57,7 @@ export default function HomePage() {
 
   const [sortBy, setSortBy] = useState<"lastUpdate" | "followers">("lastUpdate");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
   
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 50;
@@ -100,20 +101,27 @@ export default function HomePage() {
   const filteredInfluencers = useMemo(() => {
     let tempInfluencers = influencers;
 
-    if (!searchQuery) {
-      return tempInfluencers;
+    // Filter by status first
+    if (statusFilter !== "all") {
+        tempInfluencers = tempInfluencers.filter(
+            (influencer) => influencer.status === statusFilter
+        );
     }
-    const lowercasedQuery = searchQuery.toLowerCase();
-    return tempInfluencers.filter(
-      (influencer) =>
-        influencer.name.toLowerCase().includes(lowercasedQuery) ||
-        influencer.instagram.toLowerCase().includes(lowercasedQuery) ||
-        (influencer.notes &&
-          influencer.notes.toLowerCase().includes(lowercasedQuery)) ||
-        (influencer.status &&
-          influencer.status.toLowerCase().includes(lowercasedQuery))
-    );
-  }, [influencers, searchQuery]);
+    
+    // Then filter by search query
+    if (searchQuery) {
+        const lowercasedQuery = searchQuery.toLowerCase();
+        tempInfluencers = tempInfluencers.filter(
+          (influencer) =>
+            influencer.name.toLowerCase().includes(lowercasedQuery) ||
+            influencer.instagram.toLowerCase().includes(lowercasedQuery) ||
+            (influencer.notes &&
+              influencer.notes.toLowerCase().includes(lowercasedQuery))
+        );
+    }
+
+    return tempInfluencers;
+  }, [influencers, searchQuery, statusFilter]);
 
   const totalPages = Math.ceil(filteredInfluencers.length / itemsPerPage);
 
@@ -279,6 +287,23 @@ export default function HomePage() {
                             <SelectContent>
                               <SelectItem value="desc">Decrescente</SelectItem>
                               <SelectItem value="asc">Crescente</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="shrink-0 basis-auto">
+                          <Label htmlFor="status-filter" className="text-xs text-muted-foreground">Filtrar por Status</Label>
+                          <Select value={statusFilter} onValueChange={setStatusFilter}>
+                            <SelectTrigger id="status-filter" className="w-full min-w-[150px]">
+                              <SelectValue placeholder="Filtrar por status" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="all">Todos os Status</SelectItem>
+                              <SelectItem value="Publicidade Agendada">Publicidade Agendada</SelectItem>
+                              <SelectItem value="Contrato fechado">Contrato fechado</SelectItem>
+                              <SelectItem value="Deu prejuízo">Deu prejuízo</SelectItem>
+                              <SelectItem value="Deixou de dar lucro">Deixou de dar lucro</SelectItem>
+                              <SelectItem value="Golpista">Golpista</SelectItem>
+                              <SelectItem value="Desconhecido">Desconhecido</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
