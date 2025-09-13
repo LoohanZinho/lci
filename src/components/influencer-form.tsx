@@ -196,12 +196,6 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
-    if (!formData.status || formData.status === "Desconhecido") {
-      statusRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      setError("Por favor, selecione um status válido.");
-      return;
-    }
-
     if (!user) {
       setError("Você precisa estar logado para realizar esta ação.");
       return;
@@ -234,12 +228,12 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
             name: formData.name,
             instagram: formData.instagram.startsWith('@') ? formData.instagram : `@${formData.instagram}`,
             followers: parseInt(unformatFollowers(formData.followers), 10),
-            status: formData.status,
+            status: "Desconhecido", // Force status
             niche: formData.niche,
             notes: formData.notes,
             isFumo: formData.isFumo,
             products: formData.products,
-            lossReason: formData.lossReason,
+            lossReason: "", // Force empty
             proofImageUrls: finalImageUrls,
         };
         
@@ -329,28 +323,6 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
               </div>
             )}
           </div>
-          <div ref={statusRef} className="flex flex-col space-y-1.5">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="status">Status</Label>
-              {(!formData.status || formData.status === "Desconhecido") && <span className="text-xs text-destructive">Obrigatório</span>}
-            </div>
-            <Select name="status" value={formData.status} onValueChange={handleSelectChange} required disabled={isLoading}>
-              <SelectTrigger id="status"><SelectValue placeholder="Selecione o status" /></SelectTrigger>
-              <SelectContent position="popper">
-                <SelectItem value="Desconhecido">Desconhecido (Ninguém fechou)</SelectItem>
-                <SelectItem value="Em negociação">Em negociação</SelectItem>
-                <SelectItem value="Fechado">Fechado</SelectItem>
-                <SelectItem value="Prejuízo">Prejuízo</SelectItem>
-                <SelectItem value="Golpista">Golpista</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          {formData.status === 'Prejuízo' && (
-             <div className="flex flex-col space-y-1.5">
-                <Label htmlFor="lossReason">Diga mais sobre essa publi (opcional)</Label>
-                <Textarea id="lossReason" placeholder="Ex: Engajamento baixo, não converteu em vendas..." value={formData.lossReason} onChange={handleChange} disabled={isLoading} />
-            </div>
-          )}
           <div className="flex flex-col space-y-1.5">
             <Label htmlFor="notes">Observações/Situação (opcional)</Label>
             <Textarea id="notes" placeholder="Responde rápido, cobra valor fixo..." value={formData.notes} onChange={handleChange} disabled={isLoading} />
@@ -419,5 +391,3 @@ export function InfluencerForm({ influencer, onFinished }: InfluencerFormProps) 
     </div>
   );
 }
-
-    

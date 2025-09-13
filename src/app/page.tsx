@@ -57,7 +57,6 @@ export default function HomePage() {
 
   const [sortBy, setSortBy] = useState<"lastUpdate" | "followers">("lastUpdate");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
   
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 50;
@@ -101,12 +100,6 @@ export default function HomePage() {
   const filteredInfluencers = useMemo(() => {
     let tempInfluencers = influencers;
 
-    if (statusFilter !== "all") {
-      tempInfluencers = tempInfluencers.filter(
-        (influencer) => influencer.status === statusFilter
-      );
-    }
-
     if (!searchQuery) {
       return tempInfluencers;
     }
@@ -120,7 +113,7 @@ export default function HomePage() {
         (influencer.status &&
           influencer.status.toLowerCase().includes(lowercasedQuery))
     );
-  }, [influencers, searchQuery, statusFilter]);
+  }, [influencers, searchQuery]);
 
   const totalPages = Math.ceil(filteredInfluencers.length / itemsPerPage);
 
@@ -289,22 +282,6 @@ export default function HomePage() {
                             </SelectContent>
                           </Select>
                         </div>
-                        <div className="shrink-0 basis-auto">
-                          <Label htmlFor="status-filter" className="text-xs text-muted-foreground">Filtrar por Status</Label>
-                          <Select value={statusFilter} onValueChange={setStatusFilter}>
-                            <SelectTrigger id="status-filter" className="w-full min-w-[180px]">
-                              <SelectValue placeholder="Status" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="all">Todos</SelectItem>
-                              <SelectItem value="Desconhecido">Desconhecido (Ninguém fechou)</SelectItem>
-                              <SelectItem value="Em negociação">Em negociação</SelectItem>
-                              <SelectItem value="Fechado">Fechado</SelectItem>
-                              <SelectItem value="Prejuízo">Prejuízo</SelectItem>
-                              <SelectItem value="Golpista">Golpista</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
                     </div>
                 </div>
 
@@ -359,5 +336,3 @@ export default function HomePage() {
     </div>
   );
 }
-
-    
