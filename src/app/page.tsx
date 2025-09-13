@@ -216,7 +216,7 @@ export default function HomePage() {
             <div className="flex-1">
               <h2 className="text-2xl font-bold">
                 {greeting}, <div className="relative inline-block">
-                  <span className="relative z-10 text-transparent bg-clip-text bg-gradient-to-r from-[#fbda25] to-[#a98900]">{user.displayName || user.email}!</span>
+                  <span className="relative z-10 text-transparent bg-clip-text bg-gradient-to-r from-[#fbda25] to-[#a98900]">{user.displayName || user.email}</span>
                   <div className="absolute inset-0 z-0 bg-gradient-to-r from-[#fbda25]/20 to-[#a98900]/20 blur-xl" />
                 </div>
               </h2>
@@ -312,7 +312,6 @@ export default function HomePage() {
                             <SelectContent>
                               <SelectItem value="all">Todos os Status</SelectItem>
                               <SelectItem value="Publicidade Agendada">Publicidade Agendada</SelectItem>
-                              <SelectItem value="Contrato fechado">Contrato fechado</SelectItem>
                               <SelectItem value="Deu prejuízo">Deu prejuízo</SelectItem>
                               <SelectItem value="Deixou de dar lucro">Deixou de dar lucro</SelectItem>
                               <SelectItem value="Golpista">Golpista</SelectItem>
@@ -374,5 +373,3 @@ export default function HomePage() {
     </div>
   );
 }
-
-    
